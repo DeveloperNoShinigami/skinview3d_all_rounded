@@ -23,6 +23,10 @@ Three.js powered Minecraft skin viewer.
 
 [![CodeSandbox](https://img.shields.io/badge/Codesandbox-040404?style=for-the-badge&logo=codesandbox&logoColor=DBDBDB)](https://codesandbox.io/s/skinview3d-template-vdmuh4)
 
+Each texture option (`skin`, `cape`, `ears`, `background`, `panorama`, etc.)
+accepts a URL string, an existing `HTMLImageElement`/`HTMLCanvasElement`, or a
+user-uploaded `File`/`Blob` object.
+
 ```html
 <canvas id="skin_container"></canvas>
 <script>
@@ -76,8 +80,22 @@ Three.js powered Minecraft skin viewer.
 	// Pause the animation
 	skinViewer.animation.paused = true;
 
-	// Remove the animation
-	skinViewer.animation = null;
+        // Remove the animation
+        skinViewer.animation = null;
+</script>
+```
+
+```html
+<!-- Upload a new skin (the same approach works for capes, armor, items, panoramas, etc.) -->
+<input type="file" id="skin_file" accept="image/*">
+<script>
+        document.getElementById("skin_file").addEventListener("change", function (e) {
+                const file = e.target.files && e.target.files[0];
+                if (file) {
+                        skinViewer.loadSkin(file);
+                        // For capes, armor or item textures, call loadCape(file), loadEars(file), etc.
+                }
+        });
 </script>
 ```
 
