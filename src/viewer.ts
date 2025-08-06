@@ -130,7 +130,7 @@ export interface SkinViewerOptions {
 	 *
 	 * @defaultValue If unspecified, the skin will be invisible.
 	 */
-	skin?: RemoteImage | TextureSource;
+	skin?: RemoteImage | TextureSource | File | Blob;
 
 	/**
 	 * The model of the player (`"default"` for normal arms, and `"slim"` for slim arms).
@@ -148,7 +148,7 @@ export interface SkinViewerOptions {
 	 *
 	 * @defaultValue If unspecified, the cape will be invisible.
 	 */
-	cape?: RemoteImage | TextureSource;
+	cape?: RemoteImage | TextureSource | File | Blob;
 
 	/**
 	 * The ear texture of the player.
@@ -166,7 +166,7 @@ export interface SkinViewerOptions {
 		| "current-skin"
 		| {
 				textureType: "standalone" | "skin";
-				source: RemoteImage | TextureSource;
+				source: RemoteImage | TextureSource | File | Blob;
 		  };
 
 	/**
@@ -535,12 +535,15 @@ export class SkinViewer {
 	}
 
 	loadSkin(empty: null): void;
-	loadSkin<S extends TextureSource | RemoteImage>(
+	loadSkin<S extends TextureSource | RemoteImage | File | Blob>(
 		source: S,
 		options?: SkinLoadOptions
 	): S extends TextureSource ? void : Promise<void>;
 
-	loadSkin(source: TextureSource | RemoteImage | null, options: SkinLoadOptions = {}): void | Promise<void> {
+	loadSkin(
+		source: TextureSource | RemoteImage | File | Blob | null,
+		options: SkinLoadOptions = {}
+	): void | Promise<void> {
 		if (source === null) {
 			this.resetSkin();
 		} else if (isTextureSource(source)) {
@@ -564,6 +567,11 @@ export class SkinViewer {
 					this.playerObject.ears.visible = true;
 				}
 			}
+		} else if (source instanceof File || source instanceof Blob) {
+			const url = URL.createObjectURL(source);
+			return loadImage(url)
+				.then(image => this.loadSkin(image, options))
+				.finally(() => URL.revokeObjectURL(url));
 		} else {
 			return loadImage(source).then(image => this.loadSkin(image, options));
 		}
@@ -579,12 +587,15 @@ export class SkinViewer {
 	}
 
 	loadCape(empty: null): void;
-	loadCape<S extends TextureSource | RemoteImage>(
+	loadCape<S extends TextureSource | RemoteImage | File | Blob>(
 		source: S,
 		options?: CapeLoadOptions
 	): S extends TextureSource ? void : Promise<void>;
 
-	loadCape(source: TextureSource | RemoteImage | null, options: CapeLoadOptions = {}): void | Promise<void> {
+	loadCape(
+		source: TextureSource | RemoteImage | File | Blob | null,
+		options: CapeLoadOptions = {}
+	): void | Promise<void> {
 		if (source === null) {
 			this.resetCape();
 		} else if (isTextureSource(source)) {
@@ -594,6 +605,11 @@ export class SkinViewer {
 			if (options.makeVisible !== false) {
 				this.playerObject.backEquipment = options.backEquipment === undefined ? "cape" : options.backEquipment;
 			}
+		} else if (source instanceof File || source instanceof Blob) {
+			const url = URL.createObjectURL(source);
+			return loadImage(url)
+				.then(image => this.loadCape(image, options))
+				.finally(() => URL.revokeObjectURL(url));
 		} else {
 			return loadImage(source).then(image => this.loadCape(image, options));
 		}
@@ -610,12 +626,15 @@ export class SkinViewer {
 	}
 
 	loadEars(empty: null): void;
-	loadEars<S extends TextureSource | RemoteImage>(
+	loadEars<S extends TextureSource | RemoteImage | File | Blob>(
 		source: S,
 		options?: EarsLoadOptions
 	): S extends TextureSource ? void : Promise<void>;
 
-	loadEars(source: TextureSource | RemoteImage | null, options: EarsLoadOptions = {}): void | Promise<void> {
+	loadEars(
+		source: TextureSource | RemoteImage | File | Blob | null,
+		options: EarsLoadOptions = {}
+	): void | Promise<void> {
 		if (source === null) {
 			this.resetEars();
 		} else if (isTextureSource(source)) {
@@ -629,6 +648,11 @@ export class SkinViewer {
 			if (options.makeVisible !== false) {
 				this.playerObject.ears.visible = true;
 			}
+		} else if (source instanceof File || source instanceof Blob) {
+			const url = URL.createObjectURL(source);
+			return loadImage(url)
+				.then(image => this.loadEars(image, options))
+				.finally(() => URL.revokeObjectURL(url));
 		} else {
 			return loadImage(source).then(image => this.loadEars(image, options));
 		}
