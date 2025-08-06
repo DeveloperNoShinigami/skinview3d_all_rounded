@@ -1,6 +1,8 @@
 import * as skinview3d from "../src/skinview3d";
 import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
+import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
+import { Euler, Vector3 } from "three";
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
@@ -19,6 +21,11 @@ const animationClasses = {
 };
 
 let skinViewer: skinview3d.SkinViewer;
+let transformControls: TransformControls | null = null;
+const keyframes: Array<{ time: number; position: Vector3; rotation: Euler }> = [];
+let editorEnabled = false;
+let previousAutoRotate = false;
+let previousAnimationPaused = false;
 
 function obtainTextureUrl(id: string): string {
 	const urlInput = document.getElementById(id) as HTMLInputElement;
@@ -517,3 +524,72 @@ function initializeViewer(): void {
 
 initializeViewer();
 initializeControls();
+
+function toggleEditor(): void {
+	const editor = document.getElementById("animation_editor");
+	const skinContainer = document.getElementById("skin_container") as HTMLCanvasElement;
+	const canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
+	const canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
+	if (!editor || !skinContainer) {
+		return;
+	}
+
+	editorEnabled = !editorEnabled;
+	editor.classList.toggle("hidden", !editorEnabled);
+
+	if (editorEnabled) {
+		previousAutoRotate = skinViewer.autoRotate;
+		previousAnimationPaused = skinViewer.animation?.paused ?? false;
+		skinViewer.autoRotate = false;
+		if (skinViewer.animation) {
+			skinViewer.animation.paused = true;
+		}
+
+		skinContainer.classList.add("expanded");
+		skinViewer.width = 800;
+		skinViewer.height = 600;
+
+		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
+		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
+			skinViewer.controls.enabled = !e.value;
+		});
+		transformControls.attach(skinViewer.playerObject);
+		skinViewer.scene.add(transformControls);
+	} else {
+		skinViewer.autoRotate = previousAutoRotate;
+		if (skinViewer.animation) {
+			skinViewer.animation.paused = previousAnimationPaused;
+		}
+
+		skinContainer.classList.remove("expanded");
+		if (canvasWidth && canvasHeight) {
+			skinViewer.width = Number(canvasWidth.value);
+			skinViewer.height = Number(canvasHeight.value);
+		}
+
+		if (transformControls) {
+			skinViewer.scene.remove(transformControls);
+			transformControls.dispose();
+			transformControls = null;
+		}
+	}
+}
+
+function addKeyframe(): void {
+	keyframes.push({
+		time: Date.now(),
+		position: skinViewer.playerObject.position.clone(),
+		rotation: skinViewer.playerObject.rotation.clone(),
+	});
+	const timeline = document.getElementById("timeline");
+	if (timeline) {
+		const entry = document.createElement("div");
+		entry.textContent = `Keyframe ${keyframes.length}`;
+		timeline.appendChild(entry);
+	}
+}
+
+const toggleEditorBtn = document.getElementById("toggle_editor");
+toggleEditorBtn?.addEventListener("click", toggleEditor);
+const addKeyframeBtn = document.getElementById("add_keyframe");
+addKeyframeBtn?.addEventListener("click", addKeyframe);

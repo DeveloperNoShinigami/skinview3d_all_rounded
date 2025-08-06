@@ -23,6 +23,11 @@
 				align-self: flex-start;
 			}
 
+			#skin_container.expanded {
+				width: 800px;
+				height: 600px;
+			}
+
 			.controls {
 				flex: 1;
 				overflow-y: auto;
@@ -80,6 +85,15 @@
 
 		<div class="controls">
 			<button id="reset_all" type="button" class="control">Reset All</button>
+
+			<div class="control-section">
+				<h1>Animation Editor</h1>
+				<button id="toggle_editor" type="button" class="control">Create Animation</button>
+				<div id="animation_editor" class="hidden">
+					<div id="timeline"></div>
+					<button id="add_keyframe" type="button" class="control">Add Keyframe</button>
+				</div>
+			</div>
 
 			<div class="control-section">
 				<h1>Viewport</h1>
