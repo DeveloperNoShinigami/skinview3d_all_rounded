@@ -11,6 +11,7 @@ const availableAnimations = {
 	run: new skinview3d.RunningAnimation(),
 	fly: new skinview3d.FlyingAnimation(),
 	wave: new skinview3d.WaveAnimation(),
+	bend: new skinview3d.BendAnimation({ armBend: 0.5, legBend: 0.5, speed: 2 }),
 	crouch: new skinview3d.CrouchAnimation(),
 	hit: new skinview3d.HitAnimation(),
 };
@@ -512,8 +513,3 @@ function initializeViewer(): void {
 
 initializeViewer();
 initializeControls();
-skinViewer.animation = new skinview3d.BendAnimation({
-	armBend: 0.5,
-	legBend: 0.5,
-	speed: 2,
-});
