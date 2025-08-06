@@ -101,6 +101,50 @@ canvas: document.getElementById("skin_container"),
 skinViewer.animation = new BendAnimation();
 ```
 
+### Keyframe animations
+
+`KeyframeAnimation` lets you persist animations as JSON and restore them later.
+
+```ts
+import { KeyframeAnimation, createKeyframeAnimation } from "skinview3d";
+
+const anim = new KeyframeAnimation({
+  keyframes: [
+    {
+      time: 0,
+      bones: {
+        "skin.leftArm": [0, 0, 0],
+        "skin.rightArm": [0, 0, 0],
+      },
+    },
+    {
+      time: 1,
+      bones: {
+        "skin.leftArm": [Math.PI / 2, 0, 0],
+        "skin.rightArm": [-Math.PI / 2, 0, 0],
+      },
+    },
+  ],
+});
+
+const data = anim.toJSON();
+const rebuilt = createKeyframeAnimation(data);
+const source = anim.exportClass("WaveAnimation");
+```
+
+The serialized format is:
+
+```ts
+interface KeyframeData {
+  keyframes: Array<{
+    time: number;
+    bones: Record<string, [number, number, number]>; // rotations in radians
+  }>;
+}
+```
+
+Bone names are dotted paths relative to the `PlayerObject`, such as `"skin.leftArm"` or `"cape"`.
+
 ```html
 <!-- Upload a new skin (the same approach works for capes, armor, items, panoramas, etc.) -->
 <input type="file" id="skin_file" accept="image/*">
