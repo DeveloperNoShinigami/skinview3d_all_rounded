@@ -80,9 +80,19 @@ user-uploaded `File`/`Blob` object.
 	// Pause the animation
 	skinViewer.animation.paused = true;
 
-        // Remove the animation
-        skinViewer.animation = null;
+// Remove the animation
+skinViewer.animation = null;
 </script>
+```
+
+```js
+import { SkinViewer, BendAnimation } from "skinview3d";
+
+const skinViewer = new SkinViewer({
+canvas: document.getElementById("skin_container"),
+});
+
+skinViewer.animation = new BendAnimation();
 ```
 
 ```html
