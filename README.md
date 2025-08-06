@@ -71,8 +71,14 @@ user-uploaded `File`/`Blob` object.
 	// Rotate the player
 	skinViewer.autoRotate = true;
 
-	// Apply an animation
-	skinViewer.animation = new skinview3d.WalkingAnimation();
+        // Apply an animation
+        skinViewer.animation = new skinview3d.WalkingAnimation();
+
+        // Or create a keyframe animation
+        const kf = new skinview3d.KeyframeAnimation();
+        kf.addKeyframe("skin", 0, { rotation: { y: 0 } });
+        kf.addKeyframe("skin", 1, { rotation: { y: Math.PI } });
+        skinViewer.animation = kf;
 
 	// Set the speed of the animation
 	skinViewer.animation.speed = 3;
