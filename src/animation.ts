@@ -412,9 +412,19 @@ export class BendAnimation extends PlayerAnimation {
 
 	protected animate(player: PlayerObject): void {
 		const s = Math.sin(this.progress * 2 * Math.PI);
-		player.skin.leftArm.rotation.x = s * this.armBend;
-		player.skin.rightArm.rotation.x = -s * this.armBend;
-		player.skin.leftLeg.rotation.x = -s * this.legBend;
-		player.skin.rightLeg.rotation.x = s * this.legBend;
+		const arm = s * this.armBend;
+		const leg = s * this.legBend;
+		
+		// Bend arms around the shoulder and elbow joints for a smoother curve
+		player.skin.leftArm.rotation.x = arm * 0.5;
+		player.skin.leftArmElbow.rotation.x = arm * 0.5;
+		player.skin.rightArm.rotation.x = -arm * 0.5;
+		player.skin.rightArmElbow.rotation.x = -arm * 0.5;
+		
+		// Bend legs around the hip and knee joints
+		player.skin.leftLeg.rotation.x = -leg * 0.5;
+		player.skin.leftLegKnee.rotation.x = -leg * 0.5;
+		player.skin.rightLeg.rotation.x = leg * 0.5;
+		player.skin.rightLegKnee.rotation.x = leg * 0.5;
 	}
 }
