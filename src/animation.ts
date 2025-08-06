@@ -209,6 +209,84 @@ export class FunctionAnimation extends PlayerAnimation {
 	}
 }
 
+export interface TransformState {
+	position?: {
+		x: number;
+		y: number;
+		z: number;
+	};
+	rotation?: {
+		x: number;
+		y: number;
+		z: number;
+	};
+	scale?: {
+		x: number;
+		y: number;
+		z: number;
+	};
+}
+
+interface Keyframe {
+	time: number;
+	transform: TransformState;
+}
+
+export class KeyframeAnimation extends PlayerAnimation {
+	private keyframes: Map<keyof PlayerObject, Keyframe[]> = new Map();
+
+	addKeyframe(part: keyof PlayerObject, time: number, transform: TransformState): void {
+		const frames = this.keyframes.get(part) ?? [];
+		frames.push({ time, transform });
+		frames.sort((a, b) => a.time - b.time);
+		this.keyframes.set(part, frames);
+	}
+
+	protected animate(player: PlayerObject, _delta: number): void {
+		const current = this.progress;
+		this.keyframes.forEach((frames, part) => {
+			const obj = (player as any)[part];
+			if (!obj || frames.length === 0) {
+				return;
+			}
+			let prev = frames[0];
+			let next = frames[frames.length - 1];
+			for (const frame of frames) {
+				if (frame.time <= current) {
+					prev = frame;
+				}
+				if (frame.time > current) {
+					next = frame;
+					break;
+				}
+			}
+			const alpha = prev === next ? 0 : (current - prev.time) / (next.time - prev.time);
+			const lerp = (a: number, b: number) => a + (b - a) * alpha;
+			if (prev.transform.position || next.transform.position) {
+				const start = prev.transform.position ?? obj.position;
+				const end = next.transform.position ?? start;
+				obj.position.x = lerp(start.x, end.x);
+				obj.position.y = lerp(start.y, end.y);
+				obj.position.z = lerp(start.z, end.z);
+			}
+			if (prev.transform.rotation || next.transform.rotation) {
+				const start = prev.transform.rotation ?? obj.rotation;
+				const end = next.transform.rotation ?? start;
+				obj.rotation.x = lerp(start.x, end.x);
+				obj.rotation.y = lerp(start.y, end.y);
+				obj.rotation.z = lerp(start.z, end.z);
+			}
+			if (prev.transform.scale || next.transform.scale) {
+				const start = prev.transform.scale ?? obj.scale;
+				const end = next.transform.scale ?? start;
+				obj.scale.x = lerp(start.x, end.x);
+				obj.scale.y = lerp(start.y, end.y);
+				obj.scale.z = lerp(start.z, end.z);
+			}
+		});
+	}
+}
+
 export class IdleAnimation extends PlayerAnimation {
 	protected animate(player: PlayerObject): void {
 		// Multiply by animation's natural speed
@@ -488,10 +566,20 @@ export class BendAnimation extends PlayerAnimation {
 
 	protected animate(player: PlayerObject): void {
 		const s = Math.sin(this.progress * 2 * Math.PI);
-		player.skin.leftArm.rotation.x = s * this.armBend;
-		player.skin.rightArm.rotation.x = -s * this.armBend;
-		player.skin.leftLeg.rotation.x = -s * this.legBend;
-		player.skin.rightLeg.rotation.x = s * this.legBend;
+		const arm = s * this.armBend;
+		const leg = s * this.legBend;
+
+		// Bend arms around the shoulder and elbow joints for a smoother curve
+		player.skin.leftArm.rotation.x = arm * 0.5;
+		player.skin.leftArmElbow.rotation.x = arm * 0.5;
+		player.skin.rightArm.rotation.x = -arm * 0.5;
+		player.skin.rightArmElbow.rotation.x = -arm * 0.5;
+
+		// Bend legs around the hip and knee joints
+		player.skin.leftLeg.rotation.x = -leg * 0.5;
+		player.skin.leftLegKnee.rotation.x = -leg * 0.5;
+		player.skin.rightLeg.rotation.x = leg * 0.5;
+		player.skin.rightLegKnee.rotation.x = leg * 0.5;
 
 	}
 }
