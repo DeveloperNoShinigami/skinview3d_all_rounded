@@ -111,6 +111,82 @@ export abstract class PlayerAnimation {
 	}
 }
 
+export interface Keyframe {
+	/** progress value for this keyframe */
+	time: number;
+	/** bone rotations keyed by dotted bone path */
+	bones: Record<string, [number, number, number]>;
+}
+
+export interface KeyframeData {
+	keyframes: Keyframe[];
+}
+
+function resolveBone(player: PlayerObject, path: string): any {
+	return path.split(".").reduce((obj: any, key: string) => obj?.[key], player as any);
+}
+
+export class KeyframeAnimation extends PlayerAnimation {
+	private data: KeyframeData;
+
+	constructor(data: KeyframeData) {
+		super();
+		this.data = data;
+	}
+
+	protected animate(player: PlayerObject): void {
+		const frames = this.data.keyframes;
+		if (frames.length === 0) {
+			return;
+		}
+		const duration = frames[frames.length - 1].time;
+		const t = ((this.progress % duration) + duration) % duration;
+		let prev = frames[0];
+		let next = frames[frames.length - 1];
+		for (let i = 0; i < frames.length - 1; i++) {
+			if (t >= frames[i].time && t <= frames[i + 1].time) {
+				prev = frames[i];
+				next = frames[i + 1];
+				break;
+			}
+		}
+		const span = next.time - prev.time || 1;
+		const alpha = (t - prev.time) / span;
+		const bones = new Set([...Object.keys(prev.bones), ...Object.keys(next.bones)]);
+		for (const name of bones) {
+			const r0 = prev.bones[name] ?? [0, 0, 0];
+			const r1 = next.bones[name] ?? r0;
+			const rot = [r0[0] + (r1[0] - r0[0]) * alpha, r0[1] + (r1[1] - r0[1]) * alpha, r0[2] + (r1[2] - r0[2]) * alpha];
+			const obj = resolveBone(player, name);
+			if (obj && obj.rotation) {
+				obj.rotation.x = rot[0];
+				obj.rotation.y = rot[1];
+				obj.rotation.z = rot[2];
+			}
+		}
+	}
+
+	exportClass(name: string): string {
+		const json = JSON.stringify(this.data, null, 2);
+		return (
+			`import { KeyframeAnimation } from "skinview3d";\n\n` +
+			`export class ${name} extends KeyframeAnimation {\n` +
+			`  constructor() {\n` +
+			`    super(${json});\n` +
+			`  }\n` +
+			`}\n`
+		);
+	}
+
+	toJSON(): KeyframeData {
+		return this.data;
+	}
+}
+
+export function createKeyframeAnimation(data: KeyframeData): KeyframeAnimation {
+	return new KeyframeAnimation(data);
+}
+
 /**
  * A class that helps you create an animation from a function.
  *
@@ -416,5 +492,6 @@ export class BendAnimation extends PlayerAnimation {
 		player.skin.rightArm.rotation.x = -s * this.armBend;
 		player.skin.leftLeg.rotation.x = -s * this.legBend;
 		player.skin.rightLeg.rotation.x = s * this.legBend;
+
 	}
 }
