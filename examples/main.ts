@@ -2,18 +2,20 @@ import * as skinview3d from "../src/skinview3d";
 import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import "./style.css";
+import { GeneratedAnimation } from "./generated-animation";
 
 const skinParts = ["head", "body", "rightArm", "leftArm", "rightLeg", "leftLeg"];
 const skinLayers = ["innerLayer", "outerLayer"];
-const availableAnimations = {
-	idle: new skinview3d.IdleAnimation(),
-	walk: new skinview3d.WalkingAnimation(),
-	run: new skinview3d.RunningAnimation(),
-	fly: new skinview3d.FlyingAnimation(),
-	wave: new skinview3d.WaveAnimation(),
-	bend: new skinview3d.BendAnimation({ armBend: 0.5, legBend: 0.5, speed: 2 }),
-	crouch: new skinview3d.CrouchAnimation(),
-	hit: new skinview3d.HitAnimation(),
+const animationClasses = {
+	idle: skinview3d.IdleAnimation,
+	walk: skinview3d.WalkingAnimation,
+	run: skinview3d.RunningAnimation,
+	fly: skinview3d.FlyingAnimation,
+	wave: skinview3d.WaveAnimation,
+	bend: skinview3d.BendAnimation,
+	crouch: skinview3d.CrouchAnimation,
+	hit: skinview3d.HitAnimation,
+	generated: GeneratedAnimation,
 };
 
 let skinViewer: skinview3d.SkinViewer;
@@ -252,9 +254,10 @@ function initializeControls(): void {
 			if (target.value === "") {
 				skinViewer.animation = null;
 			} else {
-				skinViewer.animation = availableAnimations[target.value];
-				if (skinViewer.animation && animationSpeed) {
-					skinViewer.animation.speed = Number(animationSpeed.value);
+				const cls = animationClasses[target.value as keyof typeof animationClasses];
+				const anim = cls ? skinViewer.loadAnimationClass(cls) : null;
+				if (anim && animationSpeed) {
+					anim.speed = Number(animationSpeed.value);
 				}
 			}
 		});
@@ -304,9 +307,9 @@ function initializeControls(): void {
 	};
 
 	const updateCrouchAnimation = () => {
-		skinViewer.animation = new skinview3d.CrouchAnimation();
-		if (skinViewer.animation && animationSpeed) {
-			skinViewer.animation.speed = Number(animationSpeed.value);
+		const anim = skinViewer.loadAnimationClass(skinview3d.CrouchAnimation);
+		if (anim && animationSpeed) {
+			anim.speed = Number(animationSpeed.value);
 		}
 		const crouchSettingItems = document.querySelectorAll<HTMLInputElement>(
 			'input[type="checkbox"][name="crouch_setting_item"]'
@@ -485,9 +488,10 @@ function initializeViewer(): void {
 	const animationRadio = document.querySelector<HTMLInputElement>('input[type="radio"][name="animation"]:checked');
 	const animationName = animationRadio?.value;
 	if (animationName) {
-		skinViewer.animation = availableAnimations[animationName];
-		if (skinViewer.animation && animationSpeed) {
-			skinViewer.animation.speed = Number(animationSpeed.value);
+		const cls = animationClasses[animationName as keyof typeof animationClasses];
+		const anim = cls ? skinViewer.loadAnimationClass(cls) : null;
+		if (anim && animationSpeed) {
+			anim.speed = Number(animationSpeed.value);
 		}
 	}
 

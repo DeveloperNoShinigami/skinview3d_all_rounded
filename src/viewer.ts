@@ -897,6 +897,18 @@ export class SkinViewer {
 	}
 
 	/**
+	 * Instantiates the given animation class and assigns it as the current animation.
+	 *
+	 * @param cls - The animation class to instantiate.
+	 * @returns The created animation instance.
+	 */
+	loadAnimationClass(cls: typeof PlayerAnimation): PlayerAnimation {
+		const animation = new (cls as new () => PlayerAnimation)();
+		this.animation = animation;
+		return animation;
+	}
+
+	/**
 	 * The name tag to display above the player, or `null` if there is none.
 	 *
 	 * When setting this property to a `string` value, a {@link NameTagObject}
