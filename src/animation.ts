@@ -413,8 +413,8 @@ export class BendAnimation extends PlayerAnimation {
 	protected animate(player: PlayerObject): void {
 		const s = Math.sin(this.progress * 2 * Math.PI);
 		player.skin.leftArm.rotation.x = s * this.armBend;
-		player.skin.rightArm.rotation.x = s * this.armBend;
-		player.skin.leftLeg.rotation.x = s * this.legBend;
+		player.skin.rightArm.rotation.x = -s * this.armBend;
+		player.skin.leftLeg.rotation.x = -s * this.legBend;
 		player.skin.rightLeg.rotation.x = s * this.legBend;
 	}
 }
