@@ -512,3 +512,8 @@ function initializeViewer(): void {
 
 initializeViewer();
 initializeControls();
+skinViewer.animation = new skinview3d.BendAnimation({
+	armBend: 0.5,
+	legBend: 0.5,
+	speed: 2,
+});
