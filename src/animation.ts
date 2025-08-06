@@ -377,3 +377,44 @@ export class HitAnimation extends PlayerAnimation {
 		player.skin.leftArm.position.x = 5 - Math.cos(t) * 0.05;
 	}
 }
+
+export interface BendAnimationOptions {
+	/**
+	 * Amount of arm bending.
+	 *
+	 * @defaultValue `0.5`
+	 */
+	armBend?: number;
+	/**
+	 * Amount of leg bending.
+	 *
+	 * @defaultValue `0.5`
+	 */
+	legBend?: number;
+	/**
+	 * Speed of the animation.
+	 *
+	 * @defaultValue `1.0`
+	 */
+	speed?: number;
+}
+
+export class BendAnimation extends PlayerAnimation {
+	armBend: number;
+	legBend: number;
+
+	constructor({ armBend = 0.5, legBend = 0.5, speed = 1 }: BendAnimationOptions = {}) {
+		super();
+		this.armBend = armBend;
+		this.legBend = legBend;
+		this.speed = speed;
+	}
+
+	protected animate(player: PlayerObject): void {
+		const s = Math.sin(this.progress * 2 * Math.PI);
+		player.skin.leftArm.rotation.x = s * this.armBend;
+		player.skin.rightArm.rotation.x = s * this.armBend;
+		player.skin.leftLeg.rotation.x = s * this.legBend;
+		player.skin.rightLeg.rotation.x = s * this.legBend;
+	}
+}
