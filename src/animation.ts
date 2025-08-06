@@ -455,31 +455,31 @@ export class HitAnimation extends PlayerAnimation {
 }
 
 export interface BendAnimationOptions {
-	/**
-	 * Amount of arm bending.
-	 *
-	 * @defaultValue `0.5`
-	 */
-	armBend?: number;
-	/**
-	 * Amount of leg bending.
-	 *
-	 * @defaultValue `0.5`
-	 */
-	legBend?: number;
-	/**
-	 * Speed of the animation.
-	 *
-	 * @defaultValue `1.0`
-	 */
-	speed?: number;
+/**
+ * Amount of arm bending in radians.
+ *
+ * @defaultValue `Math.PI / 2`
+ */
+armBend?: number;
+/**
+ * Amount of leg bending in radians.
+ *
+ * @defaultValue `Math.PI / 2`
+ */
+legBend?: number;
+/**
+ * Speed of the animation.
+ *
+ * @defaultValue `1.0`
+ */
+speed?: number;
 }
 
 export class BendAnimation extends PlayerAnimation {
 	armBend: number;
 	legBend: number;
 
-	constructor({ armBend = 0.5, legBend = 0.5, speed = 1 }: BendAnimationOptions = {}) {
+	constructor({ armBend = Math.PI / 2, legBend = Math.PI / 2, speed = 1 }: BendAnimationOptions = {}) {
 		super();
 		this.armBend = armBend;
 		this.legBend = legBend;
@@ -488,19 +488,10 @@ export class BendAnimation extends PlayerAnimation {
 
 	protected animate(player: PlayerObject): void {
 		const s = Math.sin(this.progress * 2 * Math.PI);
-		const arm = s * this.armBend;
-		const leg = s * this.legBend;
+		player.skin.leftArm.rotation.x = s * this.armBend;
+		player.skin.rightArm.rotation.x = -s * this.armBend;
+		player.skin.leftLeg.rotation.x = -s * this.legBend;
+		player.skin.rightLeg.rotation.x = s * this.legBend;
 
-		// Bend arms around the shoulder and elbow joints for a smoother curve
-		player.skin.leftArm.rotation.x = arm * 0.5;
-		player.skin.leftArmElbow.rotation.x = arm * 0.5;
-		player.skin.rightArm.rotation.x = -arm * 0.5;
-		player.skin.rightArmElbow.rotation.x = -arm * 0.5;
-
-		// Bend legs around the hip and knee joints
-		player.skin.leftLeg.rotation.x = -leg * 0.5;
-		player.skin.leftLegKnee.rotation.x = -leg * 0.5;
-		player.skin.rightLeg.rotation.x = leg * 0.5;
-		player.skin.rightLegKnee.rotation.x = leg * 0.5;
 	}
 }
