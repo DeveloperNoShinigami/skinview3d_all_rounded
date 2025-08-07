@@ -8,7 +8,26 @@ import { Euler, Mesh, MeshBasicMaterial, Object3D, Quaternion, SphereGeometry, V
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
-const skinParts = ["head", "body", "rightArm", "leftArm", "rightLeg", "leftLeg"];
+const skinParts = [
+	"head",
+	"body",
+	"rightArm",
+	"leftArm",
+	"rightLeg",
+	"leftLeg",
+	"rightArmElbow",
+	"leftArmElbow",
+	"rightLegKnee",
+	"leftLegKnee",
+	"rightArmLower",
+	"leftArmLower",
+	"rightLegLower",
+	"leftLegLower",
+	"rightHand",
+	"leftHand",
+	"rightFoot",
+	"leftFoot",
+];
 const skinLayers = ["innerLayer", "outerLayer"];
 const animationClasses = {
 	idle: skinview3d.IdleAnimation,
@@ -46,6 +65,18 @@ function updateJointHighlight(enabled: boolean): void {
 			skinViewer.playerObject.skin.leftArmJoint,
 			skinViewer.playerObject.skin.rightLegJoint,
 			skinViewer.playerObject.skin.leftLegJoint,
+			skinViewer.playerObject.skin.rightArmElbow,
+			skinViewer.playerObject.skin.leftArmElbow,
+			skinViewer.playerObject.skin.rightLegKnee,
+			skinViewer.playerObject.skin.leftLegKnee,
+			skinViewer.playerObject.skin.rightArmLower,
+			skinViewer.playerObject.skin.leftArmLower,
+			skinViewer.playerObject.skin.rightLegLower,
+			skinViewer.playerObject.skin.leftLegLower,
+			skinViewer.playerObject.skin.rightHand,
+			skinViewer.playerObject.skin.leftHand,
+			skinViewer.playerObject.skin.rightFoot,
+			skinViewer.playerObject.skin.leftFoot,
 		];
 		for (const joint of joints) {
 			const helper = new BoxHelper(joint, 0xff0000);
@@ -583,13 +614,18 @@ function initializeControls(): void {
 	});
 
 	for (const part of skinParts) {
+		const skinPart = (skinViewer.playerObject.skin as any)[part];
 		for (const layer of skinLayers) {
+			const skinLayer = skinPart?.[layer];
+			if (!skinLayer) {
+				continue;
+			}
 			const checkbox = document.querySelector<HTMLInputElement>(
 				`#layers_table input[type="checkbox"][data-part="${part}"][data-layer="${layer}"]`
 			);
 			checkbox?.addEventListener("change", e => {
 				const target = e.target as HTMLInputElement;
-				skinViewer.playerObject.skin[part][layer].visible = target.checked;
+				skinLayer.visible = target.checked;
 			});
 		}
 	}
@@ -723,11 +759,16 @@ function initializeViewer(): void {
 	skinViewer.controls.enablePan = controlPan?.checked ?? false;
 
 	for (const part of skinParts) {
+		const skinPart = (skinViewer.playerObject.skin as any)[part];
 		for (const layer of skinLayers) {
+			const skinLayer = skinPart?.[layer];
+			if (!skinLayer) {
+				continue;
+			}
 			const checkbox = document.querySelector<HTMLInputElement>(
 				`#layers_table input[type="checkbox"][data-part="${part}"][data-layer="${layer}"]`
 			);
-			skinViewer.playerObject.skin[part][layer].visible = checkbox?.checked ?? false;
+			skinLayer.visible = checkbox?.checked ?? false;
 		}
 	}
 
