@@ -532,6 +532,27 @@ function initializeViewer(): void {
 
 initializeViewer();
 initializeControls();
+initializeBoneSelector();
+
+function initializeBoneSelector(): void {
+	const selector = document.getElementById("bone_selector") as HTMLSelectElement;
+	if (!selector) {
+		return;
+	}
+
+	selector.innerHTML = "";
+	const playerOption = document.createElement("option");
+	playerOption.value = "playerObject";
+	playerOption.textContent = "Player";
+	selector.appendChild(playerOption);
+
+	for (const part of skinParts) {
+		const option = document.createElement("option");
+		option.value = `skin.${part}`;
+		option.textContent = `skin.${part}`;
+		selector.appendChild(option);
+	}
+}
 
 function toggleEditor(): void {
 	const editor = document.getElementById("animation_editor");
