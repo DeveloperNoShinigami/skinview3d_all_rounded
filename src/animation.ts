@@ -496,15 +496,23 @@ export class BendAnimation extends PlayerAnimation {
 		const leg = s * this.legBend;
 
 		// Bend arms around the shoulder and elbow joints for a smoother curve
-		player.skin.leftArm.rotation.x = arm * 0.5;
-		player.skin.leftArmElbow.rotation.x = arm * 0.5;
-		player.skin.rightArm.rotation.x = arm * 0.5;
-		player.skin.rightArmElbow.rotation.x = arm * 0.5;
+		const armUpper = 5;
+		const armLower = 5;
+		const armShoulderRatio = armLower / (armUpper + armLower);
+		const armElbowRatio = armUpper / (armUpper + armLower);
+		player.skin.leftArm.rotation.x = arm * armShoulderRatio;
+		player.skin.leftArmElbow.rotation.x = arm * armElbowRatio;
+		player.skin.rightArm.rotation.x = arm * armShoulderRatio;
+		player.skin.rightArmElbow.rotation.x = arm * armElbowRatio;
 
 		// Bend legs around the hip and knee joints
-		player.skin.leftLeg.rotation.x = -leg * 0.5;
-		player.skin.leftLegKnee.rotation.x = -leg * 0.5;
-		player.skin.rightLeg.rotation.x = -leg * 0.5;
-		player.skin.rightLegKnee.rotation.x = -leg * 0.5;
+		const legUpper = 5;
+		const legLower = 5;
+		const legHipRatio = legLower / (legUpper + legLower);
+		const legKneeRatio = legUpper / (legUpper + legLower);
+		player.skin.leftLeg.rotation.x = -leg * legHipRatio;
+		player.skin.leftLegKnee.rotation.x = -leg * legKneeRatio;
+		player.skin.rightLeg.rotation.x = -leg * legHipRatio;
+		player.skin.rightLegKnee.rotation.x = -leg * legKneeRatio;
 	}
 }
