@@ -266,7 +266,7 @@ function setupIK(): void {
 
 	const rightHandTarget = new Object3D();
 
-	rightHandTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
+	rightHandTarget.position.copy(skin.rightHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightHandTarget);
 	const rIK = new IK();
 	const rChain = new IKChain();
@@ -274,19 +274,19 @@ function setupIK(): void {
 	rChain.add(rRoot); // keep shoulder static
 	rChain.add(new IKJoint(skin.rightArmElbow));
 	rChain.add(new IKJoint(skin.rightArmLower));
-	rChain.add(new IKJoint(skin.rightArmHand), { target: rightHandTarget });
+	rChain.add(new IKJoint(skin.rightHand), { target: rightHandTarget });
 	rChain.effectorIndex = rChain.joints.length - 1;
 	rIK.add(rChain);
 	ikChains["ik.rightArm"] = {
 		target: rightHandTarget,
 		ik: rIK,
-		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
+		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightHand"],
 		root: rRoot,
 	};
 
 	const leftHandTarget = new Object3D();
 
-	leftHandTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
+	leftHandTarget.position.copy(skin.leftHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftHandTarget);
 	const lIK = new IK();
 	const lChain = new IKChain();
@@ -294,14 +294,14 @@ function setupIK(): void {
 	lChain.add(lRoot); // keep shoulder static
 	lChain.add(new IKJoint(skin.leftArmElbow));
 	lChain.add(new IKJoint(skin.leftArmLower));
-	lChain.add(new IKJoint(skin.leftArmHand), { target: leftHandTarget });
+	lChain.add(new IKJoint(skin.leftHand), { target: leftHandTarget });
 	lChain.effectorIndex = lChain.joints.length - 1;
 	lIK.add(lChain);
 	ikChains["ik.leftArm"] = {
 		target: leftHandTarget,
 
 		ik: lIK,
-		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
+		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftHand"],
 		root: lRoot,
 	};
 
