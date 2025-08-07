@@ -181,25 +181,25 @@ export class SkinObject extends Group {
 		const rightUpperArmMesh = new Mesh(rightUpperArmBox, this.layer1MaterialBiased);
 		this.modelListeners.push(() => {
 			rightUpperArmMesh.scale.x = this.slim ? 3 : 4;
-			rightUpperArmMesh.scale.y = 6;
+			rightUpperArmMesh.scale.y = 5;
 			rightUpperArmMesh.scale.z = 4;
-			setSkinUVs(rightUpperArmBox, 40, 16, this.slim ? 3 : 4, 6, 4);
+			setSkinUVs(rightUpperArmBox, 40, 16, this.slim ? 3 : 4, 5, 4);
 		});
-		rightUpperArmMesh.position.y = -3;
+		rightUpperArmMesh.position.y = -2.5;
 
 		const rightUpperArm2Box = new BoxGeometry();
 		const rightUpperArm2Mesh = new Mesh(rightUpperArm2Box, this.layer2MaterialBiased);
 		this.modelListeners.push(() => {
 			rightUpperArm2Mesh.scale.x = this.slim ? 3.5 : 4.5;
-			rightUpperArm2Mesh.scale.y = 6.5;
+			rightUpperArm2Mesh.scale.y = 5.5;
 			rightUpperArm2Mesh.scale.z = 4.5;
-			setSkinUVs(rightUpperArm2Box, 40, 32, this.slim ? 3 : 4, 6, 4);
+			setSkinUVs(rightUpperArm2Box, 40, 32, this.slim ? 3 : 4, 5, 4);
 		});
-		rightUpperArm2Mesh.position.y = -3;
+		rightUpperArm2Mesh.position.y = -2.5;
 
 		this.rightArmElbow = new Group();
 		this.rightArmElbow.name = "rightArmElbow";
-		this.rightArmElbow.position.y = -7;
+		this.rightArmElbow.position.y = -6;
 
 		const rightElbowBox = new BoxGeometry();
 		const rightElbowMesh = new Mesh(rightElbowBox, this.layer1MaterialBiased);
@@ -207,7 +207,7 @@ export class SkinObject extends Group {
 			rightElbowMesh.scale.x = this.slim ? 3 : 4;
 			rightElbowMesh.scale.y = 2;
 			rightElbowMesh.scale.z = 4;
-			setSkinUVs(rightElbowBox, 40, 22, this.slim ? 3 : 4, 2, 4);
+			setSkinUVs(rightElbowBox, 40, 21, this.slim ? 3 : 4, 2, 4);
 		});
 		rightElbowMesh.position.y = 0;
 
@@ -217,7 +217,7 @@ export class SkinObject extends Group {
 			rightElbow2Mesh.scale.x = this.slim ? 3.5 : 4.5;
 			rightElbow2Mesh.scale.y = 2.5;
 			rightElbow2Mesh.scale.z = 4.5;
-			setSkinUVs(rightElbow2Box, 40, 38, this.slim ? 3 : 4, 2, 4);
+			setSkinUVs(rightElbow2Box, 40, 37, this.slim ? 3 : 4, 2, 4);
 		});
 		rightElbow2Mesh.position.y = 0;
 
@@ -230,21 +230,21 @@ export class SkinObject extends Group {
 		const rightLowerArmMesh = new Mesh(rightLowerArmBox, this.layer1MaterialBiased);
 		this.modelListeners.push(() => {
 			rightLowerArmMesh.scale.x = this.slim ? 3 : 4;
-			rightLowerArmMesh.scale.y = 6;
+			rightLowerArmMesh.scale.y = 5;
 			rightLowerArmMesh.scale.z = 4;
-			setSkinUVs(rightLowerArmBox, 40, 22, this.slim ? 3 : 4, 6, 4);
+			setSkinUVs(rightLowerArmBox, 40, 23, this.slim ? 3 : 4, 5, 4);
 		});
-		rightLowerArmMesh.position.y = -3;
+		rightLowerArmMesh.position.y = -2.5;
 
 		const rightLowerArm2Box = new BoxGeometry();
 		const rightLowerArm2Mesh = new Mesh(rightLowerArm2Box, this.layer2MaterialBiased);
 		this.modelListeners.push(() => {
 			rightLowerArm2Mesh.scale.x = this.slim ? 3.5 : 4.5;
-			rightLowerArm2Mesh.scale.y = 6.5;
+			rightLowerArm2Mesh.scale.y = 5.5;
 			rightLowerArm2Mesh.scale.z = 4.5;
-			setSkinUVs(rightLowerArm2Box, 40, 38, this.slim ? 3 : 4, 6, 4);
+			setSkinUVs(rightLowerArm2Box, 40, 39, this.slim ? 3 : 4, 5, 4);
 		});
-		rightLowerArm2Mesh.position.y = -3;
+		rightLowerArm2Mesh.position.y = -2.5;
 
 		this.rightArmLower = new BodyPart(rightLowerArmMesh, rightLowerArm2Mesh);
 		this.rightArmLower.name = "rightArmLower";
@@ -262,8 +262,7 @@ export class SkinObject extends Group {
 
 		this.rightHand = new BodyPart(rightHandMesh, rightHand2Mesh);
 		this.rightHand.name = "rightHand";
-		this.rightHand.position.y = -6;
-		this.rightHand.add(rightHandMesh, rightHand2Mesh);
+		this.rightHand.position.y = -5;
 		this.rightArmLower.add(this.rightHand);
 		this.rightArmElbow.add(this.rightArmLower);
 
@@ -286,25 +285,25 @@ export class SkinObject extends Group {
 		const leftUpperArmMesh = new Mesh(leftUpperArmBox, this.layer1MaterialBiased);
 		this.modelListeners.push(() => {
 			leftUpperArmMesh.scale.x = this.slim ? 3 : 4;
-			leftUpperArmMesh.scale.y = 6;
+			leftUpperArmMesh.scale.y = 5;
 			leftUpperArmMesh.scale.z = 4;
-			setSkinUVs(leftUpperArmBox, 32, 48, this.slim ? 3 : 4, 6, 4);
+			setSkinUVs(leftUpperArmBox, 32, 48, this.slim ? 3 : 4, 5, 4);
 		});
-		leftUpperArmMesh.position.y = -3;
+		leftUpperArmMesh.position.y = -2.5;
 
 		const leftUpperArm2Box = new BoxGeometry();
 		const leftUpperArm2Mesh = new Mesh(leftUpperArm2Box, this.layer2MaterialBiased);
 		this.modelListeners.push(() => {
 			leftUpperArm2Mesh.scale.x = this.slim ? 3.5 : 4.5;
-			leftUpperArm2Mesh.scale.y = 6.5;
+			leftUpperArm2Mesh.scale.y = 5.5;
 			leftUpperArm2Mesh.scale.z = 4.5;
-			setSkinUVs(leftUpperArm2Box, 48, 48, this.slim ? 3 : 4, 6, 4);
+			setSkinUVs(leftUpperArm2Box, 48, 48, this.slim ? 3 : 4, 5, 4);
 		});
-		leftUpperArm2Mesh.position.y = -3;
+		leftUpperArm2Mesh.position.y = -2.5;
 
 		this.leftArmElbow = new Group();
 		this.leftArmElbow.name = "leftArmElbow";
-		this.leftArmElbow.position.y = -7;
+		this.leftArmElbow.position.y = -6;
 
 		const leftElbowBox = new BoxGeometry();
 		const leftElbowMesh = new Mesh(leftElbowBox, this.layer1MaterialBiased);
@@ -312,7 +311,7 @@ export class SkinObject extends Group {
 			leftElbowMesh.scale.x = this.slim ? 3 : 4;
 			leftElbowMesh.scale.y = 2;
 			leftElbowMesh.scale.z = 4;
-			setSkinUVs(leftElbowBox, 32, 54, this.slim ? 3 : 4, 2, 4);
+			setSkinUVs(leftElbowBox, 32, 53, this.slim ? 3 : 4, 2, 4);
 		});
 		leftElbowMesh.position.y = 0;
 
@@ -322,7 +321,7 @@ export class SkinObject extends Group {
 			leftElbow2Mesh.scale.x = this.slim ? 3.5 : 4.5;
 			leftElbow2Mesh.scale.y = 2.5;
 			leftElbow2Mesh.scale.z = 4.5;
-			setSkinUVs(leftElbow2Box, 48, 54, this.slim ? 3 : 4, 2, 4);
+			setSkinUVs(leftElbow2Box, 48, 53, this.slim ? 3 : 4, 2, 4);
 		});
 		leftElbow2Mesh.position.y = 0;
 
@@ -335,21 +334,21 @@ export class SkinObject extends Group {
 		const leftLowerArmMesh = new Mesh(leftLowerArmBox, this.layer1MaterialBiased);
 		this.modelListeners.push(() => {
 			leftLowerArmMesh.scale.x = this.slim ? 3 : 4;
-			leftLowerArmMesh.scale.y = 6;
+			leftLowerArmMesh.scale.y = 5;
 			leftLowerArmMesh.scale.z = 4;
-			setSkinUVs(leftLowerArmBox, 32, 54, this.slim ? 3 : 4, 6, 4);
+			setSkinUVs(leftLowerArmBox, 32, 55, this.slim ? 3 : 4, 5, 4);
 		});
-		leftLowerArmMesh.position.y = -3;
+		leftLowerArmMesh.position.y = -2.5;
 
 		const leftLowerArm2Box = new BoxGeometry();
 		const leftLowerArm2Mesh = new Mesh(leftLowerArm2Box, this.layer2MaterialBiased);
 		this.modelListeners.push(() => {
 			leftLowerArm2Mesh.scale.x = this.slim ? 3.5 : 4.5;
-			leftLowerArm2Mesh.scale.y = 6.5;
+			leftLowerArm2Mesh.scale.y = 5.5;
 			leftLowerArm2Mesh.scale.z = 4.5;
-			setSkinUVs(leftLowerArm2Box, 48, 54, this.slim ? 3 : 4, 6, 4);
+			setSkinUVs(leftLowerArm2Box, 48, 55, this.slim ? 3 : 4, 5, 4);
 		});
-		leftLowerArm2Mesh.position.y = -3;
+		leftLowerArm2Mesh.position.y = -2.5;
 
 		this.leftArmLower = new BodyPart(leftLowerArmMesh, leftLowerArm2Mesh);
 		this.leftArmLower.name = "leftArmLower";
@@ -367,8 +366,7 @@ export class SkinObject extends Group {
 
 		this.leftHand = new BodyPart(leftHandMesh, leftHand2Mesh);
 		this.leftHand.name = "leftHand";
-		this.leftHand.position.y = -6;
-		this.leftHand.add(leftHandMesh, leftHand2Mesh);
+		this.leftHand.position.y = -5;
 		this.leftArmLower.add(this.leftHand);
 		this.leftArmElbow.add(this.leftArmLower);
 
@@ -389,30 +387,30 @@ export class SkinObject extends Group {
 		// Right Leg
 		const rightUpperLegBox = new BoxGeometry();
 		const rightUpperLegMesh = new Mesh(rightUpperLegBox, this.layer1MaterialBiased);
-		rightUpperLegMesh.scale.set(4, 6, 4);
-		setSkinUVs(rightUpperLegBox, 0, 16, 4, 6, 4);
-		rightUpperLegMesh.position.y = -3;
+		rightUpperLegMesh.scale.set(4, 5, 4);
+		setSkinUVs(rightUpperLegBox, 0, 16, 4, 5, 4);
+		rightUpperLegMesh.position.y = -2.5;
 
 		const rightUpperLeg2Box = new BoxGeometry();
 		const rightUpperLeg2Mesh = new Mesh(rightUpperLeg2Box, this.layer2MaterialBiased);
-		rightUpperLeg2Mesh.scale.set(4.5, 6.5, 4.5);
-		setSkinUVs(rightUpperLeg2Box, 0, 32, 4, 6, 4);
-		rightUpperLeg2Mesh.position.y = -3;
+		rightUpperLeg2Mesh.scale.set(4.5, 5.5, 4.5);
+		setSkinUVs(rightUpperLeg2Box, 0, 32, 4, 5, 4);
+		rightUpperLeg2Mesh.position.y = -2.5;
 
 		this.rightLegKnee = new Group();
 		this.rightLegKnee.name = "rightLegKnee";
-		this.rightLegKnee.position.y = -7;
+		this.rightLegKnee.position.y = -6;
 
 		const rightKneeBox = new BoxGeometry();
 		const rightKneeMesh = new Mesh(rightKneeBox, this.layer1MaterialBiased);
 		rightKneeMesh.scale.set(4, 2, 4);
-		setSkinUVs(rightKneeBox, 0, 22, 4, 2, 4);
+		setSkinUVs(rightKneeBox, 0, 21, 4, 2, 4);
 		rightKneeMesh.position.y = 0;
 
 		const rightKnee2Box = new BoxGeometry();
 		const rightKnee2Mesh = new Mesh(rightKnee2Box, this.layer2MaterialBiased);
 		rightKnee2Mesh.scale.set(4.5, 2.5, 4.5);
-		setSkinUVs(rightKnee2Box, 0, 38, 4, 2, 4);
+		setSkinUVs(rightKnee2Box, 0, 37, 4, 2, 4);
 		rightKnee2Mesh.position.y = 0;
 
 		this.rightLegJoint = new BodyPart(rightKneeMesh, rightKnee2Mesh);
@@ -422,15 +420,15 @@ export class SkinObject extends Group {
 
 		const rightLowerLegBox = new BoxGeometry();
 		const rightLowerLegMesh = new Mesh(rightLowerLegBox, this.layer1MaterialBiased);
-		rightLowerLegMesh.scale.set(4, 6, 4);
-		setSkinUVs(rightLowerLegBox, 0, 22, 4, 6, 4);
-		rightLowerLegMesh.position.y = -3;
+		rightLowerLegMesh.scale.set(4, 5, 4);
+		setSkinUVs(rightLowerLegBox, 0, 23, 4, 5, 4);
+		rightLowerLegMesh.position.y = -2.5;
 
 		const rightLowerLeg2Box = new BoxGeometry();
 		const rightLowerLeg2Mesh = new Mesh(rightLowerLeg2Box, this.layer2MaterialBiased);
-		rightLowerLeg2Mesh.scale.set(4.5, 6.5, 4.5);
-		setSkinUVs(rightLowerLeg2Box, 0, 38, 4, 6, 4);
-		rightLowerLeg2Mesh.position.y = -3;
+		rightLowerLeg2Mesh.scale.set(4.5, 5.5, 4.5);
+		setSkinUVs(rightLowerLeg2Box, 0, 39, 4, 5, 4);
+		rightLowerLeg2Mesh.position.y = -2.5;
 
 		this.rightLegLower = new BodyPart(rightLowerLegMesh, rightLowerLeg2Mesh);
 		this.rightLegLower.name = "rightLegLower";
@@ -448,8 +446,7 @@ export class SkinObject extends Group {
 
 		this.rightFoot = new BodyPart(rightFootMesh, rightFoot2Mesh);
 		this.rightFoot.name = "rightFoot";
-		this.rightFoot.position.y = -6;
-		this.rightFoot.add(rightFootMesh, rightFoot2Mesh);
+		this.rightFoot.position.y = -5;
 		this.rightLegLower.add(this.rightFoot);
 		this.rightLegKnee.add(this.rightLegLower);
 
@@ -464,30 +461,30 @@ export class SkinObject extends Group {
 		// Left Leg
 		const leftUpperLegBox = new BoxGeometry();
 		const leftUpperLegMesh = new Mesh(leftUpperLegBox, this.layer1MaterialBiased);
-		leftUpperLegMesh.scale.set(4, 6, 4);
-		setSkinUVs(leftUpperLegBox, 16, 48, 4, 6, 4);
-		leftUpperLegMesh.position.y = -3;
+		leftUpperLegMesh.scale.set(4, 5, 4);
+		setSkinUVs(leftUpperLegBox, 16, 48, 4, 5, 4);
+		leftUpperLegMesh.position.y = -2.5;
 
 		const leftUpperLeg2Box = new BoxGeometry();
 		const leftUpperLeg2Mesh = new Mesh(leftUpperLeg2Box, this.layer2MaterialBiased);
-		leftUpperLeg2Mesh.scale.set(4.5, 6.5, 4.5);
-		setSkinUVs(leftUpperLeg2Box, 0, 48, 4, 6, 4);
-		leftUpperLeg2Mesh.position.y = -3;
+		leftUpperLeg2Mesh.scale.set(4.5, 5.5, 4.5);
+		setSkinUVs(leftUpperLeg2Box, 0, 48, 4, 5, 4);
+		leftUpperLeg2Mesh.position.y = -2.5;
 
 		this.leftLegKnee = new Group();
 		this.leftLegKnee.name = "leftLegKnee";
-		this.leftLegKnee.position.y = -7;
+		this.leftLegKnee.position.y = -6;
 
 		const leftKneeBox = new BoxGeometry();
 		const leftKneeMesh = new Mesh(leftKneeBox, this.layer1MaterialBiased);
 		leftKneeMesh.scale.set(4, 2, 4);
-		setSkinUVs(leftKneeBox, 16, 54, 4, 2, 4);
+		setSkinUVs(leftKneeBox, 16, 53, 4, 2, 4);
 		leftKneeMesh.position.y = 0;
 
 		const leftKnee2Box = new BoxGeometry();
 		const leftKnee2Mesh = new Mesh(leftKnee2Box, this.layer2MaterialBiased);
 		leftKnee2Mesh.scale.set(4.5, 2.5, 4.5);
-		setSkinUVs(leftKnee2Box, 0, 54, 4, 2, 4);
+		setSkinUVs(leftKnee2Box, 0, 53, 4, 2, 4);
 		leftKnee2Mesh.position.y = 0;
 
 		this.leftLegJoint = new BodyPart(leftKneeMesh, leftKnee2Mesh);
@@ -497,15 +494,15 @@ export class SkinObject extends Group {
 
 		const leftLowerLegBox = new BoxGeometry();
 		const leftLowerLegMesh = new Mesh(leftLowerLegBox, this.layer1MaterialBiased);
-		leftLowerLegMesh.scale.set(4, 6, 4);
-		setSkinUVs(leftLowerLegBox, 16, 54, 4, 6, 4);
-		leftLowerLegMesh.position.y = -3;
+		leftLowerLegMesh.scale.set(4, 5, 4);
+		setSkinUVs(leftLowerLegBox, 16, 55, 4, 5, 4);
+		leftLowerLegMesh.position.y = -2.5;
 
 		const leftLowerLeg2Box = new BoxGeometry();
 		const leftLowerLeg2Mesh = new Mesh(leftLowerLeg2Box, this.layer2MaterialBiased);
-		leftLowerLeg2Mesh.scale.set(4.5, 6.5, 4.5);
-		setSkinUVs(leftLowerLeg2Box, 0, 54, 4, 6, 4);
-		leftLowerLeg2Mesh.position.y = -3;
+		leftLowerLeg2Mesh.scale.set(4.5, 5.5, 4.5);
+		setSkinUVs(leftLowerLeg2Box, 0, 55, 4, 5, 4);
+		leftLowerLeg2Mesh.position.y = -2.5;
 
 		this.leftLegLower = new BodyPart(leftLowerLegMesh, leftLowerLeg2Mesh);
 		this.leftLegLower.name = "leftLegLower";
@@ -523,8 +520,7 @@ export class SkinObject extends Group {
 
 		this.leftFoot = new BodyPart(leftFootMesh, leftFoot2Mesh);
 		this.leftFoot.name = "leftFoot";
-		this.leftFoot.position.y = -6;
-		this.leftFoot.add(leftFootMesh, leftFoot2Mesh);
+		this.leftFoot.position.y = -5;
 		this.leftLegLower.add(this.leftFoot);
 		this.leftLegKnee.add(this.leftLegLower);
 
@@ -600,14 +596,14 @@ export class SkinObject extends Group {
 		this.leftArmElbow.rotation.set(0, 0, 0);
 		this.rightLegKnee.rotation.set(0, 0, 0);
 		this.leftLegKnee.rotation.set(0, 0, 0);
-		this.rightArmElbow.position.set(0, -7, 0);
-		this.leftArmElbow.position.set(0, -7, 0);
-		this.rightLegKnee.position.set(0, -7, 0);
-		this.leftLegKnee.position.set(0, -7, 0);
-		(this.rightArm.innerLayer as Mesh).position.set(0, -3, 0);
-		(this.rightArm.outerLayer as Mesh).position.set(0, -3, 0);
-		(this.leftArm.innerLayer as Mesh).position.set(0, -3, 0);
-		(this.leftArm.outerLayer as Mesh).position.set(0, -3, 0);
+		this.rightArmElbow.position.set(0, -6, 0);
+		this.leftArmElbow.position.set(0, -6, 0);
+		this.rightLegKnee.position.set(0, -6, 0);
+		this.leftLegKnee.position.set(0, -6, 0);
+		(this.rightArm.innerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.rightArm.outerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.leftArm.innerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.leftArm.outerLayer as Mesh).position.set(0, -2.5, 0);
 		this.rightArmJoint.rotation.set(0, 0, 0);
 		this.rightArmJoint.position.set(0, 0, 0);
 		(this.rightArmJoint.innerLayer as Mesh).position.set(0, 0, 0);
@@ -626,28 +622,28 @@ export class SkinObject extends Group {
 		(this.leftLegJoint.outerLayer as Mesh).position.set(0, 0, 0);
 		this.rightArmLower.rotation.set(0, 0, 0);
 		this.rightArmLower.position.set(0, -1, 0);
-		(this.rightArmLower.innerLayer as Mesh).position.set(0, -3, 0);
-		(this.rightArmLower.outerLayer as Mesh).position.set(0, -3, 0);
-		this.rightHand.position.set(0, -6, 0);
+		(this.rightArmLower.innerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.rightArmLower.outerLayer as Mesh).position.set(0, -2.5, 0);
+		this.rightHand.position.set(0, -5, 0);
 		this.leftArmLower.rotation.set(0, 0, 0);
 		this.leftArmLower.position.set(0, -1, 0);
-		(this.leftArmLower.innerLayer as Mesh).position.set(0, -3, 0);
-		(this.leftArmLower.outerLayer as Mesh).position.set(0, -3, 0);
-		this.leftHand.position.set(0, -6, 0);
+		(this.leftArmLower.innerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.leftArmLower.outerLayer as Mesh).position.set(0, -2.5, 0);
+		this.leftHand.position.set(0, -5, 0);
 		this.rightLegLower.rotation.set(0, 0, 0);
 		this.rightLegLower.position.set(0, -1, 0);
-		(this.rightLeg.innerLayer as Mesh).position.set(0, -3, 0);
-		(this.rightLeg.outerLayer as Mesh).position.set(0, -3, 0);
-		(this.rightLegLower.innerLayer as Mesh).position.set(0, -3, 0);
-		(this.rightLegLower.outerLayer as Mesh).position.set(0, -3, 0);
-		this.rightFoot.position.set(0, -6, 0);
+		(this.rightLeg.innerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.rightLeg.outerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.rightLegLower.innerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.rightLegLower.outerLayer as Mesh).position.set(0, -2.5, 0);
+		this.rightFoot.position.set(0, -5, 0);
 		this.leftLegLower.rotation.set(0, 0, 0);
 		this.leftLegLower.position.set(0, -1, 0);
-		(this.leftLeg.innerLayer as Mesh).position.set(0, -3, 0);
-		(this.leftLeg.outerLayer as Mesh).position.set(0, -3, 0);
-		(this.leftLegLower.innerLayer as Mesh).position.set(0, -3, 0);
-		(this.leftLegLower.outerLayer as Mesh).position.set(0, -3, 0);
-		this.leftFoot.position.set(0, -6, 0);
+		(this.leftLeg.innerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.leftLeg.outerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.leftLegLower.innerLayer as Mesh).position.set(0, -2.5, 0);
+		(this.leftLegLower.outerLayer as Mesh).position.set(0, -2.5, 0);
+		this.leftFoot.position.set(0, -5, 0);
 		this.body.rotation.set(0, 0, 0);
 		this.head.position.y = 0;
 		this.body.position.y = -6;
