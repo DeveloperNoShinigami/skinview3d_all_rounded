@@ -2,7 +2,7 @@ import * as skinview3d from "../src/skinview3d";
 import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
-import { Euler, Vector3 } from "three";
+import { Euler, Object3D, Vector3 } from "three";
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
@@ -22,10 +22,18 @@ const animationClasses = {
 
 let skinViewer: skinview3d.SkinViewer;
 let transformControls: TransformControls | null = null;
-const keyframes: Array<{ time: number; position: Vector3; rotation: Euler }> = [];
+let selectedBone = "playerObject";
+const keyframes: Array<{ time: number; bone: string; position: Vector3; rotation: Euler }> = [];
 let editorEnabled = false;
 let previousAutoRotate = false;
 let previousAnimationPaused = false;
+
+function getBone(path: string): Object3D {
+	if (path === "playerObject") {
+		return skinViewer.playerObject;
+	}
+	return path.split(".").reduce((obj: any, part) => obj?.[part], skinViewer.playerObject) ?? skinViewer.playerObject;
+}
 
 function obtainTextureUrl(id: string): string {
 	const urlInput = document.getElementById(id) as HTMLInputElement;
@@ -553,7 +561,7 @@ function toggleEditor(): void {
 		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
 			skinViewer.controls.enabled = !e.value;
 		});
-		transformControls.attach(skinViewer.playerObject);
+		transformControls.attach(getBone(selectedBone));
 		skinViewer.scene.add(transformControls);
 	} else {
 		skinViewer.autoRotate = previousAutoRotate;
@@ -576,19 +584,28 @@ function toggleEditor(): void {
 }
 
 function addKeyframe(): void {
+	const bone = getBone(selectedBone);
 	keyframes.push({
 		time: Date.now(),
-		position: skinViewer.playerObject.position.clone(),
-		rotation: skinViewer.playerObject.rotation.clone(),
+		bone: selectedBone,
+		position: bone.position.clone(),
+		rotation: bone.rotation.clone(),
 	});
 	const timeline = document.getElementById("timeline");
 	if (timeline) {
 		const entry = document.createElement("div");
-		entry.textContent = `Keyframe ${keyframes.length}`;
+		entry.textContent = `Keyframe ${keyframes.length} (${selectedBone})`;
 		timeline.appendChild(entry);
 	}
 }
 
+const boneSelector = document.getElementById("bone_selector") as HTMLSelectElement;
+boneSelector?.addEventListener("change", () => {
+	selectedBone = boneSelector.value || "playerObject";
+	if (transformControls) {
+		transformControls.attach(getBone(selectedBone));
+	}
+});
 const toggleEditorBtn = document.getElementById("toggle_editor");
 toggleEditorBtn?.addEventListener("click", toggleEditor);
 const addKeyframeBtn = document.getElementById("add_keyframe");

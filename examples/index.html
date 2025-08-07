@@ -90,6 +90,18 @@
 				<h1>Animation Editor</h1>
 				<button id="toggle_editor" type="button" class="control">Create Animation</button>
 				<div id="animation_editor" class="hidden">
+					<label class="control">
+						Bone:
+						<select id="bone_selector">
+							<option value="playerObject">Player</option>
+							<option value="skin.head">skin.head</option>
+							<option value="skin.body">skin.body</option>
+							<option value="skin.rightArm">skin.rightArm</option>
+							<option value="skin.leftArm">skin.leftArm</option>
+							<option value="skin.rightLeg">skin.rightLeg</option>
+							<option value="skin.leftLeg">skin.leftLeg</option>
+						</select>
+					</label>
 					<div id="timeline"></div>
 					<button id="add_keyframe" type="button" class="control">Add Keyframe</button>
 				</div>
