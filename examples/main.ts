@@ -4,6 +4,7 @@ import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
 import { Euler, Mesh, MeshBasicMaterial, Object3D, Quaternion, SphereGeometry, Vector3 } from "three";
+
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
@@ -32,6 +33,36 @@ let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
 const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; bones: string[] }> = {};
 let ikUpdateId: number | null = null;
+let jointHelpers: BoxHelper[] = [];
+
+function updateJointHighlight(enabled: boolean): void {
+	for (const helper of jointHelpers) {
+		skinViewer.scene.remove(helper);
+	}
+	jointHelpers = [];
+	if (enabled) {
+		const joints = [
+			skinViewer.playerObject.skin.rightArmJoint,
+			skinViewer.playerObject.skin.leftArmJoint,
+			skinViewer.playerObject.skin.rightLegJoint,
+			skinViewer.playerObject.skin.leftLegJoint,
+		];
+		for (const joint of joints) {
+			const helper = new BoxHelper(joint, 0xff0000);
+			helper.update();
+			jointHelpers.push(helper);
+			skinViewer.scene.add(helper);
+		}
+	}
+}
+
+function updateJointHelpers(): void {
+	for (const helper of jointHelpers) {
+		helper.update();
+	}
+	requestAnimationFrame(updateJointHelpers);
+}
+updateJointHelpers();
 
 function getBone(path: string): Object3D {
 	if (path === "playerObject") {
@@ -218,7 +249,7 @@ function setupIK(): void {
 	for (const key in ikChains) {
 		delete ikChains[key];
 	}
-	const skin: any = skinViewer.playerObject.skin;
+	const skin = skinViewer.playerObject.skin;
 
 	const rightHandTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0xff0000 }));
 	rightHandTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
@@ -338,6 +369,7 @@ function initializeControls(): void {
 	const cameraLight = document.getElementById("camera_light") as HTMLInputElement;
 	const animationPauseResume = document.getElementById("animation_pause_resume");
 	const editorPlayPause = document.getElementById("editor_play_pause");
+	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
 	const autoRotate = document.getElementById("auto_rotate") as HTMLInputElement;
 	const autoRotateSpeed = document.getElementById("auto_rotate_speed") as HTMLInputElement;
 	const controlRotate = document.getElementById("control_rotate") as HTMLInputElement;
@@ -396,6 +428,11 @@ function initializeControls(): void {
 	autoRotate?.addEventListener("change", e => {
 		const target = e.target as HTMLInputElement;
 		skinViewer.autoRotate = target.checked;
+	});
+
+	highlightJoints?.addEventListener("change", e => {
+		const target = e.target as HTMLInputElement;
+		updateJointHighlight(target.checked);
 	});
 
 	autoRotateSpeed?.addEventListener("change", e => {
@@ -675,6 +712,8 @@ function initializeViewer(): void {
 	reloadEars(true);
 	reloadPanorama();
 	reloadNameTag();
+	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
+	updateJointHighlight(highlightJoints?.checked ?? false);
 }
 
 initializeViewer();
