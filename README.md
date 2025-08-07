@@ -75,9 +75,12 @@ user-uploaded `File`/`Blob` object.
         skinViewer.animation = new skinview3d.WalkingAnimation();
 
         // Or create a keyframe animation
-        const kf = new skinview3d.KeyframeAnimation();
-        kf.addKeyframe("skin", 0, { rotation: { y: 0 } });
-        kf.addKeyframe("skin", 1, { rotation: { y: Math.PI } });
+        const kf = new skinview3d.KeyframeAnimation({
+                keyframes: [
+                        { time: 0, bones: { skin: [0, 0, 0] } },
+                        { time: 1, bones: { skin: [0, Math.PI, 0] } },
+                ],
+        });
         skinViewer.animation = kf;
 
 	// Set the speed of the animation
