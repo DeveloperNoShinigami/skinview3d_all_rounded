@@ -3,7 +3,8 @@ import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
-import { Euler, Object3D, Quaternion, Vector3, BoxHelper } from "three";
+import { Euler, Mesh, MeshBasicMaterial, Object3D, Quaternion, SphereGeometry, Vector3 } from "three";
+
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
@@ -241,14 +242,16 @@ function reloadNameTag(): void {
 function setupIK(): void {
 	for (const chain of Object.values(ikChains)) {
 		skinViewer.scene.remove(chain.target);
-		skinViewer.scene.remove(chain.effector);
+		if (chain.effector !== chain.target) {
+			skinViewer.scene.remove(chain.effector);
+		}
 	}
 	for (const key in ikChains) {
 		delete ikChains[key];
 	}
 	const skin = skinViewer.playerObject.skin;
 
-	const rightHandTarget = new Object3D();
+	const rightHandTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0xff0000 }));
 	rightHandTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightHandTarget);
 	const rIK = new IK();
@@ -261,11 +264,12 @@ function setupIK(): void {
 	rIK.add(rChain);
 	ikChains["ik.rightArm"] = {
 		target: rightHandTarget,
+		effector: rightHandTarget,
 		ik: rIK,
 		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
 	};
 
-	const leftHandTarget = new Object3D();
+	const leftHandTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0x0000ff }));
 	leftHandTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftHandTarget);
 	const lIK = new IK();
@@ -278,11 +282,12 @@ function setupIK(): void {
 	lIK.add(lChain);
 	ikChains["ik.leftArm"] = {
 		target: leftHandTarget,
+		effector: leftHandTarget,
 		ik: lIK,
 		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
 	};
 
-	const rightFootTarget = new Object3D();
+	const rightFootTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0x00ff00 }));
 	rightFootTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightFootTarget);
 	const rLegIK = new IK();
@@ -295,11 +300,12 @@ function setupIK(): void {
 	rLegIK.add(rLegChain);
 	ikChains["ik.rightLeg"] = {
 		target: rightFootTarget,
+		effector: rightFootTarget,
 		ik: rLegIK,
 		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
 	};
 
-	const leftFootTarget = new Object3D();
+	const leftFootTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0xffff00 }));
 	leftFootTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftFootTarget);
 	const lLegIK = new IK();
@@ -312,6 +318,7 @@ function setupIK(): void {
 	lLegIK.add(lLegChain);
 	ikChains["ik.leftLeg"] = {
 		target: leftFootTarget,
+		effector: leftFootTarget,
 		ik: lLegIK,
 		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
 	};
@@ -342,7 +349,9 @@ function disposeIK(): void {
 	}
 	for (const chain of Object.values(ikChains)) {
 		skinViewer.scene.remove(chain.target);
-		skinViewer.scene.remove(chain.effector);
+		if (chain.effector !== chain.target) {
+			skinViewer.scene.remove(chain.effector);
+		}
 	}
 	for (const key in ikChains) {
 		delete ikChains[key];
@@ -737,7 +746,9 @@ function initializeBoneSelector(useIK = false): void {
 	for (const key of Object.keys(ikChains)) {
 		const option = document.createElement("option");
 		option.value = key;
-		option.textContent = key;
+		const part = key.replace(/^ik\./, "");
+		const label = part.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase());
+		option.textContent = `IK Controller: ${label}`;
 		selector.appendChild(option);
 	}
 
