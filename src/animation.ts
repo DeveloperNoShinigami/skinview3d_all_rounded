@@ -122,6 +122,10 @@ export interface KeyframeData {
 	keyframes: Keyframe[];
 }
 
+/**
+ * Resolve a dotted bone path (e.g. "skin.leftArm") to the corresponding object
+ * on the player model.
+ */
 function resolveBone(player: PlayerObject, path: string): any {
 	return path.split(".").reduce((obj: any, key: string) => obj?.[key], player as any);
 }
