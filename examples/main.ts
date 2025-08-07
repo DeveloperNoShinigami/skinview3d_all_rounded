@@ -264,7 +264,8 @@ function setupIK(): void {
 	}
 	const skin = skinViewer.playerObject.skin;
 
-	const rightHandTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0xff0000 }));
+	const rightHandTarget = new Object3D();
+
 	rightHandTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightHandTarget);
 	const rIK = new IK();
@@ -278,13 +279,13 @@ function setupIK(): void {
 	rIK.add(rChain);
 	ikChains["ik.rightArm"] = {
 		target: rightHandTarget,
-		effector: rightHandTarget,
 		ik: rIK,
 		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
 		root: rRoot,
 	};
 
-	const leftHandTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0x0000ff }));
+	const leftHandTarget = new Object3D();
+
 	leftHandTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftHandTarget);
 	const lIK = new IK();
@@ -298,13 +299,14 @@ function setupIK(): void {
 	lIK.add(lChain);
 	ikChains["ik.leftArm"] = {
 		target: leftHandTarget,
-		effector: leftHandTarget,
+
 		ik: lIK,
 		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
 		root: lRoot,
 	};
 
-	const rightFootTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0x00ff00 }));
+	const rightFootTarget = new Object3D();
+
 	rightFootTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightFootTarget);
 	const rLegIK = new IK();
@@ -318,13 +320,14 @@ function setupIK(): void {
 	rLegIK.add(rLegChain);
 	ikChains["ik.rightLeg"] = {
 		target: rightFootTarget,
-		effector: rightFootTarget,
+
 		ik: rLegIK,
 		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
 		root: rLegRoot,
 	};
 
-	const leftFootTarget = new Mesh(new SphereGeometry(2), new MeshBasicMaterial({ color: 0xffff00 }));
+	const leftFootTarget = new Object3D();
+
 	leftFootTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftFootTarget);
 	const lLegIK = new IK();
@@ -338,7 +341,6 @@ function setupIK(): void {
 	lLegIK.add(lLegChain);
 	ikChains["ik.leftLeg"] = {
 		target: leftFootTarget,
-		effector: leftFootTarget,
 		ik: lLegIK,
 		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
 		root: lLegRoot,
