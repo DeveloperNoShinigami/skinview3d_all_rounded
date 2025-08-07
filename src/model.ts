@@ -80,6 +80,14 @@ export class BodyPart extends Group {
 	}
 }
 
+/**
+ * Represents a Minecraft player skin with individually accessible body parts
+ * and joints. Elbows, knees and their lower limbs are exposed for animation
+ * or inverse kinematics through the following groups:
+ * - `rightArmElbow`, `leftArmElbow`, `rightLegKnee`, `leftLegKnee`
+ * - `rightArmJoint`, `leftArmJoint`, `rightLegJoint`, `leftLegJoint`
+ * - `rightArmLower`, `leftArmLower`, `rightLegLower`, `leftLegLower`
+ */
 export class SkinObject extends Group {
 	// body parts
 	readonly head: BodyPart;
@@ -88,19 +96,23 @@ export class SkinObject extends Group {
 	readonly leftArm: BodyPart;
 	readonly rightLeg: BodyPart;
 	readonly leftLeg: BodyPart;
+	readonly rightHand: BodyPart;
+	readonly leftHand: BodyPart;
+	readonly rightFoot: BodyPart;
+	readonly leftFoot: BodyPart;
 	readonly rightArmElbow: Group;
 	readonly leftArmElbow: Group;
 	readonly rightLegKnee: Group;
 	readonly leftLegKnee: Group;
 
-	private rightArmLower: BodyPart;
-	private leftArmLower: BodyPart;
-	private rightLegLower: BodyPart;
-	private leftLegLower: BodyPart;
-	private rightArmJoint: BodyPart;
-	private leftArmJoint: BodyPart;
-	private rightLegJoint: BodyPart;
-	private leftLegJoint: BodyPart;
+	readonly rightArmLower: BodyPart;
+	readonly leftArmLower: BodyPart;
+	readonly rightLegLower: BodyPart;
+	readonly leftLegLower: BodyPart;
+	readonly rightArmJoint: BodyPart;
+	readonly leftArmJoint: BodyPart;
+	readonly rightLegJoint: BodyPart;
+	readonly leftLegJoint: BodyPart;
 
 	private modelListeners: Array<() => void> = []; // called when model(slim property) is changed
 	private slim = false;
@@ -186,6 +198,7 @@ export class SkinObject extends Group {
 		rightUpperArm2Mesh.position.y = -3;
 
 		this.rightArmElbow = new Group();
+		this.rightArmElbow.name = "rightArmElbow";
 		this.rightArmElbow.position.y = -7;
 
 		const rightElbowBox = new BoxGeometry();
@@ -209,6 +222,7 @@ export class SkinObject extends Group {
 		rightElbow2Mesh.position.y = 0;
 
 		this.rightArmJoint = new BodyPart(rightElbowMesh, rightElbow2Mesh);
+		this.rightArmJoint.name = "rightArmJoint";
 		this.rightArmJoint.add(rightElbowMesh, rightElbow2Mesh);
 		this.rightArmElbow.add(this.rightArmJoint);
 
@@ -233,8 +247,13 @@ export class SkinObject extends Group {
 		rightLowerArm2Mesh.position.y = -3;
 
 		this.rightArmLower = new BodyPart(rightLowerArmMesh, rightLowerArm2Mesh);
+		this.rightArmLower.name = "rightArmLower";
 		this.rightArmLower.position.y = -1;
 		this.rightArmLower.add(rightLowerArmMesh, rightLowerArm2Mesh);
+		this.rightHand = new BodyPart(new Group(), new Group());
+		this.rightHand.name = "rightHand";
+		this.rightHand.position.y = -6;
+		this.rightArmLower.add(this.rightHand);
 		this.rightArmElbow.add(this.rightArmLower);
 
 		const rightArmPivot = new Group();
@@ -273,6 +292,7 @@ export class SkinObject extends Group {
 		leftUpperArm2Mesh.position.y = -3;
 
 		this.leftArmElbow = new Group();
+		this.leftArmElbow.name = "leftArmElbow";
 		this.leftArmElbow.position.y = -7;
 
 		const leftElbowBox = new BoxGeometry();
@@ -296,6 +316,7 @@ export class SkinObject extends Group {
 		leftElbow2Mesh.position.y = 0;
 
 		this.leftArmJoint = new BodyPart(leftElbowMesh, leftElbow2Mesh);
+		this.leftArmJoint.name = "leftArmJoint";
 		this.leftArmJoint.add(leftElbowMesh, leftElbow2Mesh);
 		this.leftArmElbow.add(this.leftArmJoint);
 
@@ -320,8 +341,13 @@ export class SkinObject extends Group {
 		leftLowerArm2Mesh.position.y = -3;
 
 		this.leftArmLower = new BodyPart(leftLowerArmMesh, leftLowerArm2Mesh);
+		this.leftArmLower.name = "leftArmLower";
 		this.leftArmLower.position.y = -1;
 		this.leftArmLower.add(leftLowerArmMesh, leftLowerArm2Mesh);
+		this.leftHand = new BodyPart(new Group(), new Group());
+		this.leftHand.name = "leftHand";
+		this.leftHand.position.y = -6;
+		this.leftArmLower.add(this.leftHand);
 		this.leftArmElbow.add(this.leftArmLower);
 
 		const leftArmPivot = new Group();
@@ -352,6 +378,7 @@ export class SkinObject extends Group {
 		rightUpperLeg2Mesh.position.y = -3;
 
 		this.rightLegKnee = new Group();
+		this.rightLegKnee.name = "rightLegKnee";
 		this.rightLegKnee.position.y = -7;
 
 		const rightKneeBox = new BoxGeometry();
@@ -367,6 +394,7 @@ export class SkinObject extends Group {
 		rightKnee2Mesh.position.y = 0;
 
 		this.rightLegJoint = new BodyPart(rightKneeMesh, rightKnee2Mesh);
+		this.rightLegJoint.name = "rightLegJoint";
 		this.rightLegJoint.add(rightKneeMesh, rightKnee2Mesh);
 		this.rightLegKnee.add(this.rightLegJoint);
 
@@ -383,8 +411,13 @@ export class SkinObject extends Group {
 		rightLowerLeg2Mesh.position.y = -3;
 
 		this.rightLegLower = new BodyPart(rightLowerLegMesh, rightLowerLeg2Mesh);
+		this.rightLegLower.name = "rightLegLower";
 		this.rightLegLower.position.y = -1;
 		this.rightLegLower.add(rightLowerLegMesh, rightLowerLeg2Mesh);
+		this.rightFoot = new BodyPart(new Group(), new Group());
+		this.rightFoot.name = "rightFoot";
+		this.rightFoot.position.y = -6;
+		this.rightLegLower.add(this.rightFoot);
 		this.rightLegKnee.add(this.rightLegLower);
 
 		this.rightLeg = new BodyPart(rightUpperLegMesh, rightUpperLeg2Mesh);
@@ -409,6 +442,7 @@ export class SkinObject extends Group {
 		leftUpperLeg2Mesh.position.y = -3;
 
 		this.leftLegKnee = new Group();
+		this.leftLegKnee.name = "leftLegKnee";
 		this.leftLegKnee.position.y = -7;
 
 		const leftKneeBox = new BoxGeometry();
@@ -424,6 +458,7 @@ export class SkinObject extends Group {
 		leftKnee2Mesh.position.y = 0;
 
 		this.leftLegJoint = new BodyPart(leftKneeMesh, leftKnee2Mesh);
+		this.leftLegJoint.name = "leftLegJoint";
 		this.leftLegJoint.add(leftKneeMesh, leftKnee2Mesh);
 		this.leftLegKnee.add(this.leftLegJoint);
 
@@ -440,8 +475,13 @@ export class SkinObject extends Group {
 		leftLowerLeg2Mesh.position.y = -3;
 
 		this.leftLegLower = new BodyPart(leftLowerLegMesh, leftLowerLeg2Mesh);
+		this.leftLegLower.name = "leftLegLower";
 		this.leftLegLower.position.y = -1;
 		this.leftLegLower.add(leftLowerLegMesh, leftLowerLeg2Mesh);
+		this.leftFoot = new BodyPart(new Group(), new Group());
+		this.leftFoot.name = "leftFoot";
+		this.leftFoot.position.y = -6;
+		this.leftLegLower.add(this.leftFoot);
 		this.leftLegKnee.add(this.leftLegLower);
 
 		this.leftLeg = new BodyPart(leftUpperLegMesh, leftUpperLeg2Mesh);
@@ -508,6 +548,10 @@ export class SkinObject extends Group {
 		this.rightArm.rotation.set(0, 0, 0);
 		this.leftLeg.rotation.set(0, 0, 0);
 		this.rightLeg.rotation.set(0, 0, 0);
+		this.rightHand.rotation.set(0, 0, 0);
+		this.leftHand.rotation.set(0, 0, 0);
+		this.rightFoot.rotation.set(0, 0, 0);
+		this.leftFoot.rotation.set(0, 0, 0);
 		this.rightArmElbow.rotation.set(0, 0, 0);
 		this.leftArmElbow.rotation.set(0, 0, 0);
 		this.rightLegKnee.rotation.set(0, 0, 0);
@@ -540,22 +584,26 @@ export class SkinObject extends Group {
 		this.rightArmLower.position.set(0, -1, 0);
 		(this.rightArmLower.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.rightArmLower.outerLayer as Mesh).position.set(0, -3, 0);
+		this.rightHand.position.set(0, -6, 0);
 		this.leftArmLower.rotation.set(0, 0, 0);
 		this.leftArmLower.position.set(0, -1, 0);
 		(this.leftArmLower.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.leftArmLower.outerLayer as Mesh).position.set(0, -3, 0);
+		this.leftHand.position.set(0, -6, 0);
 		this.rightLegLower.rotation.set(0, 0, 0);
 		this.rightLegLower.position.set(0, -1, 0);
 		(this.rightLeg.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.rightLeg.outerLayer as Mesh).position.set(0, -3, 0);
 		(this.rightLegLower.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.rightLegLower.outerLayer as Mesh).position.set(0, -3, 0);
+		this.rightFoot.position.set(0, -6, 0);
 		this.leftLegLower.rotation.set(0, 0, 0);
 		this.leftLegLower.position.set(0, -1, 0);
 		(this.leftLeg.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.leftLeg.outerLayer as Mesh).position.set(0, -3, 0);
 		(this.leftLegLower.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.leftLegLower.outerLayer as Mesh).position.set(0, -3, 0);
+		this.leftFoot.position.set(0, -6, 0);
 		this.body.rotation.set(0, 0, 0);
 		this.head.position.y = 0;
 		this.body.position.y = -6;

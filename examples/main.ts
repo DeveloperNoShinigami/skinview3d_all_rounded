@@ -3,7 +3,8 @@ import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
-import { Euler, Object3D, Vector3 } from "three";
+import { Euler, Mesh, MeshBasicMaterial, Object3D, Quaternion, SphereGeometry, Vector3 } from "three";
+
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
@@ -30,15 +31,57 @@ let previousAutoRotate = false;
 let previousAnimationPaused = false;
 let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
-const ikChains: Record<string, { target: Object3D; ik: IK; bones: string[] }> = {};
+const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; bones: string[]; root: IKJoint }> = {};
 let ikUpdateId: number | null = null;
+let jointHelpers: BoxHelper[] = [];
+
+function updateJointHighlight(enabled: boolean): void {
+	for (const helper of jointHelpers) {
+		skinViewer.scene.remove(helper);
+	}
+	jointHelpers = [];
+	if (enabled) {
+		const joints = [
+			skinViewer.playerObject.skin.rightArmJoint,
+			skinViewer.playerObject.skin.leftArmJoint,
+			skinViewer.playerObject.skin.rightLegJoint,
+			skinViewer.playerObject.skin.leftLegJoint,
+		];
+		for (const joint of joints) {
+			const helper = new BoxHelper(joint, 0xff0000);
+			helper.update();
+			jointHelpers.push(helper);
+			skinViewer.scene.add(helper);
+		}
+	}
+}
+
+function updateJointHelpers(): void {
+	for (const helper of jointHelpers) {
+		helper.update();
+	}
+	requestAnimationFrame(updateJointHelpers);
+}
+updateJointHelpers();
+
+function createLockConstraint(): any {
+	// Zero min/max values fully lock rotation, keeping the root joint static.
+	return {
+		rotationMin: new Vector3(0, 0, 0),
+		rotationMax: new Vector3(0, 0, 0),
+		_apply(joint: IKJoint): boolean {
+			joint._direction.copy(joint._originalDirection);
+			return true;
+		},
+	};
+}
 
 function getBone(path: string): Object3D {
 	if (path === "playerObject") {
 		return skinViewer.playerObject;
 	}
 	if (path.startsWith("ik.")) {
-		return ikChains[path]?.target ?? skinViewer.playerObject;
+		return ikChains[path]?.effector ?? skinViewer.playerObject;
 	}
 	return path.split(".").reduce((obj: any, part) => obj?.[part], skinViewer.playerObject) ?? skinViewer.playerObject;
 }
@@ -210,19 +253,25 @@ function reloadNameTag(): void {
 
 function setupIK(): void {
 	for (const chain of Object.values(ikChains)) {
+		chain.root.constraints = [];
 		skinViewer.scene.remove(chain.target);
+		if (chain.effector !== chain.target) {
+			skinViewer.scene.remove(chain.effector);
+		}
 	}
 	for (const key in ikChains) {
 		delete ikChains[key];
 	}
-	const skin: any = skinViewer.playerObject.skin;
+	const skin = skinViewer.playerObject.skin;
 
 	const rightHandTarget = new Object3D();
+
 	rightHandTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightHandTarget);
 	const rIK = new IK();
 	const rChain = new IKChain();
-	rChain.add(new IKJoint(skin.rightArm));
+	const rRoot = new IKJoint(skin.rightArm, { constraints: [createLockConstraint()] });
+	rChain.add(rRoot); // keep shoulder static
 	rChain.add(new IKJoint(skin.rightArmElbow));
 	rChain.add(new IKJoint(skin.rightArmLower));
 	rChain.add(new IKJoint(skin.rightArmHand), { target: rightHandTarget });
@@ -231,15 +280,18 @@ function setupIK(): void {
 	ikChains["ik.rightArm"] = {
 		target: rightHandTarget,
 		ik: rIK,
-		bones: ["ik.rightArm", "skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
+		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
+		root: rRoot,
 	};
 
 	const leftHandTarget = new Object3D();
+
 	leftHandTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftHandTarget);
 	const lIK = new IK();
 	const lChain = new IKChain();
-	lChain.add(new IKJoint(skin.leftArm));
+	const lRoot = new IKJoint(skin.leftArm, { constraints: [createLockConstraint()] });
+	lChain.add(lRoot); // keep shoulder static
 	lChain.add(new IKJoint(skin.leftArmElbow));
 	lChain.add(new IKJoint(skin.leftArmLower));
 	lChain.add(new IKJoint(skin.leftArmHand), { target: leftHandTarget });
@@ -247,16 +299,20 @@ function setupIK(): void {
 	lIK.add(lChain);
 	ikChains["ik.leftArm"] = {
 		target: leftHandTarget,
+
 		ik: lIK,
-		bones: ["ik.leftArm", "skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
+		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
+		root: lRoot,
 	};
 
 	const rightFootTarget = new Object3D();
+
 	rightFootTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightFootTarget);
 	const rLegIK = new IK();
 	const rLegChain = new IKChain();
-	rLegChain.add(new IKJoint(skin.rightLeg));
+	const rLegRoot = new IKJoint(skin.rightLeg, { constraints: [createLockConstraint()] });
+	rLegChain.add(rLegRoot); // keep hip static
 	rLegChain.add(new IKJoint(skin.rightLegKnee));
 	rLegChain.add(new IKJoint(skin.rightLegLower));
 	rLegChain.add(new IKJoint(skin.rightLegFoot), { target: rightFootTarget });
@@ -264,16 +320,20 @@ function setupIK(): void {
 	rLegIK.add(rLegChain);
 	ikChains["ik.rightLeg"] = {
 		target: rightFootTarget,
+
 		ik: rLegIK,
-		bones: ["ik.rightLeg", "skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
+		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
+		root: rLegRoot,
 	};
 
 	const leftFootTarget = new Object3D();
+
 	leftFootTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftFootTarget);
 	const lLegIK = new IK();
 	const lLegChain = new IKChain();
-	lLegChain.add(new IKJoint(skin.leftLeg));
+	const lLegRoot = new IKJoint(skin.leftLeg, { constraints: [createLockConstraint()] });
+	lLegChain.add(lLegRoot); // keep hip static
 	lLegChain.add(new IKJoint(skin.leftLegKnee));
 	lLegChain.add(new IKJoint(skin.leftLegLower));
 	lLegChain.add(new IKJoint(skin.leftLegFoot), { target: leftFootTarget });
@@ -282,20 +342,27 @@ function setupIK(): void {
 	ikChains["ik.leftLeg"] = {
 		target: leftFootTarget,
 		ik: lLegIK,
-		bones: ["ik.leftLeg", "skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
+		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
+		root: lLegRoot,
 	};
 
 	if (ikUpdateId !== null) {
 		cancelAnimationFrame(ikUpdateId);
 	}
 	const update = () => {
-		for (const chain of Object.values(ikChains)) {
+		const time =
+			loadedAnimation && keyframes.length > 0 ? keyframes[0].time + loadedAnimation.progress * 1000 : Date.now();
+		for (const key of Object.keys(ikChains)) {
+			applyTargetKeyframe(key, time);
+			const chain = ikChains[key];
 			chain.target.updateMatrixWorld(true);
 			chain.ik.solve();
 		}
 		ikUpdateId = requestAnimationFrame(update);
 	};
 	update();
+
+	initializeBoneSelector();
 }
 
 function disposeIK(): void {
@@ -304,11 +371,17 @@ function disposeIK(): void {
 		ikUpdateId = null;
 	}
 	for (const chain of Object.values(ikChains)) {
+		chain.root.constraints = [];
 		skinViewer.scene.remove(chain.target);
+		if (chain.effector !== chain.target) {
+			skinViewer.scene.remove(chain.effector);
+		}
 	}
 	for (const key in ikChains) {
 		delete ikChains[key];
 	}
+
+	initializeBoneSelector();
 }
 
 function initializeControls(): void {
@@ -320,6 +393,7 @@ function initializeControls(): void {
 	const cameraLight = document.getElementById("camera_light") as HTMLInputElement;
 	const animationPauseResume = document.getElementById("animation_pause_resume");
 	const editorPlayPause = document.getElementById("editor_play_pause");
+	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
 	const autoRotate = document.getElementById("auto_rotate") as HTMLInputElement;
 	const autoRotateSpeed = document.getElementById("auto_rotate_speed") as HTMLInputElement;
 	const controlRotate = document.getElementById("control_rotate") as HTMLInputElement;
@@ -378,6 +452,11 @@ function initializeControls(): void {
 	autoRotate?.addEventListener("change", e => {
 		const target = e.target as HTMLInputElement;
 		skinViewer.autoRotate = target.checked;
+	});
+
+	highlightJoints?.addEventListener("change", e => {
+		const target = e.target as HTMLInputElement;
+		updateJointHighlight(target.checked);
 	});
 
 	autoRotateSpeed?.addEventListener("change", e => {
@@ -657,18 +736,21 @@ function initializeViewer(): void {
 	reloadEars(true);
 	reloadPanorama();
 	reloadNameTag();
+	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
+	updateJointHighlight(highlightJoints?.checked ?? false);
 }
 
 initializeViewer();
 initializeControls();
 initializeBoneSelector();
 
-function initializeBoneSelector(): void {
+function initializeBoneSelector(useIK = false): void {
 	const selector = document.getElementById("bone_selector") as HTMLSelectElement;
 	if (!selector) {
 		return;
 	}
 
+	const current = selector.value;
 	selector.innerHTML = "";
 	const playerOption = document.createElement("option");
 	playerOption.value = "playerObject";
@@ -676,10 +758,26 @@ function initializeBoneSelector(): void {
 	selector.appendChild(playerOption);
 
 	for (const part of skinParts) {
+		if (useIK && (part === "rightArm" || part === "leftArm" || part === "rightLeg" || part === "leftLeg")) {
+			continue;
+		}
 		const option = document.createElement("option");
 		option.value = `skin.${part}`;
 		option.textContent = `skin.${part}`;
 		selector.appendChild(option);
+	}
+
+	for (const key of Object.keys(ikChains)) {
+		const option = document.createElement("option");
+		option.value = key;
+		const part = key.replace(/^ik\./, "");
+		const label = part.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase());
+		option.textContent = `IK Controller: ${label}`;
+		selector.appendChild(option);
+	}
+
+	if (current) {
+		selector.value = current;
 	}
 }
 
@@ -708,6 +806,8 @@ function toggleEditor(): void {
 		skinViewer.height = 600;
 
 		setupIK();
+		initializeBoneSelector(true);
+		selectedBone = boneSelector?.value || "playerObject";
 
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
 		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
@@ -743,6 +843,8 @@ function toggleEditor(): void {
 			transformControls = null;
 		}
 		disposeIK();
+		initializeBoneSelector(false);
+		selectedBone = boneSelector?.value || "playerObject";
 	}
 }
 
@@ -782,14 +884,64 @@ function updateTimeline(): void {
 	}
 }
 
+function captureIKTargets(time: number): void {
+	for (const [key, chain] of Object.entries(ikChains)) {
+		keyframes.push({
+			time,
+			bone: key,
+			position: chain.target.position.clone(),
+			rotation: chain.target.rotation.clone(),
+		});
+	}
+}
+
+function applyTargetKeyframe(chainKey: string, time: number): void {
+	const target = ikChains[chainKey]?.target;
+	if (!target) {
+		return;
+	}
+	const frames = keyframes.filter(kf => kf.bone === chainKey);
+	if (frames.length === 0) {
+		return;
+	}
+	let prev = frames[0];
+	let next = frames[frames.length - 1];
+	if (time <= prev.time) {
+		target.position.copy(prev.position);
+		target.rotation.copy(prev.rotation);
+		return;
+	}
+	if (time >= next.time) {
+		target.position.copy(next.position);
+		target.rotation.copy(next.rotation);
+		return;
+	}
+	for (let i = 0; i < frames.length - 1; i++) {
+		const f0 = frames[i];
+		const f1 = frames[i + 1];
+		if (time >= f0.time && time <= f1.time) {
+			const alpha = (time - f0.time) / (f1.time - f0.time || 1);
+			target.position.lerpVectors(f0.position, f1.position, alpha);
+			target.rotation.set(
+				f0.rotation.x + (f1.rotation.x - f0.rotation.x) * alpha,
+				f0.rotation.y + (f1.rotation.y - f0.rotation.y) * alpha,
+				f0.rotation.z + (f1.rotation.z - f0.rotation.z) * alpha
+			);
+			break;
+		}
+	}
+}
+
 function addKeyframe(bonePath = selectedBone): void {
 	const bone = getBone(bonePath);
+	const time = Date.now();
 	keyframes.push({
-		time: Date.now(),
+		time,
 		bone: bonePath,
 		position: bone.position.clone(),
 		rotation: bone.rotation.clone(),
 	});
+	captureIKTargets(time);
 	updateTimeline();
 }
 
@@ -799,6 +951,12 @@ function addIKKeyframe(chainName: string): void {
 		return;
 	}
 	const time = Date.now();
+	keyframes.push({
+		time,
+		bone: chainName,
+		position: chain.target.position.clone(),
+		rotation: chain.target.rotation.clone(),
+	});
 	for (const bonePath of chain.bones) {
 		const bone = getBone(bonePath);
 		keyframes.push({
@@ -808,6 +966,7 @@ function addIKKeyframe(chainName: string): void {
 			rotation: bone.rotation.clone(),
 		});
 	}
+	captureIKTargets(time);
 	updateTimeline();
 }
 

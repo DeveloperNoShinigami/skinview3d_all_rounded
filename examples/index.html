@@ -87,9 +87,15 @@
 			<button id="reset_all" type="button" class="control">Reset All</button>
 
 			<div class="control-section">
+				<h1>Debug</h1>
+				<label class="control"><input id="highlight_joints" type="checkbox" /> Highlight elbows/knees</label>
+			</div>
+
+			<div class="control-section">
 				<h1>Animation Editor</h1>
 				<button id="toggle_editor" type="button" class="control">Create Animation</button>
 				<div id="animation_editor" class="hidden">
+					<p class="control">Select an IK controller and drag its colored sphere in the viewer to pose the limb.</p>
 					<label class="control">
 						Bone:
 						<select id="bone_selector">
@@ -110,6 +116,7 @@
 							<option value="ik.leftLeg">IK: Left Leg</option>
 						</select>
 					</label>
+					<p class="control">Shoulders and hips are rotation-locked and remain static.</p>
 					<label class="control">
 						Mode:
 						<select id="transform_mode">
