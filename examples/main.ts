@@ -3,7 +3,7 @@ import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
-import { Euler, Object3D, Vector3 } from "three";
+import { Euler, Object3D, Quaternion, Vector3 } from "three";
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
@@ -30,7 +30,7 @@ let previousAutoRotate = false;
 let previousAnimationPaused = false;
 let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
-const ikChains: Record<string, { target: Object3D; ik: IK; bones: string[] }> = {};
+const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; bones: string[] }> = {};
 let ikUpdateId: number | null = null;
 
 function getBone(path: string): Object3D {
@@ -38,7 +38,7 @@ function getBone(path: string): Object3D {
 		return skinViewer.playerObject;
 	}
 	if (path.startsWith("ik.")) {
-		return ikChains[path]?.target ?? skinViewer.playerObject;
+		return ikChains[path]?.effector ?? skinViewer.playerObject;
 	}
 	return path.split(".").reduce((obj: any, part) => obj?.[part], skinViewer.playerObject) ?? skinViewer.playerObject;
 }
@@ -211,6 +211,7 @@ function reloadNameTag(): void {
 function setupIK(): void {
 	for (const chain of Object.values(ikChains)) {
 		skinViewer.scene.remove(chain.target);
+		skinViewer.scene.remove(chain.effector);
 	}
 	for (const key in ikChains) {
 		delete ikChains[key];
@@ -219,7 +220,12 @@ function setupIK(): void {
 
 	const rTarget = new Object3D();
 	rTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
+	rTarget.quaternion.copy(skin.rightArmHand.getWorldQuaternion(new Quaternion()));
 	skinViewer.scene.add(rTarget);
+	const rEffector = new Object3D();
+	rEffector.position.copy(rTarget.position);
+	rEffector.quaternion.copy(rTarget.quaternion);
+	skinViewer.scene.add(rEffector);
 	const rIK = new IK();
 	const rChain = new IKChain();
 	rChain.add(new IKJoint(skin.rightArm));
@@ -229,13 +235,19 @@ function setupIK(): void {
 	rIK.add(rChain);
 	ikChains["ik.rightArm"] = {
 		target: rTarget,
+		effector: rEffector,
 		ik: rIK,
 		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
 	};
 
 	const lTarget = new Object3D();
 	lTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
+	lTarget.quaternion.copy(skin.leftArmHand.getWorldQuaternion(new Quaternion()));
 	skinViewer.scene.add(lTarget);
+	const lEffector = new Object3D();
+	lEffector.position.copy(lTarget.position);
+	lEffector.quaternion.copy(lTarget.quaternion);
+	skinViewer.scene.add(lEffector);
 	const lIK = new IK();
 	const lChain = new IKChain();
 	lChain.add(new IKJoint(skin.leftArm));
@@ -245,13 +257,19 @@ function setupIK(): void {
 	lIK.add(lChain);
 	ikChains["ik.leftArm"] = {
 		target: lTarget,
+		effector: lEffector,
 		ik: lIK,
 		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
 	};
 
 	const rLegTarget = new Object3D();
 	rLegTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
+	rLegTarget.quaternion.copy(skin.rightLegFoot.getWorldQuaternion(new Quaternion()));
 	skinViewer.scene.add(rLegTarget);
+	const rLegEffector = new Object3D();
+	rLegEffector.position.copy(rLegTarget.position);
+	rLegEffector.quaternion.copy(rLegTarget.quaternion);
+	skinViewer.scene.add(rLegEffector);
 	const rLegIK = new IK();
 	const rLegChain = new IKChain();
 	rLegChain.add(new IKJoint(skin.rightLeg));
@@ -261,13 +279,19 @@ function setupIK(): void {
 	rLegIK.add(rLegChain);
 	ikChains["ik.rightLeg"] = {
 		target: rLegTarget,
+		effector: rLegEffector,
 		ik: rLegIK,
 		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
 	};
 
 	const lLegTarget = new Object3D();
 	lLegTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
+	lLegTarget.quaternion.copy(skin.leftLegFoot.getWorldQuaternion(new Quaternion()));
 	skinViewer.scene.add(lLegTarget);
+	const lLegEffector = new Object3D();
+	lLegEffector.position.copy(lLegTarget.position);
+	lLegEffector.quaternion.copy(lLegTarget.quaternion);
+	skinViewer.scene.add(lLegEffector);
 	const lLegIK = new IK();
 	const lLegChain = new IKChain();
 	lLegChain.add(new IKJoint(skin.leftLeg));
@@ -277,6 +301,7 @@ function setupIK(): void {
 	lLegIK.add(lLegChain);
 	ikChains["ik.leftLeg"] = {
 		target: lLegTarget,
+		effector: lLegEffector,
 		ik: lLegIK,
 		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
 	};
@@ -307,6 +332,7 @@ function disposeIK(): void {
 	}
 	for (const chain of Object.values(ikChains)) {
 		skinViewer.scene.remove(chain.target);
+		skinViewer.scene.remove(chain.effector);
 	}
 	for (const key in ikChains) {
 		delete ikChains[key];
@@ -667,7 +693,7 @@ initializeViewer();
 initializeControls();
 initializeBoneSelector();
 
-function initializeBoneSelector(): void {
+function initializeBoneSelector(useIK = false): void {
 	const selector = document.getElementById("bone_selector") as HTMLSelectElement;
 	if (!selector) {
 		return;
@@ -681,6 +707,9 @@ function initializeBoneSelector(): void {
 	selector.appendChild(playerOption);
 
 	for (const part of skinParts) {
+		if (useIK && (part === "rightArm" || part === "leftArm" || part === "rightLeg" || part === "leftLeg")) {
+			continue;
+		}
 		const option = document.createElement("option");
 		option.value = `skin.${part}`;
 		option.textContent = `skin.${part}`;
@@ -724,6 +753,8 @@ function toggleEditor(): void {
 		skinViewer.height = 600;
 
 		setupIK();
+		initializeBoneSelector(true);
+		selectedBone = boneSelector?.value || "playerObject";
 
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
 		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
@@ -759,6 +790,8 @@ function toggleEditor(): void {
 			transformControls = null;
 		}
 		disposeIK();
+		initializeBoneSelector(false);
+		selectedBone = boneSelector?.value || "playerObject";
 	}
 }
 
@@ -865,6 +898,12 @@ function addIKKeyframe(chainName: string): void {
 		return;
 	}
 	const time = Date.now();
+	keyframes.push({
+		time,
+		bone: chainName,
+		position: chain.target.position.clone(),
+		rotation: chain.target.rotation.clone(),
+	});
 	for (const bonePath of chain.bones) {
 		const bone = getBone(bonePath);
 		keyframes.push({
