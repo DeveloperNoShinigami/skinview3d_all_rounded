@@ -88,6 +88,10 @@ export class SkinObject extends Group {
 	readonly leftArm: BodyPart;
 	readonly rightLeg: BodyPart;
 	readonly leftLeg: BodyPart;
+	readonly rightHand: BodyPart;
+	readonly leftHand: BodyPart;
+	readonly rightFoot: BodyPart;
+	readonly leftFoot: BodyPart;
 	readonly rightArmElbow: Group;
 	readonly leftArmElbow: Group;
 	readonly rightLegKnee: Group;
@@ -235,6 +239,10 @@ export class SkinObject extends Group {
 		this.rightArmLower = new BodyPart(rightLowerArmMesh, rightLowerArm2Mesh);
 		this.rightArmLower.position.y = -1;
 		this.rightArmLower.add(rightLowerArmMesh, rightLowerArm2Mesh);
+		this.rightHand = new BodyPart(new Group(), new Group());
+		this.rightHand.name = "rightHand";
+		this.rightHand.position.y = -6;
+		this.rightArmLower.add(this.rightHand);
 		this.rightArmElbow.add(this.rightArmLower);
 
 		const rightArmPivot = new Group();
@@ -322,6 +330,10 @@ export class SkinObject extends Group {
 		this.leftArmLower = new BodyPart(leftLowerArmMesh, leftLowerArm2Mesh);
 		this.leftArmLower.position.y = -1;
 		this.leftArmLower.add(leftLowerArmMesh, leftLowerArm2Mesh);
+		this.leftHand = new BodyPart(new Group(), new Group());
+		this.leftHand.name = "leftHand";
+		this.leftHand.position.y = -6;
+		this.leftArmLower.add(this.leftHand);
 		this.leftArmElbow.add(this.leftArmLower);
 
 		const leftArmPivot = new Group();
@@ -385,6 +397,10 @@ export class SkinObject extends Group {
 		this.rightLegLower = new BodyPart(rightLowerLegMesh, rightLowerLeg2Mesh);
 		this.rightLegLower.position.y = -1;
 		this.rightLegLower.add(rightLowerLegMesh, rightLowerLeg2Mesh);
+		this.rightFoot = new BodyPart(new Group(), new Group());
+		this.rightFoot.name = "rightFoot";
+		this.rightFoot.position.y = -6;
+		this.rightLegLower.add(this.rightFoot);
 		this.rightLegKnee.add(this.rightLegLower);
 
 		this.rightLeg = new BodyPart(rightUpperLegMesh, rightUpperLeg2Mesh);
@@ -442,6 +458,10 @@ export class SkinObject extends Group {
 		this.leftLegLower = new BodyPart(leftLowerLegMesh, leftLowerLeg2Mesh);
 		this.leftLegLower.position.y = -1;
 		this.leftLegLower.add(leftLowerLegMesh, leftLowerLeg2Mesh);
+		this.leftFoot = new BodyPart(new Group(), new Group());
+		this.leftFoot.name = "leftFoot";
+		this.leftFoot.position.y = -6;
+		this.leftLegLower.add(this.leftFoot);
 		this.leftLegKnee.add(this.leftLegLower);
 
 		this.leftLeg = new BodyPart(leftUpperLegMesh, leftUpperLeg2Mesh);
@@ -508,6 +528,10 @@ export class SkinObject extends Group {
 		this.rightArm.rotation.set(0, 0, 0);
 		this.leftLeg.rotation.set(0, 0, 0);
 		this.rightLeg.rotation.set(0, 0, 0);
+		this.rightHand.rotation.set(0, 0, 0);
+		this.leftHand.rotation.set(0, 0, 0);
+		this.rightFoot.rotation.set(0, 0, 0);
+		this.leftFoot.rotation.set(0, 0, 0);
 		this.rightArmElbow.rotation.set(0, 0, 0);
 		this.leftArmElbow.rotation.set(0, 0, 0);
 		this.rightLegKnee.rotation.set(0, 0, 0);
@@ -540,22 +564,26 @@ export class SkinObject extends Group {
 		this.rightArmLower.position.set(0, -1, 0);
 		(this.rightArmLower.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.rightArmLower.outerLayer as Mesh).position.set(0, -3, 0);
+		this.rightHand.position.set(0, -6, 0);
 		this.leftArmLower.rotation.set(0, 0, 0);
 		this.leftArmLower.position.set(0, -1, 0);
 		(this.leftArmLower.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.leftArmLower.outerLayer as Mesh).position.set(0, -3, 0);
+		this.leftHand.position.set(0, -6, 0);
 		this.rightLegLower.rotation.set(0, 0, 0);
 		this.rightLegLower.position.set(0, -1, 0);
 		(this.rightLeg.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.rightLeg.outerLayer as Mesh).position.set(0, -3, 0);
 		(this.rightLegLower.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.rightLegLower.outerLayer as Mesh).position.set(0, -3, 0);
+		this.rightFoot.position.set(0, -6, 0);
 		this.leftLegLower.rotation.set(0, 0, 0);
 		this.leftLegLower.position.set(0, -1, 0);
 		(this.leftLeg.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.leftLeg.outerLayer as Mesh).position.set(0, -3, 0);
 		(this.leftLegLower.innerLayer as Mesh).position.set(0, -3, 0);
 		(this.leftLegLower.outerLayer as Mesh).position.set(0, -3, 0);
+		this.leftFoot.position.set(0, -6, 0);
 		this.body.rotation.set(0, 0, 0);
 		this.head.position.y = 0;
 		this.body.position.y = -6;
