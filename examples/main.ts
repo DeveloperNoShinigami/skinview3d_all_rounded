@@ -692,7 +692,6 @@ function toggleEditor(): void {
 				}
 			}
 		});
-		const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
 		if (modeSelector) {
 			transformControls.setMode(modeSelector.value as any);
 		}
