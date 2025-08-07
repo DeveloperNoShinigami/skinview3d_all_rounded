@@ -95,3 +95,38 @@ label {
 .hidden {
 	display: none;
 }
+
+#timeline {
+	border: 1px solid #ccc;
+	margin: 10px 0;
+	padding: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.kf-row {
+	display: flex;
+	align-items: center;
+	height: 20px;
+}
+
+.kf-label {
+	width: 120px;
+	font-size: 12px;
+}
+
+.kf-track {
+	position: relative;
+	flex: 1;
+	height: 100%;
+	background: #222;
+}
+
+.kf-marker {
+	position: absolute;
+	top: 0;
+	width: 2px;
+	height: 100%;
+	background: #f00;
+}

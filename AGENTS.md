@@ -36,3 +36,10 @@ Welcome to the SkinView3D project. These guidelines help contributors build the 
 - Respond to review feedback promptly and respectfully.
 
 Following these practices will keep the project healthy, extensible, and bug-free. Happy hacking!
+
+## Development Insights
+- Keyframes must map rotations to the correct bone path. A past bug stored all rotations under a generic `rotation` key, which broke uploaded animations.
+- The animation editor exposes elbow and knee joints; do not remove these options.
+- When improvements or bug fixes are made, document the lessons learned here so they aren't repeated.
+- CCDIKSolver integration relies on existing body part groups as bones. Ensure IK targets are included in the bone selector and keyframes capture all bones in a chain.
+- The timeline viewer displays keyframes per bone row. Avoid reverting to a single-row timeline.
