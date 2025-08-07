@@ -19,10 +19,10 @@ const skinParts = [
 	"leftArmElbow",
 	"rightLegKnee",
 	"leftLegKnee",
-	"rightArmLower",
-	"leftArmLower",
-	"rightLegLower",
-	"leftLegLower",
+	"rightArmWrist",
+	"leftArmWrist",
+	"rightLegAnkle",
+	"leftLegAnkle",
 	"rightHand",
 	"leftHand",
 	"rightFoot",
@@ -61,18 +61,14 @@ function updateJointHighlight(enabled: boolean): void {
 	jointHelpers = [];
 	if (enabled) {
 		const joints = [
-			skinViewer.playerObject.skin.rightArmJoint,
-			skinViewer.playerObject.skin.leftArmJoint,
-			skinViewer.playerObject.skin.rightLegJoint,
-			skinViewer.playerObject.skin.leftLegJoint,
 			skinViewer.playerObject.skin.rightArmElbow,
 			skinViewer.playerObject.skin.leftArmElbow,
+			skinViewer.playerObject.skin.rightArmWrist,
+			skinViewer.playerObject.skin.leftArmWrist,
 			skinViewer.playerObject.skin.rightLegKnee,
 			skinViewer.playerObject.skin.leftLegKnee,
-			skinViewer.playerObject.skin.rightArmLower,
-			skinViewer.playerObject.skin.leftArmLower,
-			skinViewer.playerObject.skin.rightLegLower,
-			skinViewer.playerObject.skin.leftLegLower,
+			skinViewer.playerObject.skin.rightLegAnkle,
+			skinViewer.playerObject.skin.leftLegAnkle,
 			skinViewer.playerObject.skin.rightHand,
 			skinViewer.playerObject.skin.leftHand,
 			skinViewer.playerObject.skin.rightFoot,
@@ -306,14 +302,14 @@ function setupIK(): void {
 	const rRoot = new IKJoint(skin.rightArm, { constraints: [createLockConstraint()] });
 	rChain.add(rRoot); // keep shoulder static
 	rChain.add(new IKJoint(skin.rightArmElbow));
-	rChain.add(new IKJoint(skin.rightArmLower));
+	rChain.add(new IKJoint(skin.rightArmWrist));
 	rChain.add(new IKJoint(skin.rightHand), { target: rightHandTarget });
 	rChain.effectorIndex = rChain.joints.length - 1;
 	rIK.add(rChain);
 	ikChains["ik.rightArm"] = {
 		target: rightHandTarget,
 		ik: rIK,
-		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightHand"],
+		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmWrist", "skin.rightHand"],
 		root: rRoot,
 	};
 
@@ -328,7 +324,7 @@ function setupIK(): void {
 	const lRoot = new IKJoint(skin.leftArm, { constraints: [createLockConstraint()] });
 	lChain.add(lRoot); // keep shoulder static
 	lChain.add(new IKJoint(skin.leftArmElbow));
-	lChain.add(new IKJoint(skin.leftArmLower));
+	lChain.add(new IKJoint(skin.leftArmWrist));
 	lChain.add(new IKJoint(skin.leftHand), { target: leftHandTarget });
 	lChain.effectorIndex = lChain.joints.length - 1;
 	lIK.add(lChain);
@@ -336,7 +332,7 @@ function setupIK(): void {
 		target: leftHandTarget,
 
 		ik: lIK,
-		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftHand"],
+		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmWrist", "skin.leftHand"],
 		root: lRoot,
 	};
 
@@ -344,22 +340,22 @@ function setupIK(): void {
 	const rightFootMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x0000ff }));
 	rightFootTarget.add(rightFootMesh);
 
-	rightFootTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
+	rightFootTarget.position.copy(skin.rightFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightFootTarget);
 	const rLegIK = new IK();
 	const rLegChain = new IKChain();
 	const rLegRoot = new IKJoint(skin.rightLeg, { constraints: [createLockConstraint()] });
 	rLegChain.add(rLegRoot); // keep hip static
 	rLegChain.add(new IKJoint(skin.rightLegKnee));
-	rLegChain.add(new IKJoint(skin.rightLegLower));
-	rLegChain.add(new IKJoint(skin.rightLegFoot), { target: rightFootTarget });
+	rLegChain.add(new IKJoint(skin.rightLegAnkle));
+	rLegChain.add(new IKJoint(skin.rightFoot), { target: rightFootTarget });
 	rLegChain.effectorIndex = rLegChain.joints.length - 1;
 	rLegIK.add(rLegChain);
 	ikChains["ik.rightLeg"] = {
 		target: rightFootTarget,
 
 		ik: rLegIK,
-		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
+		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegAnkle", "skin.rightFoot"],
 		root: rLegRoot,
 	};
 
@@ -367,21 +363,21 @@ function setupIK(): void {
 	const leftFootMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xffff00 }));
 	leftFootTarget.add(leftFootMesh);
 
-	leftFootTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
+	leftFootTarget.position.copy(skin.leftFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftFootTarget);
 	const lLegIK = new IK();
 	const lLegChain = new IKChain();
 	const lLegRoot = new IKJoint(skin.leftLeg, { constraints: [createLockConstraint()] });
 	lLegChain.add(lLegRoot); // keep hip static
 	lLegChain.add(new IKJoint(skin.leftLegKnee));
-	lLegChain.add(new IKJoint(skin.leftLegLower));
-	lLegChain.add(new IKJoint(skin.leftLegFoot), { target: leftFootTarget });
+	lLegChain.add(new IKJoint(skin.leftLegAnkle));
+	lLegChain.add(new IKJoint(skin.leftFoot), { target: leftFootTarget });
 	lLegChain.effectorIndex = lLegChain.joints.length - 1;
 	lLegIK.add(lLegChain);
 	ikChains["ik.leftLeg"] = {
 		target: leftFootTarget,
 		ik: lLegIK,
-		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
+		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegAnkle", "skin.leftFoot"],
 		root: lLegRoot,
 	};
 
