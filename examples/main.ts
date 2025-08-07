@@ -776,6 +776,13 @@ modeSelector?.addEventListener("change", () => {
 	}
 });
 
+const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
+modeSelector?.addEventListener("change", () => {
+	if (transformControls) {
+		transformControls.setMode(modeSelector.value as any);
+	}
+});
+
 function buildKeyframeAnimation(): skinview3d.KeyframeAnimation | null {
 	if (keyframes.length === 0) {
 		return null;
