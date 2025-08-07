@@ -218,90 +218,70 @@ function setupIK(): void {
 	}
 	const skin: any = skinViewer.playerObject.skin;
 
-	const rTarget = new Object3D();
-	rTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
-	rTarget.quaternion.copy(skin.rightArmHand.getWorldQuaternion(new Quaternion()));
-	skinViewer.scene.add(rTarget);
-	const rEffector = new Object3D();
-	rEffector.position.copy(rTarget.position);
-	rEffector.quaternion.copy(rTarget.quaternion);
-	skinViewer.scene.add(rEffector);
+	const rightHandTarget = new Object3D();
+	rightHandTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(rightHandTarget);
 	const rIK = new IK();
 	const rChain = new IKChain();
 	rChain.add(new IKJoint(skin.rightArm));
 	rChain.add(new IKJoint(skin.rightArmElbow));
 	rChain.add(new IKJoint(skin.rightArmLower));
-	rChain.add(new IKJoint(skin.rightArmHand), { target: rTarget });
+	rChain.add(new IKJoint(skin.rightArmHand), { target: rightHandTarget });
+	rChain.effectorIndex = rChain.joints.length - 1;
 	rIK.add(rChain);
 	ikChains["ik.rightArm"] = {
-		target: rTarget,
-		effector: rEffector,
+		target: rightHandTarget,
 		ik: rIK,
 		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
 	};
 
-	const lTarget = new Object3D();
-	lTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
-	lTarget.quaternion.copy(skin.leftArmHand.getWorldQuaternion(new Quaternion()));
-	skinViewer.scene.add(lTarget);
-	const lEffector = new Object3D();
-	lEffector.position.copy(lTarget.position);
-	lEffector.quaternion.copy(lTarget.quaternion);
-	skinViewer.scene.add(lEffector);
+	const leftHandTarget = new Object3D();
+	leftHandTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(leftHandTarget);
 	const lIK = new IK();
 	const lChain = new IKChain();
 	lChain.add(new IKJoint(skin.leftArm));
 	lChain.add(new IKJoint(skin.leftArmElbow));
 	lChain.add(new IKJoint(skin.leftArmLower));
-	lChain.add(new IKJoint(skin.leftArmHand), { target: lTarget });
+	lChain.add(new IKJoint(skin.leftArmHand), { target: leftHandTarget });
+	lChain.effectorIndex = lChain.joints.length - 1;
 	lIK.add(lChain);
 	ikChains["ik.leftArm"] = {
-		target: lTarget,
-		effector: lEffector,
+		target: leftHandTarget,
 		ik: lIK,
 		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
 	};
 
-	const rLegTarget = new Object3D();
-	rLegTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
-	rLegTarget.quaternion.copy(skin.rightLegFoot.getWorldQuaternion(new Quaternion()));
-	skinViewer.scene.add(rLegTarget);
-	const rLegEffector = new Object3D();
-	rLegEffector.position.copy(rLegTarget.position);
-	rLegEffector.quaternion.copy(rLegTarget.quaternion);
-	skinViewer.scene.add(rLegEffector);
+	const rightFootTarget = new Object3D();
+	rightFootTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(rightFootTarget);
 	const rLegIK = new IK();
 	const rLegChain = new IKChain();
 	rLegChain.add(new IKJoint(skin.rightLeg));
 	rLegChain.add(new IKJoint(skin.rightLegKnee));
 	rLegChain.add(new IKJoint(skin.rightLegLower));
-	rLegChain.add(new IKJoint(skin.rightLegFoot), { target: rLegTarget });
+	rLegChain.add(new IKJoint(skin.rightLegFoot), { target: rightFootTarget });
+	rLegChain.effectorIndex = rLegChain.joints.length - 1;
 	rLegIK.add(rLegChain);
 	ikChains["ik.rightLeg"] = {
-		target: rLegTarget,
-		effector: rLegEffector,
+		target: rightFootTarget,
 		ik: rLegIK,
 		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
 	};
 
-	const lLegTarget = new Object3D();
-	lLegTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
-	lLegTarget.quaternion.copy(skin.leftLegFoot.getWorldQuaternion(new Quaternion()));
-	skinViewer.scene.add(lLegTarget);
-	const lLegEffector = new Object3D();
-	lLegEffector.position.copy(lLegTarget.position);
-	lLegEffector.quaternion.copy(lLegTarget.quaternion);
-	skinViewer.scene.add(lLegEffector);
+	const leftFootTarget = new Object3D();
+	leftFootTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(leftFootTarget);
 	const lLegIK = new IK();
 	const lLegChain = new IKChain();
 	lLegChain.add(new IKJoint(skin.leftLeg));
 	lLegChain.add(new IKJoint(skin.leftLegKnee));
 	lLegChain.add(new IKJoint(skin.leftLegLower));
-	lLegChain.add(new IKJoint(skin.leftLegFoot), { target: lLegTarget });
+	lLegChain.add(new IKJoint(skin.leftLegFoot), { target: leftFootTarget });
+	lLegChain.effectorIndex = lLegChain.joints.length - 1;
 	lLegIK.add(lLegChain);
 	ikChains["ik.leftLeg"] = {
-		target: lLegTarget,
-		effector: lLegEffector,
+		target: leftFootTarget,
 		ik: lLegIK,
 		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
 	};
