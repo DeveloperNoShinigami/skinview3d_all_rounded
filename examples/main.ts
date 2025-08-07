@@ -593,3 +593,60 @@ const toggleEditorBtn = document.getElementById("toggle_editor");
 toggleEditorBtn?.addEventListener("click", toggleEditor);
 const addKeyframeBtn = document.getElementById("add_keyframe");
 addKeyframeBtn?.addEventListener("click", addKeyframe);
+
+function buildKeyframeAnimation(): skinview3d.KeyframeAnimation | null {
+	if (keyframes.length === 0) {
+		return null;
+	}
+	const start = keyframes[0].time;
+	const data: skinview3d.KeyframeData = {
+		keyframes: keyframes.map(kf => ({
+			time: (kf.time - start) / 1000,
+			bones: {
+				rotation: [kf.rotation.x, kf.rotation.y, kf.rotation.z],
+			},
+		})),
+	};
+	return new skinview3d.KeyframeAnimation(data);
+}
+
+function downloadJson(): void {
+	const anim = buildKeyframeAnimation();
+	if (!anim) {
+		return;
+	}
+	const json = JSON.stringify(anim.toJSON(), null, 2);
+	const blob = new Blob([json], { type: "application/json" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = "animation.json";
+	a.click();
+	URL.revokeObjectURL(url);
+}
+
+async function uploadJson(e: Event): Promise<void> {
+	const input = e.target as HTMLInputElement;
+	const file = input.files?.[0];
+	if (!file) {
+		return;
+	}
+	try {
+		const text = await file.text();
+		const data = JSON.parse(text);
+		skinViewer.animation = skinview3d.createKeyframeAnimation(data);
+	} catch (err) {
+		console.error(err);
+	}
+	input.value = "";
+}
+
+const downloadJsonBtn = document.getElementById("download_json");
+downloadJsonBtn?.addEventListener("click", downloadJson);
+const uploadJsonInput = document.getElementById("upload_json");
+uploadJsonInput?.addEventListener("change", uploadJson);
+
+Object.assign(window as any, {
+	KeyframeAnimation: skinview3d.KeyframeAnimation,
+	createKeyframeAnimation: skinview3d.createKeyframeAnimation,
+});
