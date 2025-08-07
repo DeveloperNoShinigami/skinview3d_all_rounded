@@ -27,6 +27,8 @@ const keyframes: Array<{ time: number; bone: string; position: Vector3; rotation
 let editorEnabled = false;
 let previousAutoRotate = false;
 let previousAnimationPaused = false;
+let loadedAnimation: skinview3d.Animation | null = null;
+let uploadStatusEl: HTMLElement | null = null;
 
 function getBone(path: string): Object3D {
 	if (path === "playerObject") {
@@ -200,6 +202,7 @@ function initializeControls(): void {
 	const globalLight = document.getElementById("global_light") as HTMLInputElement;
 	const cameraLight = document.getElementById("camera_light") as HTMLInputElement;
 	const animationPauseResume = document.getElementById("animation_pause_resume");
+	const editorPlayPause = document.getElementById("editor_play_pause");
 	const autoRotate = document.getElementById("auto_rotate") as HTMLInputElement;
 	const autoRotateSpeed = document.getElementById("auto_rotate_speed") as HTMLInputElement;
 	const controlRotate = document.getElementById("control_rotate") as HTMLInputElement;
@@ -210,6 +213,8 @@ function initializeControls(): void {
 	const hitSpeedLabel = document.getElementById("hit_speed_label");
 	const animationCrouch = document.getElementById("animation_crouch") as HTMLInputElement;
 	const addHittingAnimation = document.getElementById("add_hitting_animation") as HTMLInputElement;
+
+	uploadStatusEl = document.getElementById("upload_status");
 
 	canvasWidth?.addEventListener("change", e => {
 		const target = e.target as HTMLInputElement;
@@ -244,6 +249,12 @@ function initializeControls(): void {
 	animationPauseResume?.addEventListener("click", () => {
 		if (skinViewer.animation) {
 			skinViewer.animation.paused = !skinViewer.animation.paused;
+		}
+	});
+
+	editorPlayPause?.addEventListener("click", () => {
+		if (loadedAnimation) {
+			loadedAnimation.paused = !loadedAnimation.paused;
 		}
 	});
 
@@ -672,9 +683,18 @@ async function uploadJson(e: Event): Promise<void> {
 	try {
 		const text = await file.text();
 		const data = JSON.parse(text);
-		skinViewer.animation = skinview3d.createKeyframeAnimation(data);
+		loadedAnimation = skinview3d.createKeyframeAnimation(data);
+		skinViewer.animation = loadedAnimation;
+		if (uploadStatusEl) {
+			uploadStatusEl.textContent = "Animation loaded.";
+			uploadStatusEl.classList.remove("hidden");
+		}
 	} catch (err) {
 		console.error(err);
+		if (uploadStatusEl) {
+			uploadStatusEl.textContent = "Failed to load animation.";
+			uploadStatusEl.classList.remove("hidden");
+		}
 	}
 	input.value = "";
 }
