@@ -240,6 +240,38 @@ function setupIK(): void {
 		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower"],
 	};
 
+	const rLegTarget = new Object3D();
+	rLegTarget.position.copy(skin.rightLegLower.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(rLegTarget);
+	const rLegBones = [skin.rightLeg, skin.rightLegKnee, skin.rightLegLower, rLegTarget];
+	const rLegSkeleton = new Skeleton(rLegBones as any);
+	const rLegMesh = new SkinnedMesh(new BufferGeometry(), new MeshBasicMaterial());
+	rLegMesh.bind(rLegSkeleton);
+	const rLegSolver = new CCDIKSolver(rLegMesh, [
+		{ target: 3, effector: 2, links: [{ index: 1 }, { index: 0 }], iteration: 10 },
+	]);
+	ikChains["ik.rightLeg"] = {
+		target: rLegTarget,
+		solver: rLegSolver,
+		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower"],
+	};
+
+	const lLegTarget = new Object3D();
+	lLegTarget.position.copy(skin.leftLegLower.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(lLegTarget);
+	const lLegBones = [skin.leftLeg, skin.leftLegKnee, skin.leftLegLower, lLegTarget];
+	const lLegSkeleton = new Skeleton(lLegBones as any);
+	const lLegMesh = new SkinnedMesh(new BufferGeometry(), new MeshBasicMaterial());
+	lLegMesh.bind(lLegSkeleton);
+	const lLegSolver = new CCDIKSolver(lLegMesh, [
+		{ target: 3, effector: 2, links: [{ index: 1 }, { index: 0 }], iteration: 10 },
+	]);
+	ikChains["ik.leftLeg"] = {
+		target: lLegTarget,
+		solver: lLegSolver,
+		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower"],
+	};
+
 	if (ikUpdateId !== null) {
 		cancelAnimationFrame(ikUpdateId);
 	}
