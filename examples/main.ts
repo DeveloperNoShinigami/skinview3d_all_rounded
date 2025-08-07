@@ -2,8 +2,8 @@ import * as skinview3d from "../src/skinview3d";
 import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
-import { CCDIKSolver } from "three/examples/jsm/animation/CCDIKSolver.js";
-import { Euler, Object3D, Vector3, Skeleton, SkinnedMesh, BufferGeometry, MeshBasicMaterial } from "three";
+import { IK, IKChain, IKJoint } from "three-ik";
+import { Euler, Object3D, Vector3 } from "three";
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
@@ -30,7 +30,7 @@ let previousAutoRotate = false;
 let previousAnimationPaused = false;
 let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
-const ikChains: Record<string, { target: Object3D; solver: CCDIKSolver; bones: string[] }> = {};
+const ikChains: Record<string, { target: Object3D; ik: IK; bones: string[] }> = {};
 let ikUpdateId: number | null = null;
 
 function getBone(path: string): Object3D {
@@ -216,68 +216,69 @@ function setupIK(): void {
 		delete ikChains[key];
 	}
 	const skin: any = skinViewer.playerObject.skin;
+
 	const rTarget = new Object3D();
-	rTarget.position.copy(skin.rightArmLower.getWorldPosition(new Vector3()));
+	rTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rTarget);
-	const rBones = [skin.rightArm, skin.rightArmElbow, skin.rightArmLower, rTarget];
-	const rSkeleton = new Skeleton(rBones as any);
-	const rMesh = new SkinnedMesh(new BufferGeometry(), new MeshBasicMaterial());
-	rMesh.bind(rSkeleton);
-	const rSolver = new CCDIKSolver(rMesh, [
-		{ target: 3, effector: 2, links: [{ index: 1 }, { index: 0 }], iteration: 10 },
-	]);
+	const rIK = new IK();
+	const rChain = new IKChain();
+	rChain.add(new IKJoint(skin.rightArm));
+	rChain.add(new IKJoint(skin.rightArmElbow));
+	rChain.add(new IKJoint(skin.rightArmLower));
+	rChain.add(new IKJoint(skin.rightArmHand), { target: rTarget });
+	rIK.add(rChain);
 	ikChains["ik.rightArm"] = {
 		target: rTarget,
-		solver: rSolver,
-		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower"],
+		ik: rIK,
+		bones: ["ik.rightArm", "skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
 	};
 
 	const lTarget = new Object3D();
-	lTarget.position.copy(skin.leftArmLower.getWorldPosition(new Vector3()));
+	lTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(lTarget);
-	const lBones = [skin.leftArm, skin.leftArmElbow, skin.leftArmLower, lTarget];
-	const lSkeleton = new Skeleton(lBones as any);
-	const lMesh = new SkinnedMesh(new BufferGeometry(), new MeshBasicMaterial());
-	lMesh.bind(lSkeleton);
-	const lSolver = new CCDIKSolver(lMesh, [
-		{ target: 3, effector: 2, links: [{ index: 1 }, { index: 0 }], iteration: 10 },
-	]);
+	const lIK = new IK();
+	const lChain = new IKChain();
+	lChain.add(new IKJoint(skin.leftArm));
+	lChain.add(new IKJoint(skin.leftArmElbow));
+	lChain.add(new IKJoint(skin.leftArmLower));
+	lChain.add(new IKJoint(skin.leftArmHand), { target: lTarget });
+	lIK.add(lChain);
 	ikChains["ik.leftArm"] = {
 		target: lTarget,
-		solver: lSolver,
-		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower"],
+		ik: lIK,
+		bones: ["ik.leftArm", "skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
 	};
 
 	const rLegTarget = new Object3D();
-	rLegTarget.position.copy(skin.rightLegLower.getWorldPosition(new Vector3()));
+	rLegTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rLegTarget);
-	const rLegBones = [skin.rightLeg, skin.rightLegKnee, skin.rightLegLower, rLegTarget];
-	const rLegSkeleton = new Skeleton(rLegBones as any);
-	const rLegMesh = new SkinnedMesh(new BufferGeometry(), new MeshBasicMaterial());
-	rLegMesh.bind(rLegSkeleton);
-	const rLegSolver = new CCDIKSolver(rLegMesh, [
-		{ target: 3, effector: 2, links: [{ index: 1 }, { index: 0 }], iteration: 10 },
-	]);
+	const rLegIK = new IK();
+	const rLegChain = new IKChain();
+	rLegChain.add(new IKJoint(skin.rightLeg));
+	rLegChain.add(new IKJoint(skin.rightLegKnee));
+	rLegChain.add(new IKJoint(skin.rightLegLower));
+	rLegChain.add(new IKJoint(skin.rightLegFoot), { target: rLegTarget });
+	rLegIK.add(rLegChain);
 	ikChains["ik.rightLeg"] = {
 		target: rLegTarget,
-		solver: rLegSolver,
-		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower"],
+		ik: rLegIK,
+		bones: ["ik.rightLeg", "skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
 	};
 
 	const lLegTarget = new Object3D();
-	lLegTarget.position.copy(skin.leftLegLower.getWorldPosition(new Vector3()));
+	lLegTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(lLegTarget);
-	const lLegBones = [skin.leftLeg, skin.leftLegKnee, skin.leftLegLower, lLegTarget];
-	const lLegSkeleton = new Skeleton(lLegBones as any);
-	const lLegMesh = new SkinnedMesh(new BufferGeometry(), new MeshBasicMaterial());
-	lLegMesh.bind(lLegSkeleton);
-	const lLegSolver = new CCDIKSolver(lLegMesh, [
-		{ target: 3, effector: 2, links: [{ index: 1 }, { index: 0 }], iteration: 10 },
-	]);
+	const lLegIK = new IK();
+	const lLegChain = new IKChain();
+	lLegChain.add(new IKJoint(skin.leftLeg));
+	lLegChain.add(new IKJoint(skin.leftLegKnee));
+	lLegChain.add(new IKJoint(skin.leftLegLower));
+	lLegChain.add(new IKJoint(skin.leftLegFoot), { target: lLegTarget });
+	lLegIK.add(lLegChain);
 	ikChains["ik.leftLeg"] = {
 		target: lLegTarget,
-		solver: lLegSolver,
-		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower"],
+		ik: lLegIK,
+		bones: ["ik.leftLeg", "skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
 	};
 
 	if (ikUpdateId !== null) {
@@ -285,7 +286,8 @@ function setupIK(): void {
 	}
 	const update = () => {
 		for (const chain of Object.values(ikChains)) {
-			chain.solver.update();
+			chain.target.updateMatrixWorld(true);
+			chain.ik.solve();
 		}
 		ikUpdateId = requestAnimationFrame(update);
 	};
