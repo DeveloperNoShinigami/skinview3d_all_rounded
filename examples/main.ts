@@ -648,13 +648,20 @@ function buildKeyframeAnimation(): skinview3d.KeyframeAnimation | null {
 		return null;
 	}
 	const start = keyframes[0].time;
+	const frames = new Map<number, Record<string, [number, number, number]>>();
+	for (const kf of keyframes) {
+		const time = kf.time - start;
+		const bones = frames.get(time) ?? {};
+		bones[kf.bone] = [kf.rotation.x, kf.rotation.y, kf.rotation.z];
+		frames.set(time, bones);
+	}
 	const data: skinview3d.KeyframeData = {
-		keyframes: keyframes.map(kf => ({
-			time: (kf.time - start) / 1000,
-			bones: {
-				rotation: [kf.rotation.x, kf.rotation.y, kf.rotation.z],
-			},
-		})),
+		keyframes: [...frames.entries()]
+			.sort((a, b) => a[0] - b[0])
+			.map(([time, bones]) => ({
+				time: time / 1000,
+				bones,
+			})),
 	};
 	return new skinview3d.KeyframeAnimation(data);
 }
