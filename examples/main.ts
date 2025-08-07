@@ -3,7 +3,7 @@ import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
-import { Euler, Mesh, MeshBasicMaterial, Object3D, Quaternion, SphereGeometry, Vector3 } from "three";
+import { Euler, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
@@ -265,6 +265,8 @@ function setupIK(): void {
 	const skin = skinViewer.playerObject.skin;
 
 	const rightHandTarget = new Object3D();
+	const rightHandMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xff0000 }));
+	rightHandTarget.add(rightHandMesh);
 
 	rightHandTarget.position.copy(skin.rightArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightHandTarget);
@@ -285,6 +287,8 @@ function setupIK(): void {
 	};
 
 	const leftHandTarget = new Object3D();
+	const leftHandMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x00ff00 }));
+	leftHandTarget.add(leftHandMesh);
 
 	leftHandTarget.position.copy(skin.leftArmHand.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftHandTarget);
@@ -306,6 +310,8 @@ function setupIK(): void {
 	};
 
 	const rightFootTarget = new Object3D();
+	const rightFootMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x0000ff }));
+	rightFootTarget.add(rightFootMesh);
 
 	rightFootTarget.position.copy(skin.rightLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(rightFootTarget);
@@ -327,6 +333,8 @@ function setupIK(): void {
 	};
 
 	const leftFootTarget = new Object3D();
+	const leftFootMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xffff00 }));
+	leftFootTarget.add(leftFootMesh);
 
 	leftFootTarget.position.copy(skin.leftLegFoot.getWorldPosition(new Vector3()));
 	skinViewer.scene.add(leftFootTarget);
