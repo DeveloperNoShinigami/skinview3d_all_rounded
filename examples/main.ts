@@ -592,7 +592,14 @@ function toggleEditor(): void {
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
 		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
 			skinViewer.controls.enabled = !e.value;
+			if (!e.value) {
+				addKeyframe();
+			}
 		});
+		const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
+		if (modeSelector) {
+			transformControls.setMode(modeSelector.value as any);
+		}
 		transformControls.attach(getBone(selectedBone));
 		skinViewer.scene.add(transformControls);
 	} else {
@@ -615,6 +622,28 @@ function toggleEditor(): void {
 	}
 }
 
+function updateTimeline(): void {
+	const timeline = document.getElementById("timeline");
+	if (!timeline) {
+		return;
+	}
+	timeline.innerHTML = "";
+	if (keyframes.length === 0) {
+		return;
+	}
+	const start = keyframes[0].time;
+	const end = keyframes[keyframes.length - 1].time;
+	const duration = end - start || 1;
+	for (const kf of keyframes) {
+		const marker = document.createElement("div");
+		marker.className = "kf-marker";
+		const t = kf.time - start;
+		marker.style.left = `${(t / duration) * 100}%`;
+		marker.title = kf.bone;
+		timeline.appendChild(marker);
+	}
+}
+
 function addKeyframe(): void {
 	const bone = getBone(selectedBone);
 	keyframes.push({
@@ -623,12 +652,7 @@ function addKeyframe(): void {
 		position: bone.position.clone(),
 		rotation: bone.rotation.clone(),
 	});
-	const timeline = document.getElementById("timeline");
-	if (timeline) {
-		const entry = document.createElement("div");
-		entry.textContent = `Keyframe ${keyframes.length} (${selectedBone})`;
-		timeline.appendChild(entry);
-	}
+	updateTimeline();
 }
 
 const boneSelector = document.getElementById("bone_selector") as HTMLSelectElement;
@@ -642,6 +666,13 @@ const toggleEditorBtn = document.getElementById("toggle_editor");
 toggleEditorBtn?.addEventListener("click", toggleEditor);
 const addKeyframeBtn = document.getElementById("add_keyframe");
 addKeyframeBtn?.addEventListener("click", addKeyframe);
+
+const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
+modeSelector?.addEventListener("change", () => {
+	if (transformControls) {
+		transformControls.setMode(modeSelector.value as any);
+	}
+});
 
 function buildKeyframeAnimation(): skinview3d.KeyframeAnimation | null {
 	if (keyframes.length === 0) {
@@ -692,8 +723,23 @@ async function uploadJson(e: Event): Promise<void> {
 		const data = JSON.parse(text);
 		loadedAnimation = skinview3d.createKeyframeAnimation(data);
 		skinViewer.animation = loadedAnimation;
+		keyframes.length = 0;
+		if (Array.isArray(data.keyframes)) {
+			for (const frame of data.keyframes) {
+				for (const [bone, rot] of Object.entries(frame.bones ?? {})) {
+					keyframes.push({
+						time: frame.time * 1000,
+						bone,
+						position: new Vector3(),
+						rotation: new Euler().fromArray(rot as [number, number, number]),
+					});
+				}
+			}
+			keyframes.sort((a, b) => a.time - b.time);
+			updateTimeline();
+		}
 		if (uploadStatusEl) {
-			uploadStatusEl.textContent = "Animation loaded.";
+			uploadStatusEl.textContent = `Loaded: ${file.name}`;
 			uploadStatusEl.classList.remove("hidden");
 		}
 	} catch (err) {
