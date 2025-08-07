@@ -72,6 +72,9 @@ function reloadSkin(): void {
 	if (url === "") {
 		skinViewer.loadSkin(null);
 		input?.setCustomValidity("");
+		if (editorEnabled) {
+			setupIK();
+		}
 	} else {
 		const skinModel = document.getElementById("skin_model") as HTMLSelectElement;
 		const earsSource = document.getElementById("ears_source") as HTMLSelectElement;
@@ -81,7 +84,12 @@ function reloadSkin(): void {
 				model: skinModel?.value as ModelType,
 				ears: earsSource?.value === "current_skin",
 			})
-			.then(() => input?.setCustomValidity(""))
+			.then(() => {
+				input?.setCustomValidity("");
+				if (editorEnabled) {
+					setupIK();
+				}
+			})
 			.catch(e => {
 				input?.setCustomValidity("Image can't be loaded.");
 				console.error(e);
@@ -282,6 +290,19 @@ function setupIK(): void {
 		ikUpdateId = requestAnimationFrame(update);
 	};
 	update();
+}
+
+function disposeIK(): void {
+	if (ikUpdateId !== null) {
+		cancelAnimationFrame(ikUpdateId);
+		ikUpdateId = null;
+	}
+	for (const chain of Object.values(ikChains)) {
+		skinViewer.scene.remove(chain.target);
+	}
+	for (const key in ikChains) {
+		delete ikChains[key];
+	}
 }
 
 function initializeControls(): void {
@@ -570,6 +591,7 @@ function initializeControls(): void {
 }
 
 function initializeViewer(): void {
+	disposeIK();
 	const skinContainer = document.getElementById("skin_container") as HTMLCanvasElement;
 	if (!skinContainer) {
 		throw new Error("Canvas element not found");
@@ -578,8 +600,6 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
-
-	setupIK();
 
 	const canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
 	const canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
@@ -681,6 +701,8 @@ function toggleEditor(): void {
 		skinViewer.width = 800;
 		skinViewer.height = 600;
 
+		setupIK();
+
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
 		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
 			skinViewer.controls.enabled = !e.value;
@@ -714,6 +736,7 @@ function toggleEditor(): void {
 			transformControls.dispose();
 			transformControls = null;
 		}
+		disposeIK();
 	}
 }
 
