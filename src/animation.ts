@@ -533,24 +533,24 @@ export class HitAnimation extends PlayerAnimation {
 }
 
 export interface BendAnimationOptions {
-/**
- * Amount of arm bending in radians.
- *
- * @defaultValue `Math.PI / 2`
- */
-armBend?: number;
-/**
- * Amount of leg bending in radians.
- *
- * @defaultValue `Math.PI / 2`
- */
-legBend?: number;
-/**
- * Speed of the animation.
- *
- * @defaultValue `1.0`
- */
-speed?: number;
+	/**
+	 * Amount of arm bending in radians.
+	 *
+	 * @defaultValue `Math.PI / 2`
+	 */
+	armBend?: number;
+	/**
+	 * Amount of leg bending in radians.
+	 *
+	 * @defaultValue `Math.PI / 2`
+	 */
+	legBend?: number;
+	/**
+	 * Speed of the animation.
+	 *
+	 * @defaultValue `1.0`
+	 */
+	speed?: number;
 }
 
 export class BendAnimation extends PlayerAnimation {
@@ -572,14 +572,13 @@ export class BendAnimation extends PlayerAnimation {
 		// Bend arms around the shoulder and elbow joints for a smoother curve
 		player.skin.leftArm.rotation.x = arm * 0.5;
 		player.skin.leftArmElbow.rotation.x = arm * 0.5;
-		player.skin.rightArm.rotation.x = -arm * 0.5;
-		player.skin.rightArmElbow.rotation.x = -arm * 0.5;
+		player.skin.rightArm.rotation.x = arm * 0.5;
+		player.skin.rightArmElbow.rotation.x = arm * 0.5;
 
 		// Bend legs around the hip and knee joints
 		player.skin.leftLeg.rotation.x = -leg * 0.5;
 		player.skin.leftLegKnee.rotation.x = -leg * 0.5;
-		player.skin.rightLeg.rotation.x = leg * 0.5;
-		player.skin.rightLegKnee.rotation.x = leg * 0.5;
-
+		player.skin.rightLeg.rotation.x = -leg * 0.5;
+		player.skin.rightLegKnee.rotation.x = -leg * 0.5;
 	}
 }
