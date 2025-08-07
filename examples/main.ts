@@ -230,7 +230,7 @@ function setupIK(): void {
 	ikChains["ik.rightArm"] = {
 		target: rTarget,
 		ik: rIK,
-		bones: ["ik.rightArm", "skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
+		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower", "skin.rightArmHand"],
 	};
 
 	const lTarget = new Object3D();
@@ -246,7 +246,7 @@ function setupIK(): void {
 	ikChains["ik.leftArm"] = {
 		target: lTarget,
 		ik: lIK,
-		bones: ["ik.leftArm", "skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
+		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower", "skin.leftArmHand"],
 	};
 
 	const rLegTarget = new Object3D();
@@ -262,7 +262,7 @@ function setupIK(): void {
 	ikChains["ik.rightLeg"] = {
 		target: rLegTarget,
 		ik: rLegIK,
-		bones: ["ik.rightLeg", "skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
+		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegLower", "skin.rightLegFoot"],
 	};
 
 	const lLegTarget = new Object3D();
@@ -278,20 +278,26 @@ function setupIK(): void {
 	ikChains["ik.leftLeg"] = {
 		target: lLegTarget,
 		ik: lLegIK,
-		bones: ["ik.leftLeg", "skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
+		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegLower", "skin.leftLegFoot"],
 	};
 
 	if (ikUpdateId !== null) {
 		cancelAnimationFrame(ikUpdateId);
 	}
 	const update = () => {
-		for (const chain of Object.values(ikChains)) {
+		const time =
+			loadedAnimation && keyframes.length > 0 ? keyframes[0].time + loadedAnimation.progress * 1000 : Date.now();
+		for (const key of Object.keys(ikChains)) {
+			applyTargetKeyframe(key, time);
+			const chain = ikChains[key];
 			chain.target.updateMatrixWorld(true);
 			chain.ik.solve();
 		}
 		ikUpdateId = requestAnimationFrame(update);
 	};
 	update();
+
+	initializeBoneSelector();
 }
 
 function disposeIK(): void {
@@ -305,6 +311,8 @@ function disposeIK(): void {
 	for (const key in ikChains) {
 		delete ikChains[key];
 	}
+
+	initializeBoneSelector();
 }
 
 function initializeControls(): void {
@@ -665,6 +673,7 @@ function initializeBoneSelector(): void {
 		return;
 	}
 
+	const current = selector.value;
 	selector.innerHTML = "";
 	const playerOption = document.createElement("option");
 	playerOption.value = "playerObject";
@@ -676,6 +685,17 @@ function initializeBoneSelector(): void {
 		option.value = `skin.${part}`;
 		option.textContent = `skin.${part}`;
 		selector.appendChild(option);
+	}
+
+	for (const key of Object.keys(ikChains)) {
+		const option = document.createElement("option");
+		option.value = key;
+		option.textContent = key;
+		selector.appendChild(option);
+	}
+
+	if (current) {
+		selector.value = current;
 	}
 }
 
@@ -778,14 +798,64 @@ function updateTimeline(): void {
 	}
 }
 
+function captureIKTargets(time: number): void {
+	for (const [key, chain] of Object.entries(ikChains)) {
+		keyframes.push({
+			time,
+			bone: key,
+			position: chain.target.position.clone(),
+			rotation: chain.target.rotation.clone(),
+		});
+	}
+}
+
+function applyTargetKeyframe(chainKey: string, time: number): void {
+	const target = ikChains[chainKey]?.target;
+	if (!target) {
+		return;
+	}
+	const frames = keyframes.filter(kf => kf.bone === chainKey);
+	if (frames.length === 0) {
+		return;
+	}
+	let prev = frames[0];
+	let next = frames[frames.length - 1];
+	if (time <= prev.time) {
+		target.position.copy(prev.position);
+		target.rotation.copy(prev.rotation);
+		return;
+	}
+	if (time >= next.time) {
+		target.position.copy(next.position);
+		target.rotation.copy(next.rotation);
+		return;
+	}
+	for (let i = 0; i < frames.length - 1; i++) {
+		const f0 = frames[i];
+		const f1 = frames[i + 1];
+		if (time >= f0.time && time <= f1.time) {
+			const alpha = (time - f0.time) / (f1.time - f0.time || 1);
+			target.position.lerpVectors(f0.position, f1.position, alpha);
+			target.rotation.set(
+				f0.rotation.x + (f1.rotation.x - f0.rotation.x) * alpha,
+				f0.rotation.y + (f1.rotation.y - f0.rotation.y) * alpha,
+				f0.rotation.z + (f1.rotation.z - f0.rotation.z) * alpha
+			);
+			break;
+		}
+	}
+}
+
 function addKeyframe(bonePath = selectedBone): void {
 	const bone = getBone(bonePath);
+	const time = Date.now();
 	keyframes.push({
-		time: Date.now(),
+		time,
 		bone: bonePath,
 		position: bone.position.clone(),
 		rotation: bone.rotation.clone(),
 	});
+	captureIKTargets(time);
 	updateTimeline();
 }
 
@@ -804,6 +874,7 @@ function addIKKeyframe(chainName: string): void {
 			rotation: bone.rotation.clone(),
 		});
 	}
+	captureIKTargets(time);
 	updateTimeline();
 }
 
