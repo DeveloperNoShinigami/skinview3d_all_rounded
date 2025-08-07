@@ -2,7 +2,8 @@ import * as skinview3d from "../src/skinview3d";
 import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
-import { Euler, Object3D, Vector3 } from "three";
+import { CCDIKSolver } from "three/examples/jsm/animation/CCDIKSolver.js";
+import { Euler, Object3D, Vector3, Skeleton, SkinnedMesh, BufferGeometry, MeshBasicMaterial } from "three";
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 
@@ -29,10 +30,15 @@ let previousAutoRotate = false;
 let previousAnimationPaused = false;
 let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
+const ikChains: Record<string, { target: Object3D; solver: CCDIKSolver; bones: string[] }> = {};
+let ikUpdateId: number | null = null;
 
 function getBone(path: string): Object3D {
 	if (path === "playerObject") {
 		return skinViewer.playerObject;
+	}
+	if (path.startsWith("ik.")) {
+		return ikChains[path]?.target ?? skinViewer.playerObject;
 	}
 	return path.split(".").reduce((obj: any, part) => obj?.[part], skinViewer.playerObject) ?? skinViewer.playerObject;
 }
@@ -192,6 +198,58 @@ function reloadNameTag(): void {
 	} else {
 		skinViewer.nameTag = text;
 	}
+}
+
+function setupIK(): void {
+	for (const chain of Object.values(ikChains)) {
+		skinViewer.scene.remove(chain.target);
+	}
+	for (const key in ikChains) {
+		delete ikChains[key];
+	}
+	const skin: any = skinViewer.playerObject.skin;
+	const rTarget = new Object3D();
+	rTarget.position.copy(skin.rightArmLower.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(rTarget);
+	const rBones = [skin.rightArm, skin.rightArmElbow, skin.rightArmLower, rTarget];
+	const rSkeleton = new Skeleton(rBones as any);
+	const rMesh = new SkinnedMesh(new BufferGeometry(), new MeshBasicMaterial());
+	rMesh.bind(rSkeleton);
+	const rSolver = new CCDIKSolver(rMesh, [
+		{ target: 3, effector: 2, links: [{ index: 1 }, { index: 0 }], iteration: 10 },
+	]);
+	ikChains["ik.rightArm"] = {
+		target: rTarget,
+		solver: rSolver,
+		bones: ["skin.rightArm", "skin.rightArmElbow", "skin.rightArmLower"],
+	};
+
+	const lTarget = new Object3D();
+	lTarget.position.copy(skin.leftArmLower.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(lTarget);
+	const lBones = [skin.leftArm, skin.leftArmElbow, skin.leftArmLower, lTarget];
+	const lSkeleton = new Skeleton(lBones as any);
+	const lMesh = new SkinnedMesh(new BufferGeometry(), new MeshBasicMaterial());
+	lMesh.bind(lSkeleton);
+	const lSolver = new CCDIKSolver(lMesh, [
+		{ target: 3, effector: 2, links: [{ index: 1 }, { index: 0 }], iteration: 10 },
+	]);
+	ikChains["ik.leftArm"] = {
+		target: lTarget,
+		solver: lSolver,
+		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmLower"],
+	};
+
+	if (ikUpdateId !== null) {
+		cancelAnimationFrame(ikUpdateId);
+	}
+	const update = () => {
+		for (const chain of Object.values(ikChains)) {
+			chain.solver.update();
+		}
+		ikUpdateId = requestAnimationFrame(update);
+	};
+	update();
 }
 
 function initializeControls(): void {
@@ -489,6 +547,8 @@ function initializeViewer(): void {
 		canvas: skinContainer,
 	});
 
+	setupIK();
+
 	const canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
 	const canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
 	const fov = document.getElementById("fov") as HTMLInputElement;
@@ -593,7 +653,11 @@ function toggleEditor(): void {
 		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
 			skinViewer.controls.enabled = !e.value;
 			if (!e.value) {
-				addKeyframe();
+				if (selectedBone.startsWith("ik.")) {
+					addIKKeyframe(selectedBone);
+				} else {
+					addKeyframe();
+				}
 			}
 		});
 		const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
@@ -634,24 +698,56 @@ function updateTimeline(): void {
 	const start = keyframes[0].time;
 	const end = keyframes[keyframes.length - 1].time;
 	const duration = end - start || 1;
+	const rows = new Map<string, HTMLDivElement>();
 	for (const kf of keyframes) {
+		let track = rows.get(kf.bone);
+		if (!track) {
+			const row = document.createElement("div");
+			row.className = "kf-row";
+			const label = document.createElement("span");
+			label.className = "kf-label";
+			label.textContent = kf.bone;
+			track = document.createElement("div");
+			track.className = "kf-track";
+			row.appendChild(label);
+			row.appendChild(track);
+			timeline.appendChild(row);
+			rows.set(kf.bone, track);
+		}
 		const marker = document.createElement("div");
 		marker.className = "kf-marker";
 		const t = kf.time - start;
 		marker.style.left = `${(t / duration) * 100}%`;
-		marker.title = kf.bone;
-		timeline.appendChild(marker);
+		track.appendChild(marker);
 	}
 }
 
-function addKeyframe(): void {
-	const bone = getBone(selectedBone);
+function addKeyframe(bonePath = selectedBone): void {
+	const bone = getBone(bonePath);
 	keyframes.push({
 		time: Date.now(),
-		bone: selectedBone,
+		bone: bonePath,
 		position: bone.position.clone(),
 		rotation: bone.rotation.clone(),
 	});
+	updateTimeline();
+}
+
+function addIKKeyframe(chainName: string): void {
+	const chain = ikChains[chainName];
+	if (!chain) {
+		return;
+	}
+	const time = Date.now();
+	for (const bonePath of chain.bones) {
+		const bone = getBone(bonePath);
+		keyframes.push({
+			time,
+			bone: bonePath,
+			position: bone.position.clone(),
+			rotation: bone.rotation.clone(),
+		});
+	}
 	updateTimeline();
 }
 
@@ -665,7 +761,20 @@ boneSelector?.addEventListener("change", () => {
 const toggleEditorBtn = document.getElementById("toggle_editor");
 toggleEditorBtn?.addEventListener("click", toggleEditor);
 const addKeyframeBtn = document.getElementById("add_keyframe");
-addKeyframeBtn?.addEventListener("click", addKeyframe);
+addKeyframeBtn?.addEventListener("click", () => {
+	if (selectedBone.startsWith("ik.")) {
+		addIKKeyframe(selectedBone);
+	} else {
+		addKeyframe();
+	}
+});
+
+const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
+modeSelector?.addEventListener("change", () => {
+	if (transformControls) {
+		transformControls.setMode(modeSelector.value as any);
+	}
+});
 
 const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
 modeSelector?.addEventListener("change", () => {
