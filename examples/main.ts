@@ -325,69 +325,99 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 	animLabel.appendChild(select);
 	div.appendChild(animLabel);
 
-	const uploadBtn = document.createElement("button");
-	uploadBtn.className = "control";
-	uploadBtn.textContent = "Load...";
-	div.appendChild(uploadBtn);
-
-	const menu = document.createElement("ul");
-	menu.classList.add("resource-menu", "hidden");
-
-	function handleDocumentClick(event: MouseEvent): void {
-		if (!menu.contains(event.target as Node) && event.target !== uploadBtn) {
-			menu.classList.add("hidden");
-			document.removeEventListener("click", handleDocumentClick);
+	const skinBtn = document.createElement("button");
+	skinBtn.className = "control";
+	skinBtn.textContent = "Skin";
+	const skinInput = document.createElement("input");
+	skinInput.type = "file";
+	skinInput.accept = "image/*";
+	skinInput.classList.add("hidden");
+	skinInput.addEventListener("change", async () => {
+		const file = skinInput.files?.[0];
+		if (file) {
+			await skinViewer.loadSkin(file, {}, player);
 		}
-	}
-
-	function createMenuItem(label: string, accept: string, load: (file: File) => void | Promise<void>): void {
-		const input = document.createElement("input");
-		input.type = "file";
-		input.accept = accept;
-		input.classList.add("hidden");
-		input.addEventListener("change", async () => {
-			const file = input.files?.[0];
-
-			if (file) {
-				await load(file);
-			}
-			menu.classList.add("hidden");
-			document.removeEventListener("click", handleDocumentClick);
-		});
-
-		const item = document.createElement("li");
-		item.textContent = label;
-		item.addEventListener("click", () => input.click());
-		menu.appendChild(item);
-		div.appendChild(input);
-	}
-
-	createMenuItem("Skin", "image/*", file => {
-		void skinViewer.loadSkin(file, {}, player);
 	});
-	createMenuItem("Cape", "image/*", file => {
-		void skinViewer.loadCape(file, {}, player);
-	});
-	createMenuItem("Ears", "image/*", file => {
-		void skinViewer.loadEars(file, { textureType: "standalone" }, player);
-	});
-	createMenuItem("Animation", "application/json", async file => {
-		const text = await file.text();
-		const data = JSON.parse(text);
-		const anim = skinview3d.createKeyframeAnimation(data);
-		skinViewer.setAnimation(player, anim);
-	});
+	skinBtn.addEventListener("click", () => skinInput.click());
+	div.appendChild(skinBtn);
+	div.appendChild(skinInput);
 
-	div.appendChild(menu);
-	uploadBtn.addEventListener("click", event => {
-		event.stopPropagation();
-		menu.classList.toggle("hidden");
-		if (menu.classList.contains("hidden")) {
-			document.removeEventListener("click", handleDocumentClick);
+	const backBtn = document.createElement("button");
+	backBtn.className = "control";
+	backBtn.textContent = "Back Items";
+	div.appendChild(backBtn);
+	const backMenu = document.createElement("div");
+	backMenu.classList.add("hidden");
+	backMenu.innerHTML = `<p class="control">Choose cape or elytra then provide a texture.</p>
+<div class="control"><label><input type="radio" name="back_type_${index}" value="cape" checked /> Cape</label>
+<label><input type="radio" name="back_type_${index}" value="elytra" /> Elytra</label></div>
+<input id="back_url_${index}" type="text" class="control" placeholder="URL" />
+<input id="back_file_${index}" type="file" class="control" />`;
+	div.appendChild(backMenu);
+	const backUrl = backMenu.querySelector(`#back_url_${index}`) as HTMLInputElement;
+	const backFile = backMenu.querySelector(`#back_file_${index}`) as HTMLInputElement;
+	const hideBackMenu = () => backMenu.classList.add("hidden");
+	const loadBack = (source: string | File) => {
+		const equip = (backMenu.querySelector(`input[name="back_type_${index}"]:checked`) as HTMLInputElement)
+			?.value as BackEquipment;
+		return skinViewer.loadCape(source, { backEquipment: equip }, player);
+	};
+	backUrl.addEventListener("change", () => {
+		const url = backUrl.value.trim();
+		if (url) {
+			void Promise.resolve(loadBack(url)).finally(hideBackMenu);
 		} else {
-			document.addEventListener("click", handleDocumentClick);
+			hideBackMenu();
 		}
 	});
+	backFile.addEventListener("change", () => {
+		const file = backFile.files?.[0];
+		if (file) {
+			void Promise.resolve(loadBack(file)).finally(hideBackMenu);
+		} else {
+			hideBackMenu();
+		}
+	});
+	backBtn.addEventListener("click", () => {
+		backMenu.classList.toggle("hidden");
+	});
+
+	const earsBtn = document.createElement("button");
+	earsBtn.className = "control";
+	earsBtn.textContent = "Ears";
+	const earsInput = document.createElement("input");
+	earsInput.type = "file";
+	earsInput.accept = "image/*";
+	earsInput.classList.add("hidden");
+	earsInput.addEventListener("change", async () => {
+		const file = earsInput.files?.[0];
+		if (file) {
+			await skinViewer.loadEars(file, { textureType: "standalone" }, player);
+		}
+	});
+	earsBtn.addEventListener("click", () => earsInput.click());
+	div.appendChild(earsBtn);
+	div.appendChild(earsInput);
+
+	const animBtn = document.createElement("button");
+	animBtn.className = "control";
+	animBtn.textContent = "Animation";
+	const animInput = document.createElement("input");
+	animInput.type = "file";
+	animInput.accept = "application/json";
+	animInput.classList.add("hidden");
+	animInput.addEventListener("change", async () => {
+		const file = animInput.files?.[0];
+		if (file) {
+			const text = await file.text();
+			const data = JSON.parse(text);
+			const anim = skinview3d.createKeyframeAnimation(data);
+			skinViewer.setAnimation(player, anim);
+		}
+	});
+	animBtn.addEventListener("click", () => animInput.click());
+	div.appendChild(animBtn);
+	div.appendChild(animInput);
 
 	return div;
 }
