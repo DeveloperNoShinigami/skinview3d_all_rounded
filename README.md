@@ -144,6 +144,10 @@ viewer.autoFit = false;
 viewer.updateLayout();
 ```
 
+### Position controller
+
+The example viewer (`examples/index.html`) includes a **Toggle Position Controller** button. When enabled, it attaches Three.js `TransformControls` to the selected player so you can move or rotate them directly. Press `T` for translation or `R` for rotation. Orbit controls are disabled while dragging, and the previous camera and animation state are restored when the controller is toggled off.
+
 ### Keyframe animations
 
 `KeyframeAnimation` lets you persist animations as JSON and restore them later.
