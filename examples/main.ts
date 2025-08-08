@@ -72,6 +72,7 @@ const pointer = new Vector2();
 const extraPlayerControls: HTMLElement[] = [];
 let canvasWidth: HTMLInputElement | null = null;
 let canvasHeight: HTMLInputElement | null = null;
+let playerSelector: HTMLSelectElement | null = null;
 const spacingOptions = [20, 40, 60];
 let spacingIndex = 0;
 
@@ -270,6 +271,15 @@ function updateViewportSize(): void {
 		for (const el of backEquipmentRadios) {
 			el.checked = selectedPlayer.backEquipment === el.value;
 		}
+
+		if (playerSelector) {
+			if (selectedPlayer === skinViewer.playerObject) {
+				playerSelector.value = "0";
+			} else {
+				const idx = extraPlayers.indexOf(selectedPlayer);
+				playerSelector.value = idx >= 0 ? String(idx + 1) : "0";
+			}
+		}
 	}
 
 	function handlePlayerClick(event: MouseEvent): void {
@@ -296,6 +306,13 @@ function updateViewportSize(): void {
 function addModel(): void {
 	const player = skinViewer.addPlayer();
 	extraPlayers.push(player);
+	if (playerSelector) {
+		const opt = document.createElement("option");
+		const idx = extraPlayers.length;
+		opt.value = String(idx);
+		opt.textContent = `Player ${idx + 1}`;
+		playerSelector.appendChild(opt);
+	}
 	const anim = new skinview3d.IdleAnimation();
 	skinViewer.setAnimation(player, anim);
 	const index = extraPlayers.length - 1;
@@ -430,6 +447,7 @@ function removeModel(): void {
 		if (selectedPlayer === player) {
 			selectPlayer(null);
 		}
+		playerSelector?.lastElementChild?.remove();
 	}
 	const control = extraPlayerControls.pop();
 	control?.remove();
@@ -751,6 +769,7 @@ function initializeControls(): void {
 	const zoom = document.getElementById("zoom") as HTMLInputElement;
 	const globalLight = document.getElementById("global_light") as HTMLInputElement;
 	const cameraLight = document.getElementById("camera_light") as HTMLInputElement;
+	playerSelector = document.getElementById("player_selector") as HTMLSelectElement;
 	const animationPauseResume = document.getElementById("animation_pause_resume");
 	const editorPlayPause = document.getElementById("editor_play_pause");
 	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
@@ -787,6 +806,12 @@ function initializeControls(): void {
 	const addHittingAnimation = document.getElementById("add_hitting_animation") as HTMLInputElement;
 
 	uploadStatusEl = document.getElementById("upload_status");
+
+	playerSelector?.addEventListener("change", () => {
+		const idx = Number(playerSelector.value);
+		const player = idx === 0 ? skinViewer.playerObject : extraPlayers[idx - 1];
+		selectPlayer(player ?? null);
+	});
 
 	canvasWidth?.addEventListener("change", e => {
 		const target = e.target as HTMLInputElement;
@@ -1097,6 +1122,15 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
+	playerSelector = document.getElementById("player_selector") as HTMLSelectElement;
+	if (playerSelector) {
+		playerSelector.innerHTML = "";
+		const opt = document.createElement("option");
+		opt.value = "0";
+		opt.textContent = "Player 1";
+		playerSelector.appendChild(opt);
+		playerSelector.value = "0";
+	}
 
 	selectPlayer(null);
 
