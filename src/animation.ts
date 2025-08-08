@@ -495,7 +495,7 @@ export class BendAnimation extends PlayerAnimation {
 		const arm = s * this.armBend;
 		const leg = s * this.legBend;
 
-		// Bend arms across shoulder, elbow and wrist bones
+		// Bend arms across shoulder, elbow and lower arm bones
 		const armUpper = 5;
 		const armLower = 5;
 		const armShoulderRatio = armLower / (armUpper + armLower);
@@ -503,11 +503,11 @@ export class BendAnimation extends PlayerAnimation {
 		player.skin.leftArm.rotation.x = arm * armShoulderRatio;
 		player.skin.rightArm.rotation.x = arm * armShoulderRatio;
 		const elbow = arm * armElbowRatio * 0.6;
-		const wrist = arm * armElbowRatio * 0.4;
-		player.skin.leftArmElbow.rotation.x = elbow;
-		player.skin.leftArmWrist.rotation.x = wrist;
-		player.skin.rightArmElbow.rotation.x = elbow;
-		player.skin.rightArmWrist.rotation.x = wrist;
+		const lower = arm * armElbowRatio * 0.4;
+		player.skin.leftElbowPivot.rotation.x = elbow;
+		player.skin.leftLowerArm.rotation.x = lower;
+		player.skin.rightElbowPivot.rotation.x = elbow;
+		player.skin.rightLowerArm.rotation.x = lower;
 
 		// Bend legs across hip and knee bones
 		const legUpper = 5;
