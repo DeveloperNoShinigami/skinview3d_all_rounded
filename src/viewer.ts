@@ -251,7 +251,7 @@ export interface SkinViewerOptions {
 	 * Whether to automatically arrange multiple players and adjust the camera
 	 * so that all of them are visible.
 	 *
-	 * @defaultValue `false`
+	 * @defaultValue `true`
 	 */
 	autoFit?: boolean;
 }
@@ -485,7 +485,7 @@ export class SkinViewer {
 		if (options.nameTag !== undefined) {
 			this.nameTag = options.nameTag;
 		}
-		this.autoFit = options.autoFit === true;
+		this.autoFit = options.autoFit !== false;
 		this.camera.position.z = 1;
 		this._zoom = options.zoom === undefined ? 0.9 : options.zoom;
 		this.fov = options.fov === undefined ? 50 : options.fov;
