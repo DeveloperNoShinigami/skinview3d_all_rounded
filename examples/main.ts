@@ -41,6 +41,11 @@ const animationClasses = {
 
 let skinViewer: skinview3d.SkinViewer;
 let transformControls: TransformControls | null = null;
+let positionControls: TransformControls | null = null;
+let selectedPlayer: skinview3d.PlayerObject;
+let positionControllerEnabled = false;
+let previousPositionAutoRotate = false;
+let previousPositionAnimationPaused = false;
 let selectedBone = "playerObject";
 const keyframes: Array<{ time: number; bone: string; position: Vector3; rotation: Euler }> = [];
 let editorEnabled = false;
@@ -858,6 +863,8 @@ function initializeControls(): void {
 		skinViewer.setPlayerSpacing(spacingOptions[spacingIndex]);
 		skinViewer.updateLayout();
 	});
+	const togglePositionBtn = document.getElementById("toggle_position_controller");
+	togglePositionBtn?.addEventListener("click", togglePositionController);
 
 	const nametagText = document.getElementById("nametag_text") as HTMLInputElement;
 	nametagText?.addEventListener("change", reloadNameTag);
@@ -887,6 +894,7 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
+	selectedPlayer = skinViewer.playerObject;
 
 	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
 	canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
@@ -1054,6 +1062,48 @@ function toggleEditor(): void {
 		disposeIK();
 		initializeBoneSelector(false);
 		selectedBone = boneSelector?.value || "playerObject";
+	}
+}
+
+function onPositionControlKey(e: KeyboardEvent): void {
+	if (!positionControls) {
+		return;
+	}
+	if (e.key === "t" || e.key === "T") {
+		positionControls.setMode("translate");
+	} else if (e.key === "r" || e.key === "R") {
+		positionControls.setMode("rotate");
+	}
+}
+
+function togglePositionController(): void {
+	positionControllerEnabled = !positionControllerEnabled;
+	if (positionControllerEnabled) {
+		previousPositionAutoRotate = skinViewer.autoRotate;
+		previousPositionAnimationPaused = skinViewer.animation?.paused ?? false;
+		skinViewer.autoRotate = false;
+		if (skinViewer.animation) {
+			skinViewer.animation.paused = true;
+		}
+		positionControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
+		positionControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
+			skinViewer.controls.enabled = !e.value;
+		});
+		positionControls.setMode("translate");
+		positionControls.attach(selectedPlayer);
+		skinViewer.scene.add(positionControls);
+		window.addEventListener("keydown", onPositionControlKey);
+	} else {
+		skinViewer.autoRotate = previousPositionAutoRotate;
+		if (skinViewer.animation) {
+			skinViewer.animation.paused = previousPositionAnimationPaused;
+		}
+		if (positionControls) {
+			skinViewer.scene.remove(positionControls);
+			positionControls.dispose();
+			positionControls = null;
+		}
+		window.removeEventListener("keydown", onPositionControlKey);
 	}
 }
 
