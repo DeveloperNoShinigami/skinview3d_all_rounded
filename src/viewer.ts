@@ -1051,6 +1051,9 @@ export class SkinViewer {
 			player.resetJoints();
 			player.position.set(0, 0, 0);
 			player.rotation.set(0, 0, 0);
+			if (this.autoFit) {
+				this.updateLayout();
+			}
 			this.clock.stop();
 			this.clock.autoStart = true;
 		}
