@@ -102,6 +102,14 @@ export class SkinObject extends Group {
 	readonly leftLowerArm: BodyPart;
 	readonly rightLowerLeg: BodyPart;
 	readonly leftLowerLeg: BodyPart;
+	readonly rightUpperArmPivot: Group;
+	readonly leftUpperArmPivot: Group;
+	readonly rightLowerArmPivot: Group;
+	readonly leftLowerArmPivot: Group;
+	readonly rightUpperLegPivot: Group;
+	readonly leftUpperLegPivot: Group;
+	readonly rightLowerLegPivot: Group;
+	readonly leftLowerLegPivot: Group;
 	readonly rightElbow: Group;
 	readonly leftElbow: Group;
 	readonly rightKnee: Group;
@@ -221,21 +229,21 @@ export class SkinObject extends Group {
 			setSkinUVs(rightForearmLower2Box, 40, 40, this.slim ? 3 : 4, 4, 4);
 		});
 
-		const rightUpperArmPivot = new Group();
-		rightUpperArmPivot.add(rightUpperArmMesh, rightUpperArm2Mesh);
+		this.rightUpperArmPivot = new Group();
+		this.rightUpperArmPivot.add(rightUpperArmMesh, rightUpperArm2Mesh);
 		this.modelListeners.push(() => {
-			rightUpperArmPivot.position.x = this.slim ? -0.5 : -1;
+			this.rightUpperArmPivot.position.x = this.slim ? -0.5 : -1;
 		});
-		rightUpperArmPivot.position.y = -4;
+		this.rightUpperArmPivot.position.y = -4;
 
 		const rightElbow = new Group();
 		rightElbow.position.y = -4;
 		rightElbow.add(rightForearmUpperMesh, rightForearmUpper2Mesh);
-		const rightLowerArmPivot = new Group();
-		rightLowerArmPivot.position.y = -4;
-		rightLowerArmPivot.add(rightForearmLowerMesh, rightForearmLower2Mesh);
-		rightElbow.add(rightLowerArmPivot);
-		rightUpperArmPivot.add(rightElbow);
+		this.rightLowerArmPivot = new Group();
+		this.rightLowerArmPivot.position.y = -4;
+		this.rightLowerArmPivot.add(rightForearmLowerMesh, rightForearmLower2Mesh);
+		rightElbow.add(this.rightLowerArmPivot);
+		this.rightUpperArmPivot.add(rightElbow);
 
 		const rightLowerArmBox = new BoxGeometry(4, 4, 4);
 		setSkinUVs(rightLowerArmBox, 40, 24, 4, 4, 4);
@@ -247,13 +255,13 @@ export class SkinObject extends Group {
 		rightLowerArm2Mesh.position.y = -2;
 		this.rightLowerArm = new BodyPart(rightLowerArmMesh, rightLowerArm2Mesh);
 		this.rightLowerArm.name = "rightLowerArm";
-		rightLowerArmPivot.add(this.rightLowerArm);
+		this.rightLowerArmPivot.add(this.rightLowerArm);
 
 		this.rightElbow = rightElbow;
 
 		this.rightUpperArm = new BodyPart(rightUpperArmMesh, rightUpperArm2Mesh);
 		this.rightUpperArm.name = "rightUpperArm";
-		this.rightUpperArm.add(rightUpperArmPivot);
+		this.rightUpperArm.add(this.rightUpperArmPivot);
 		this.rightUpperArm.position.x = -5;
 		this.rightUpperArm.position.y = -2;
 		this.add(this.rightUpperArm);
@@ -310,21 +318,21 @@ export class SkinObject extends Group {
 			setSkinUVs(leftForearmLower2Box, 48, 56, this.slim ? 3 : 4, 4, 4);
 		});
 
-		const leftUpperArmPivot = new Group();
-		leftUpperArmPivot.add(leftUpperArmMesh, leftUpperArm2Mesh);
+		this.leftUpperArmPivot = new Group();
+		this.leftUpperArmPivot.add(leftUpperArmMesh, leftUpperArm2Mesh);
 		this.modelListeners.push(() => {
-			leftUpperArmPivot.position.x = this.slim ? 0.5 : 1;
+			this.leftUpperArmPivot.position.x = this.slim ? 0.5 : 1;
 		});
-		leftUpperArmPivot.position.y = -4;
+		this.leftUpperArmPivot.position.y = -4;
 
 		const leftElbow = new Group();
 		leftElbow.position.y = -4;
 		leftElbow.add(leftForearmUpperMesh, leftForearmUpper2Mesh);
-		const leftLowerArmPivot = new Group();
-		leftLowerArmPivot.position.y = -4;
-		leftLowerArmPivot.add(leftForearmLowerMesh, leftForearmLower2Mesh);
-		leftElbow.add(leftLowerArmPivot);
-		leftUpperArmPivot.add(leftElbow);
+		this.leftLowerArmPivot = new Group();
+		this.leftLowerArmPivot.position.y = -4;
+		this.leftLowerArmPivot.add(leftForearmLowerMesh, leftForearmLower2Mesh);
+		leftElbow.add(this.leftLowerArmPivot);
+		this.leftUpperArmPivot.add(leftElbow);
 
 		const leftLowerArmBox = new BoxGeometry(4, 4, 4);
 		setSkinUVs(leftLowerArmBox, 32, 56, 4, 4, 4);
@@ -336,13 +344,13 @@ export class SkinObject extends Group {
 		leftLowerArm2Mesh.position.y = -2;
 		this.leftLowerArm = new BodyPart(leftLowerArmMesh, leftLowerArm2Mesh);
 		this.leftLowerArm.name = "leftLowerArm";
-		leftLowerArmPivot.add(this.leftLowerArm);
+		this.leftLowerArmPivot.add(this.leftLowerArm);
 
 		this.leftElbow = leftElbow;
 
 		this.leftUpperArm = new BodyPart(leftUpperArmMesh, leftUpperArm2Mesh);
 		this.leftUpperArm.name = "leftUpperArm";
-		this.leftUpperArm.add(leftUpperArmPivot);
+		this.leftUpperArm.add(this.leftUpperArmPivot);
 		this.leftUpperArm.position.x = 5;
 		this.leftUpperArm.position.y = -2;
 		this.add(this.leftUpperArm);
@@ -378,19 +386,19 @@ export class SkinObject extends Group {
 		const rightLowerLegLower2Mesh = new Mesh(rightLowerLegLower2Box, this.layer2MaterialBiased);
 		rightLowerLegLower2Mesh.position.y = -2;
 
-		const rightUpperLegPivot = new Group();
-		rightUpperLegPivot.position.y = -6;
-		rightUpperLegPivot.add(rightUpperLegMesh, rightUpperLeg2Mesh);
+		this.rightUpperLegPivot = new Group();
+		this.rightUpperLegPivot.position.y = -6;
+		this.rightUpperLegPivot.add(rightUpperLegMesh, rightUpperLeg2Mesh);
 
 		const rightKnee = new Group();
 		rightKnee.position.y = -4;
 		rightKnee.add(rightLowerLegUpperMesh, rightLowerLegUpper2Mesh);
-		rightUpperLegPivot.add(rightKnee);
+		this.rightUpperLegPivot.add(rightKnee);
 
-		const rightLowerLegPivot = new Group();
-		rightLowerLegPivot.position.y = -4;
-		rightLowerLegPivot.add(rightLowerLegLowerMesh, rightLowerLegLower2Mesh);
-		rightKnee.add(rightLowerLegPivot);
+		this.rightLowerLegPivot = new Group();
+		this.rightLowerLegPivot.position.y = -4;
+		this.rightLowerLegPivot.add(rightLowerLegLowerMesh, rightLowerLegLower2Mesh);
+		rightKnee.add(this.rightLowerLegPivot);
 
 		const rightLowerLegBox = new BoxGeometry(4, 4, 4);
 		setSkinUVs(rightLowerLegBox, 0, 24, 4, 4, 4);
@@ -402,13 +410,13 @@ export class SkinObject extends Group {
 		rightLowerLeg2Mesh.position.y = -2;
 		this.rightLowerLeg = new BodyPart(rightLowerLegMesh, rightLowerLeg2Mesh);
 		this.rightLowerLeg.name = "rightLowerLeg";
-		rightLowerLegPivot.add(this.rightLowerLeg);
+		this.rightLowerLegPivot.add(this.rightLowerLeg);
 
 		this.rightKnee = rightKnee;
 
 		this.rightUpperLeg = new BodyPart(rightUpperLegMesh, rightUpperLeg2Mesh);
 		this.rightUpperLeg.name = "rightUpperLeg";
-		this.rightUpperLeg.add(rightUpperLegPivot);
+		this.rightUpperLeg.add(this.rightUpperLegPivot);
 		this.rightUpperLeg.position.x = -1.9;
 		this.rightUpperLeg.position.y = -12;
 		this.rightUpperLeg.position.z = -0.1;
@@ -445,19 +453,19 @@ export class SkinObject extends Group {
 		const leftLowerLegLower2Mesh = new Mesh(leftLowerLegLower2Box, this.layer2MaterialBiased);
 		leftLowerLegLower2Mesh.position.y = -2;
 
-		const leftUpperLegPivot = new Group();
-		leftUpperLegPivot.position.y = -6;
-		leftUpperLegPivot.add(leftUpperLegMesh, leftUpperLeg2Mesh);
+		this.leftUpperLegPivot = new Group();
+		this.leftUpperLegPivot.position.y = -6;
+		this.leftUpperLegPivot.add(leftUpperLegMesh, leftUpperLeg2Mesh);
 
 		const leftKnee = new Group();
 		leftKnee.position.y = -4;
 		leftKnee.add(leftLowerLegUpperMesh, leftLowerLegUpper2Mesh);
-		leftUpperLegPivot.add(leftKnee);
+		this.leftUpperLegPivot.add(leftKnee);
 
-		const leftLowerLegPivot = new Group();
-		leftLowerLegPivot.position.y = -4;
-		leftLowerLegPivot.add(leftLowerLegLowerMesh, leftLowerLegLower2Mesh);
-		leftKnee.add(leftLowerLegPivot);
+		this.leftLowerLegPivot = new Group();
+		this.leftLowerLegPivot.position.y = -4;
+		this.leftLowerLegPivot.add(leftLowerLegLowerMesh, leftLowerLegLower2Mesh);
+		leftKnee.add(this.leftLowerLegPivot);
 
 		const leftLowerLegBox = new BoxGeometry(4, 4, 4);
 		setSkinUVs(leftLowerLegBox, 16, 56, 4, 4, 4);
@@ -469,13 +477,13 @@ export class SkinObject extends Group {
 		leftLowerLeg2Mesh.position.y = -2;
 		this.leftLowerLeg = new BodyPart(leftLowerLegMesh, leftLowerLeg2Mesh);
 		this.leftLowerLeg.name = "leftLowerLeg";
-		leftLowerLegPivot.add(this.leftLowerLeg);
+		this.leftLowerLegPivot.add(this.leftLowerLeg);
 
 		this.leftKnee = leftKnee;
 
 		this.leftUpperLeg = new BodyPart(leftUpperLegMesh, leftUpperLeg2Mesh);
 		this.leftUpperLeg.name = "leftUpperLeg";
-		this.leftUpperLeg.add(leftUpperLegPivot);
+		this.leftUpperLeg.add(this.leftUpperLegPivot);
 		this.leftUpperLeg.position.x = 1.9;
 		this.leftUpperLeg.position.y = -12;
 		this.leftUpperLeg.position.z = -0.1;
@@ -549,6 +557,14 @@ export class SkinObject extends Group {
 		this.leftElbow.position.set(0, -4, 0);
 		this.rightKnee.position.set(0, -4, 0);
 		this.leftKnee.position.set(0, -4, 0);
+		this.rightUpperArmPivot.position.set(this.slim ? -0.5 : -1, -4, 0);
+		this.leftUpperArmPivot.position.set(this.slim ? 0.5 : 1, -4, 0);
+		this.rightLowerArmPivot.position.set(0, -4, 0);
+		this.leftLowerArmPivot.position.set(0, -4, 0);
+		this.rightUpperLegPivot.position.set(0, -6, 0);
+		this.leftUpperLegPivot.position.set(0, -6, 0);
+		this.rightLowerLegPivot.position.set(0, -4, 0);
+		this.leftLowerLegPivot.position.set(0, -4, 0);
 		this.rightLowerArm.position.set(0, 0, 0);
 		this.leftLowerArm.position.set(0, 0, 0);
 		this.rightLowerLeg.position.set(0, 0, 0);
