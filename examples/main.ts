@@ -1,5 +1,4 @@
 import * as skinview3d from "../src/skinview3d";
-import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
@@ -57,6 +56,106 @@ let canvasWidth: HTMLInputElement | null = null;
 let canvasHeight: HTMLInputElement | null = null;
 const spacingOptions = [20, 40, 60];
 let spacingIndex = 0;
+
+function initializeAssetMenu(): void {
+	const mainMenu = document.getElementById("main_menu");
+	const subMenu = document.getElementById("sub_menu");
+	if (!mainMenu || !subMenu) {
+		return;
+	}
+
+	const showMain = () => {
+		subMenu.classList.add("hidden");
+		subMenu.innerHTML = "";
+		mainMenu.classList.remove("hidden");
+	};
+
+	const createMenu = (title: string, load: (source: string | File) => Promise<unknown> | unknown) => {
+		mainMenu.classList.add("hidden");
+		subMenu.classList.remove("hidden");
+		subMenu.innerHTML = `<h1>${title}</h1>
+<p class="control">Provide a URL or choose a file.</p>
+<input id="menu_url" type="text" class="control" placeholder="URL" />
+<input id="menu_file" type="file" class="control" />`;
+		const urlInput = subMenu.querySelector("#menu_url") as HTMLInputElement;
+		const fileInput = subMenu.querySelector("#menu_file") as HTMLInputElement;
+
+		urlInput?.addEventListener("change", () => {
+			const url = urlInput.value.trim();
+			if (url) {
+				void Promise.resolve(load(url)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+
+		fileInput?.addEventListener("change", () => {
+			const file = fileInput.files?.[0];
+			if (file) {
+				void Promise.resolve(load(file)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+	};
+
+	document.getElementById("menu_skin")?.addEventListener("click", () => {
+		createMenu("Load Skin", source => skinViewer.loadSkin(source));
+	});
+
+	document.getElementById("menu_back")?.addEventListener("click", () => {
+		mainMenu.classList.add("hidden");
+		subMenu.classList.remove("hidden");
+		subMenu.innerHTML = `<h1>Load Back Item</h1>
+<p class="control">Choose cape or elytra then provide a texture.</p>
+<div class="control"><label><input type="radio" name="back_type" value="cape" checked /> Cape</label>
+<label><input type="radio" name="back_type" value="elytra" /> Elytra</label></div>
+<input id="menu_url" type="text" class="control" placeholder="URL" />
+<input id="menu_file" type="file" class="control" />`;
+		const urlInput = subMenu.querySelector("#menu_url") as HTMLInputElement;
+		const fileInput = subMenu.querySelector("#menu_file") as HTMLInputElement;
+		const load = (source: string | File) => {
+			const equip = (subMenu.querySelector('input[name="back_type"]:checked') as HTMLInputElement)
+				?.value as BackEquipment;
+			return skinViewer.loadCape(source, { backEquipment: equip });
+		};
+		urlInput?.addEventListener("change", () => {
+			const url = urlInput.value.trim();
+			if (url) {
+				void Promise.resolve(load(url)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+		fileInput?.addEventListener("change", () => {
+			const file = fileInput.files?.[0];
+			if (file) {
+				void Promise.resolve(load(file)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+	});
+
+	document.getElementById("menu_ears")?.addEventListener("click", () => {
+		createMenu("Load Ears", source => skinViewer.loadEars(source));
+	});
+
+	document.getElementById("menu_animation")?.addEventListener("click", () => {
+		createMenu("Load Animation", async source => {
+			let text: string;
+			if (typeof source === "string") {
+				const resp = await fetch(source);
+				text = await resp.text();
+			} else {
+				text = await source.text();
+			}
+			const data = JSON.parse(text);
+			loadedAnimation = skinview3d.createKeyframeAnimation(data);
+			skinViewer.animation = loadedAnimation;
+		});
+	});
+}
 
 function updateJointHighlight(enabled: boolean): void {
 	for (const helper of jointHelpers) {
@@ -255,102 +354,6 @@ function obtainTextureUrl(id: string): string {
 		urlInput.readOnly = true;
 	}
 	return URL.createObjectURL(file);
-}
-
-function reloadSkin(): void {
-	const input = document.getElementById("skin_url") as HTMLInputElement;
-	const url = obtainTextureUrl("skin_url");
-	if (url === "") {
-		// Revert to placeholder skin when URL is empty
-		skinViewer.loadSkin(null);
-		input?.setCustomValidity("");
-		if (editorEnabled) {
-			setupIK();
-		}
-	} else {
-		const skinModel = document.getElementById("skin_model") as HTMLSelectElement;
-		const earsSource = document.getElementById("ears_source") as HTMLSelectElement;
-
-		skinViewer
-			.loadSkin(url, {
-				model: skinModel?.value as ModelType,
-				ears: earsSource?.value === "current_skin",
-			})
-			.then(() => {
-				input?.setCustomValidity("");
-				if (editorEnabled) {
-					setupIK();
-				}
-			})
-			.catch(e => {
-				input?.setCustomValidity("Image can't be loaded.");
-				console.error(e);
-			});
-	}
-}
-
-function reloadCape(): void {
-	const input = document.getElementById("cape_url") as HTMLInputElement;
-	const url = obtainTextureUrl("cape_url");
-	if (url === "") {
-		skinViewer.loadCape(null);
-		input?.setCustomValidity("");
-	} else {
-		const selectedBackEquipment = document.querySelector(
-			'input[type="radio"][name="back_equipment"]:checked'
-		) as HTMLInputElement;
-		skinViewer
-			.loadCape(url, { backEquipment: selectedBackEquipment?.value as BackEquipment })
-			.then(() => input?.setCustomValidity(""))
-			.catch(e => {
-				input?.setCustomValidity("Image can't be loaded.");
-				console.error(e);
-			});
-	}
-}
-
-function reloadEars(skipSkinReload = false): void {
-	const earsSource = document.getElementById("ears_source") as HTMLSelectElement;
-	const sourceType = earsSource?.value;
-	let hideInput = true;
-
-	if (sourceType === "none") {
-		skinViewer.loadEars(null);
-	} else if (sourceType === "current_skin") {
-		if (!skipSkinReload) {
-			reloadSkin();
-		}
-	} else {
-		hideInput = false;
-		const options = document.querySelectorAll<HTMLOptionElement>("#default_ears option[data-texture-type]");
-		for (const opt of options) {
-			opt.disabled = opt.dataset.textureType !== sourceType;
-		}
-
-		const input = document.getElementById("ears_url") as HTMLInputElement;
-		const url = obtainTextureUrl("ears_url");
-		if (url === "") {
-			skinViewer.loadEars(null);
-			input?.setCustomValidity("");
-		} else {
-			skinViewer
-				.loadEars(url, { textureType: sourceType as "standalone" | "skin" })
-				.then(() => input?.setCustomValidity(""))
-				.catch(e => {
-					input?.setCustomValidity("Image can't be loaded.");
-					console.error(e);
-				});
-		}
-	}
-
-	const el = document.getElementById("ears_texture_input");
-	if (hideInput) {
-		if (el && !el.classList.contains("hidden")) {
-			el.classList.add("hidden");
-		}
-	} else if (el) {
-		el.classList.remove("hidden");
-	}
 }
 
 function reloadPanorama(): void {
@@ -804,37 +807,10 @@ function initializeControls(): void {
 		unsetButton?.addEventListener("click", () => unsetAction());
 	};
 
-	initializeUploadButton("skin_url", reloadSkin);
-	initializeUploadButton("cape_url", reloadCape);
-	initializeUploadButton("ears_url", reloadEars);
 	initializeUploadButton("panorama_url", reloadPanorama);
 
-	const skinUrl = document.getElementById("skin_url") as HTMLInputElement;
-	const skinModel = document.getElementById("skin_model") as HTMLSelectElement;
-	const capeUrl = document.getElementById("cape_url") as HTMLInputElement;
-	const earsSource = document.getElementById("ears_source") as HTMLSelectElement;
-	const earsUrl = document.getElementById("ears_url") as HTMLInputElement;
 	const panoramaUrl = document.getElementById("panorama_url") as HTMLInputElement;
-
-	skinUrl?.addEventListener("change", reloadSkin);
-	skinModel?.addEventListener("change", reloadSkin);
-	capeUrl?.addEventListener("change", reloadCape);
-	earsSource?.addEventListener("change", () => reloadEars());
-	earsUrl?.addEventListener("change", () => reloadEars());
 	panoramaUrl?.addEventListener("change", reloadPanorama);
-
-	const backEquipmentRadios = document.querySelectorAll<HTMLInputElement>('input[type="radio"][name="back_equipment"]');
-	for (const el of backEquipmentRadios) {
-		el.addEventListener("change", e => {
-			const target = e.target as HTMLInputElement;
-			if (skinViewer.playerObject.backEquipment === null) {
-				// cape texture hasn't been loaded yet
-				// this option will be processed on texture loading
-			} else {
-				skinViewer.playerObject.backEquipment = target.value as BackEquipment;
-			}
-		});
-	}
 
 	const resetAll = document.getElementById("reset_all");
 	resetAll?.addEventListener("click", () => {
@@ -875,6 +851,8 @@ function initializeControls(): void {
 
 	// Initialize background type
 	updateBackground();
+
+	initializeAssetMenu();
 }
 
 function initializeViewer(): void {
@@ -944,10 +922,9 @@ function initializeViewer(): void {
 		}
 	}
 
-	reloadSkin();
-	reloadCape();
-	reloadEars(true);
-	reloadPanorama();
+	void skinViewer.loadSkin("img/hatsune_miku.png");
+	void skinViewer.loadCape("img/mojang_cape.png", { backEquipment: "cape" });
+	void skinViewer.loadPanorama("img/panorama.png");
 	reloadNameTag();
 	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
 	updateJointHighlight(highlightJoints?.checked ?? false);
