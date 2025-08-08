@@ -179,6 +179,7 @@ export class SkinObject extends Group {
 		const rightForearmLowerBox = new BoxGeometry();
 		const rightForearmLowerMesh = new Mesh(rightForearmLowerBox, this.layer1MaterialBiased);
 		rightForearmLowerMesh.position.y = -2;
+
 		this.modelListeners.push(() => {
 			rightUpperArmMesh.scale.x = this.slim ? 3 : 4;
 			rightUpperArmMesh.scale.y = 4;
@@ -192,6 +193,7 @@ export class SkinObject extends Group {
 			rightForearmLowerMesh.scale.y = 4;
 			rightForearmLowerMesh.scale.z = 4;
 			setSkinUVs(rightForearmLowerBox, 40, 24, this.slim ? 3 : 4, 4, 4);
+
 		});
 
 		const rightUpperArm2Box = new BoxGeometry();
@@ -203,6 +205,7 @@ export class SkinObject extends Group {
 		const rightForearmLower2Box = new BoxGeometry();
 		const rightForearmLower2Mesh = new Mesh(rightForearmLower2Box, this.layer2MaterialBiased);
 		rightForearmLower2Mesh.position.y = -2;
+
 		this.modelListeners.push(() => {
 			const rightArm2Scale = this.slim ? 3.5 : 4.5;
 			rightUpperArm2Mesh.scale.x = rightArm2Scale;
@@ -266,6 +269,7 @@ export class SkinObject extends Group {
 		const leftForearmLowerBox = new BoxGeometry();
 		const leftForearmLowerMesh = new Mesh(leftForearmLowerBox, this.layer1MaterialBiased);
 		leftForearmLowerMesh.position.y = -2;
+
 		this.modelListeners.push(() => {
 			leftUpperArmMesh.scale.x = this.slim ? 3 : 4;
 			leftUpperArmMesh.scale.y = 4;
@@ -279,6 +283,7 @@ export class SkinObject extends Group {
 			leftForearmLowerMesh.scale.y = 4;
 			leftForearmLowerMesh.scale.z = 4;
 			setSkinUVs(leftForearmLowerBox, 32, 56, this.slim ? 3 : 4, 4, 4);
+
 		});
 
 		const leftUpperArm2Box = new BoxGeometry();
@@ -290,6 +295,7 @@ export class SkinObject extends Group {
 		const leftForearmLower2Box = new BoxGeometry();
 		const leftForearmLower2Mesh = new Mesh(leftForearmLower2Box, this.layer2MaterialBiased);
 		leftForearmLower2Mesh.position.y = -2;
+
 		this.modelListeners.push(() => {
 			const leftArm2Scale = this.slim ? 3.5 : 4.5;
 			leftUpperArm2Mesh.scale.x = leftArm2Scale;
@@ -358,6 +364,7 @@ export class SkinObject extends Group {
 		setSkinUVs(rightLowerLegLowerBox, 0, 24, 4, 4, 4);
 		const rightLowerLegLowerMesh = new Mesh(rightLowerLegLowerBox, this.layer1MaterialBiased);
 		rightLowerLegLowerMesh.position.y = -2;
+
 
 		const rightUpperLeg2Box = new BoxGeometry(4.5, 4.5, 4.5);
 		setSkinUVs(rightUpperLeg2Box, 0, 32, 4, 4, 4);
@@ -549,6 +556,7 @@ export class SkinObject extends Group {
 		this.leftLowerArm.position.set(0, 0, 0);
 		this.rightLowerLeg.position.set(0, 0, 0);
 		this.leftLowerLeg.position.set(0, 0, 0);
+
 		this.body.rotation.set(0, 0, 0);
 		this.head.position.y = 0;
 		this.body.position.set(0, -6, 0);
