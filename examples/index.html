@@ -16,16 +16,9 @@
 			}
 
 			#skin_container {
-				width: 400px;
-				height: 600px;
 				position: sticky;
 				top: 20px;
 				align-self: flex-start;
-			}
-
-			#skin_container.expanded {
-				width: 800px;
-				height: 600px;
 			}
 
 			.controls {
@@ -85,6 +78,9 @@
 
 		<div class="controls">
 			<button id="reset_all" type="button" class="control">Reset All</button>
+			<button id="add_model" type="button" class="control">Add Model</button>
+			<button id="remove_model" type="button" class="control">Remove Model</button>
+			<div id="extra_player_controls" class="control-section"></div>
 
 			<div class="control-section">
 				<h1>Debug</h1>
