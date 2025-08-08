@@ -27,6 +27,9 @@ Each texture option (`skin`, `cape`, `ears`, `background`, `panorama`, etc.)
 accepts a URL string, an existing `HTMLImageElement`/`HTMLCanvasElement`, or a
 user-uploaded `File`/`Blob` object.
 
+When no skin is provided, the viewer displays a simple gray placeholder. Call
+`loadSkin(null)` or `resetSkin()` to return to the placeholder skin.
+
 ```html
 <canvas id="skin_container"></canvas>
 <script>
@@ -41,11 +44,14 @@ user-uploaded `File`/`Blob` object.
 	skinViewer.width = 600;
 	skinViewer.height = 800;
 
-	// Load another skin
-	skinViewer.loadSkin("img/skin2.png");
+        // Load another skin
+        skinViewer.loadSkin("img/skin2.png");
 
-	// Load a cape
-	skinViewer.loadCape("img/cape.png");
+        // Remove the skin and show a placeholder
+        skinViewer.loadSkin(null);
+
+        // Load a cape
+        skinViewer.loadCape("img/cape.png");
 
 	// Load an elytra (from a cape texture)
 	skinViewer.loadCape("img/cape.png", { backEquipment: "elytra" });

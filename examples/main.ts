@@ -197,6 +197,7 @@ function reloadSkin(): void {
 	const input = document.getElementById("skin_url") as HTMLInputElement;
 	const url = obtainTextureUrl("skin_url");
 	if (url === "") {
+		// Revert to placeholder skin when URL is empty
 		skinViewer.loadSkin(null);
 		input?.setCustomValidity("");
 		if (editorEnabled) {
