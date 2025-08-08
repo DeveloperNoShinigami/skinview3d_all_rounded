@@ -366,6 +366,26 @@ function addModel(): void {
 			menu.classList.add("hidden");
 		});
 
+		const animationInput = document.createElement("input");
+		animationInput.type = "file";
+		animationInput.accept = "application/json";
+		animationInput.classList.add("hidden");
+		animationInput.addEventListener("change", async () => {
+			const file = animationInput.files?.[0];
+			if (file) {
+				try {
+					const text = await file.text();
+					const data = JSON.parse(text);
+					const animation = skinview3d.createKeyframeAnimation(data);
+					skinViewer.setAnimation(player, animation);
+				} catch (e) {
+					console.error(e);
+				}
+			}
+			animationInput.value = "";
+			menu.classList.add("hidden");
+		});
+
 		const skinItem = document.createElement("li");
 		skinItem.textContent = "Skin";
 		skinItem.addEventListener("click", () => skinInput.click());
@@ -381,10 +401,16 @@ function addModel(): void {
 		earsItem.addEventListener("click", () => earsInput.click());
 		menu.appendChild(earsItem);
 
+		const animItem = document.createElement("li");
+		animItem.textContent = "Animation";
+		animItem.addEventListener("click", () => animationInput.click());
+		menu.appendChild(animItem);
+
 		div.appendChild(menu);
 		div.appendChild(skinInput);
 		div.appendChild(capeInput);
 		div.appendChild(earsInput);
+		div.appendChild(animationInput);
 
 		uploadBtn.addEventListener("click", () => {
 			menu.classList.toggle("hidden");
