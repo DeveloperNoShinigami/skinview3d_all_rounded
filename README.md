@@ -114,15 +114,14 @@ canvas: document.getElementById("skin_container"),
 skinViewer.animation = new BendAnimation();
 ```
 
-Enable `autoFit` to automatically spread multiple players and adjust the camera:
+SkinViewer automatically spreads multiple players and adjusts the camera:
 
 You can add more player models to the scene with `addPlayer()`. Pass the returned
 `PlayerObject` to texture-loading methods to control each player independently.
 
-When `autoFit` is enabled (default), the viewer repositions players and adjusts
-the camera after `addPlayer()` or `removePlayer()`. If you disable `autoFit`,
-call `updateLayout()` whenever players are added or removed to keep them
-centered.
+By default, the viewer repositions players and adjusts the camera after
+`addPlayer()` or `removePlayer()`. If you disable `autoFit`, call
+`updateLayout()` whenever players are added or removed to keep them centered.
 
 ```ts
 import { SkinViewer } from "skinview3d";

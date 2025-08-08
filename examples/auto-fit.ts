@@ -5,7 +5,7 @@ const viewer = new skinview3d.SkinViewer({
 	canvas: document.getElementById("viewer") as HTMLCanvasElement,
 	width: 300,
 	height: 400,
-	autoFit: true,
+	// autoFit is enabled by default so multiple players stay visible
 });
 
 viewer.loadSkin("img/1_8_texturemap_redux.png");
