@@ -86,6 +86,14 @@
 			<label class="control"><input id="auto_fit" type="checkbox" checked /> Auto-fit players</label>
 			<div id="extra_player_controls" class="control-section"></div>
 
+			<div id="main_menu" class="control-section">
+				<button id="menu_skin" type="button" class="control" title="Load a new skin">Skin</button>
+				<button id="menu_back" type="button" class="control" title="Load a cape or elytra">Back Items</button>
+				<button id="menu_ears" type="button" class="control" title="Load an ears texture">Ears</button>
+				<button id="menu_animation" type="button" class="control" title="Load an animation JSON">Animation</button>
+			</div>
+			<div id="sub_menu" class="control-section hidden"></div>
+
 			<div class="control-section">
 				<h1>Debug</h1>
 				<label class="control"><input id="highlight_joints" type="checkbox" /> Highlight elbows/knees</label>
@@ -253,115 +261,6 @@
 						</tr>
 					</tbody>
 				</table>
-				<div>
-					<h2>Back Equipment</h2>
-					<div class="control">
-						<label
-							><input type="radio" id="back_equipment_cape" name="back_equipment" value="cape" checked /> Cape</label
-						>
-						<label><input type="radio" id="back_equipment_elytra" name="back_equipment" value="elytra" /> Elytra</label>
-					</div>
-				</div>
-			</div>
-
-			<div class="control-section">
-				<h1>Skin</h1>
-				<p>Leave the URL empty to show a placeholder skin.</p>
-				<div>
-					<div class="control">
-						<label
-							>URL:
-							<input
-								id="skin_url"
-								type="text"
-								value="img/hatsune_miku.png"
-								placeholder="none"
-								list="default_skins"
-								size="20"
-						/></label>
-						<datalist id="default_skins">
-							<option value="img/1_8_texturemap_redux.png"></option>
-							<option value="img/hacksore.png"></option>
-							<option value="img/haka.png"></option>
-							<option value="img/hatsune_miku.png"></option>
-							<option value="img/ironman_hd.png"></option>
-							<option value="img/sethbling.png"></option>
-							<option value="img/deadmau5.png"></option>
-						</datalist>
-						<input id="skin_url_upload" type="file" class="hidden" accept="image/*" />
-						<button id="skin_url_unset" type="button" class="control hidden">Unset</button>
-						<button type="button" class="control" onclick="document.getElementById('skin_url_upload').click();">
-							Browse...
-						</button>
-					</div>
-				</div>
-				<div>
-					<label class="control"
-						>Model:
-						<select id="skin_model">
-							<option value="auto-detect" selected>Auto detect</option>
-							<option value="default">Default</option>
-							<option value="slim">Slim</option>
-						</select>
-					</label>
-				</div>
-			</div>
-
-			<div class="control-section">
-				<h1>Cape</h1>
-				<div class="control">
-					<label
-						>URL:
-						<input
-							id="cape_url"
-							type="text"
-							value="img/mojang_cape.png"
-							placeholder="none"
-							list="default_capes"
-							size="20"
-					/></label>
-					<datalist id="default_capes">
-						<option value=""></option>
-						<option value="img/mojang_cape.png"></option>
-						<option value="img/legacy_cape.png"></option>
-						<option value="img/hd_cape.png"></option>
-					</datalist>
-					<input id="cape_url_upload" type="file" class="hidden" accept="image/*" />
-					<button id="cape_url_unset" type="button" class="control hidden">Unset</button>
-					<button type="button" class="control" onclick="document.getElementById('cape_url_upload').click();">
-						Browse...
-					</button>
-				</div>
-			</div>
-
-			<div class="control-section">
-				<h1>Ears</h1>
-				<div>
-					<label class="control"
-						>Source:
-						<select id="ears_source">
-							<option value="none">None</option>
-							<option value="current_skin">Current skin</option>
-							<option value="skin">Skin texture</option>
-							<option value="standalone">Standalone texture</option>
-						</select>
-					</label>
-				</div>
-				<div id="ears_texture_input">
-					<label class="control"
-						>URL: <input id="ears_url" type="text" value="" placeholder="none" list="default_ears" size="20"
-					/></label>
-					<datalist id="default_ears">
-						<option value=""></option>
-						<option value="img/ears.png" data-texture-type="standalone"></option>
-						<option value="img/deadmau5.png" data-texture-type="skin"></option>
-					</datalist>
-					<input id="ears_url_upload" type="file" class="hidden" accept="image/*" />
-					<button id="ears_url_unset" type="button" class="control hidden">Unset</button>
-					<button type="button" class="control" onclick="document.getElementById('ears_url_upload').click();">
-						Browse...
-					</button>
-				</div>
 			</div>
 
 			<div class="control-section">
