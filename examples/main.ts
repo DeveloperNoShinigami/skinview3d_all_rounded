@@ -3,7 +3,17 @@ import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
-import { BoxHelper, Euler, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
+import {
+	BoxHelper,
+	Euler,
+	Mesh,
+	MeshBasicMaterial,
+	Object3D,
+	Raycaster,
+	SphereGeometry,
+	Vector2,
+	Vector3,
+} from "three";
 
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
@@ -52,6 +62,10 @@ const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; b
 let ikUpdateId: number | null = null;
 let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
+let selectedPlayer: skinview3d.PlayerObject;
+let selectionHelper: BoxHelper | null = null;
+const raycaster = new Raycaster();
+const pointer = new Vector2();
 const extraPlayerControls: HTMLElement[] = [];
 let canvasWidth: HTMLInputElement | null = null;
 let canvasHeight: HTMLInputElement | null = null;
@@ -65,14 +79,14 @@ function updateJointHighlight(enabled: boolean): void {
 	jointHelpers = [];
 	if (enabled) {
 		const joints = [
-			skinViewer.playerObject.skin.rightElbow,
-			skinViewer.playerObject.skin.leftElbow,
-			skinViewer.playerObject.skin.rightLowerArm,
-			skinViewer.playerObject.skin.leftLowerArm,
-			skinViewer.playerObject.skin.rightKnee,
-			skinViewer.playerObject.skin.leftKnee,
-			skinViewer.playerObject.skin.rightLowerLeg,
-			skinViewer.playerObject.skin.leftLowerLeg,
+			selectedPlayer.skin.rightElbow,
+			selectedPlayer.skin.leftElbow,
+			selectedPlayer.skin.rightLowerArm,
+			selectedPlayer.skin.leftLowerArm,
+			selectedPlayer.skin.rightKnee,
+			selectedPlayer.skin.leftKnee,
+			selectedPlayer.skin.rightLowerLeg,
+			selectedPlayer.skin.leftLowerLeg,
 		];
 		for (const joint of joints) {
 			const helper = new BoxHelper(joint, 0xff0000);
@@ -87,18 +101,19 @@ function updateJointHelpers(): void {
 	for (const helper of jointHelpers) {
 		helper.update();
 	}
+	selectionHelper?.update();
 	requestAnimationFrame(updateJointHelpers);
 }
 updateJointHelpers();
 
 function getBone(path: string): Object3D {
 	if (path === "playerObject") {
-		return skinViewer.playerObject;
+		return selectedPlayer;
 	}
 	if (path.startsWith("ik.")) {
-		return ikChains[path]?.target ?? skinViewer.playerObject;
+		return ikChains[path]?.target ?? selectedPlayer;
 	}
-	return path.split(".").reduce((obj: any, part) => obj?.[part], skinViewer.playerObject) ?? skinViewer.playerObject;
+	return path.split(".").reduce((obj: any, part) => obj?.[part], selectedPlayer) ?? selectedPlayer;
 }
 
 function updateViewportSize(): void {
@@ -115,6 +130,62 @@ function updateViewportSize(): void {
 		if (canvasWidth && canvasHeight) {
 			skinViewer.width = Number(canvasWidth.value);
 			skinViewer.height = Number(canvasHeight.value);
+		}
+	}
+
+	function selectPlayer(player: skinview3d.PlayerObject | null): void {
+		if (selectionHelper) {
+			skinViewer.scene.remove(selectionHelper);
+			selectionHelper = null;
+		}
+		selectedPlayer = player ?? skinViewer.playerObject;
+		if (player) {
+			selectionHelper = new BoxHelper(selectedPlayer, 0x00ff00);
+			selectionHelper.update();
+			skinViewer.scene.add(selectionHelper);
+		}
+		const highlight = (document.getElementById("highlight_joints") as HTMLInputElement)?.checked ?? false;
+		updateJointHighlight(highlight);
+		if (editorEnabled) {
+			setupIK();
+		}
+		for (const part of skinParts) {
+			const skinPart = (selectedPlayer.skin as any)[part];
+			for (const layer of skinLayers) {
+				const checkbox = document.querySelector<HTMLInputElement>(
+					`#layers_table input[type="checkbox"][data-part="${part}"][data-layer="${layer}"]`
+				);
+				const skinLayer = skinPart?.[layer];
+				if (checkbox && skinLayer) {
+					checkbox.checked = skinLayer.visible;
+				}
+			}
+		}
+		const backEquipmentRadios = document.querySelectorAll<HTMLInputElement>(
+			'input[type="radio"][name="back_equipment"]'
+		);
+		for (const el of backEquipmentRadios) {
+			el.checked = selectedPlayer.backEquipment === el.value;
+		}
+	}
+
+	function handlePlayerClick(event: MouseEvent): void {
+		const rect = skinViewer.renderer.domElement.getBoundingClientRect();
+		pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+		pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+		raycaster.setFromCamera(pointer, skinViewer.camera);
+		const players = [skinViewer.playerObject, ...extraPlayers];
+		let hit: skinview3d.PlayerObject | null = null;
+		for (const p of players) {
+			if (raycaster.intersectObject(p, true).length > 0) {
+				hit = p;
+				break;
+			}
+		}
+		if (hit && hit !== selectedPlayer) {
+			selectPlayer(hit);
+		} else {
+			selectPlayer(null);
 		}
 	}
 }
@@ -227,6 +298,9 @@ function removeModel(): void {
 	const player = extraPlayers.pop();
 	if (player) {
 		skinViewer.removePlayer(player);
+		if (selectedPlayer === player) {
+			selectPlayer(null);
+		}
 	}
 	const control = extraPlayerControls.pop();
 	control?.remove();
@@ -262,7 +336,7 @@ function reloadSkin(): void {
 	const url = obtainTextureUrl("skin_url");
 	if (url === "") {
 		// Revert to placeholder skin when URL is empty
-		skinViewer.loadSkin(null);
+		skinViewer.loadSkin(null, {}, selectedPlayer);
 		input?.setCustomValidity("");
 		if (editorEnabled) {
 			setupIK();
@@ -272,10 +346,14 @@ function reloadSkin(): void {
 		const earsSource = document.getElementById("ears_source") as HTMLSelectElement;
 
 		skinViewer
-			.loadSkin(url, {
-				model: skinModel?.value as ModelType,
-				ears: earsSource?.value === "current_skin",
-			})
+			.loadSkin(
+				url,
+				{
+					model: skinModel?.value as ModelType,
+					ears: earsSource?.value === "current_skin",
+				},
+				selectedPlayer
+			)
 			.then(() => {
 				input?.setCustomValidity("");
 				if (editorEnabled) {
@@ -293,14 +371,14 @@ function reloadCape(): void {
 	const input = document.getElementById("cape_url") as HTMLInputElement;
 	const url = obtainTextureUrl("cape_url");
 	if (url === "") {
-		skinViewer.loadCape(null);
+		skinViewer.loadCape(null, {}, selectedPlayer);
 		input?.setCustomValidity("");
 	} else {
 		const selectedBackEquipment = document.querySelector(
 			'input[type="radio"][name="back_equipment"]:checked'
 		) as HTMLInputElement;
 		skinViewer
-			.loadCape(url, { backEquipment: selectedBackEquipment?.value as BackEquipment })
+			.loadCape(url, { backEquipment: selectedBackEquipment?.value as BackEquipment }, selectedPlayer)
 			.then(() => input?.setCustomValidity(""))
 			.catch(e => {
 				input?.setCustomValidity("Image can't be loaded.");
@@ -315,7 +393,7 @@ function reloadEars(skipSkinReload = false): void {
 	let hideInput = true;
 
 	if (sourceType === "none") {
-		skinViewer.loadEars(null);
+		skinViewer.loadEars(null, {}, selectedPlayer);
 	} else if (sourceType === "current_skin") {
 		if (!skipSkinReload) {
 			reloadSkin();
@@ -330,11 +408,11 @@ function reloadEars(skipSkinReload = false): void {
 		const input = document.getElementById("ears_url") as HTMLInputElement;
 		const url = obtainTextureUrl("ears_url");
 		if (url === "") {
-			skinViewer.loadEars(null);
+			skinViewer.loadEars(null, {}, selectedPlayer);
 			input?.setCustomValidity("");
 		} else {
 			skinViewer
-				.loadEars(url, { textureType: sourceType as "standalone" | "skin" })
+				.loadEars(url, { textureType: sourceType as "standalone" | "skin" }, selectedPlayer)
 				.then(() => input?.setCustomValidity(""))
 				.catch(e => {
 					input?.setCustomValidity("Image can't be loaded.");
@@ -411,7 +489,7 @@ function setupIK(): void {
 	for (const key in ikChains) {
 		delete ikChains[key];
 	}
-	const skin = skinViewer.playerObject.skin;
+	const skin = selectedPlayer.skin;
 
 	const rightLowerArmTarget = new Object3D();
 	const rightLowerArmMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xff0000 }));
@@ -612,8 +690,9 @@ function initializeControls(): void {
 	});
 
 	animationPauseResume?.addEventListener("click", () => {
-		if (skinViewer.animation) {
-			skinViewer.animation.paused = !skinViewer.animation.paused;
+		const anim = skinViewer.getAnimation(selectedPlayer);
+		if (anim) {
+			anim.paused = !anim.paused;
 		}
 	});
 
@@ -648,10 +727,10 @@ function initializeControls(): void {
 			}
 
 			if (target.value === "") {
-				skinViewer.animation = null;
+				skinViewer.setAnimation(selectedPlayer, null);
 			} else {
 				const cls = animationClasses[target.value as keyof typeof animationClasses];
-				const anim = cls ? skinViewer.loadAnimationClass(cls) : null;
+				const anim = cls ? skinViewer.loadAnimationClass(cls, selectedPlayer) : null;
 				if (anim && animationSpeed) {
 					anim.speed = Number(animationSpeed.value);
 				}
@@ -682,34 +761,37 @@ function initializeControls(): void {
 
 	const crouchSettings = {
 		runOnce: (value: boolean) => {
-			if (skinViewer.animation) {
-				(skinViewer.animation as unknown as { runOnce: boolean }).runOnce = value;
+			const anim = skinViewer.getAnimation(selectedPlayer);
+			if (anim) {
+				(anim as unknown as { runOnce: boolean }).runOnce = value;
 			}
 		},
 		showProgress: (value: boolean) => {
-			if (skinViewer.animation) {
-				(skinViewer.animation as unknown as { showProgress: boolean }).showProgress = value;
+			const anim = skinViewer.getAnimation(selectedPlayer);
+			if (anim) {
+				(anim as unknown as { showProgress: boolean }).showProgress = value;
 			}
 		},
 		addHitAnimation: (value: boolean) => {
 			if (hitSpeedLabel) {
 				hitSpeedLabel.style.display = value ? "block" : "none";
 			}
-			if (value && skinViewer.animation) {
-				const hitSpeedValue = hitSpeed?.value;
-				if (hitSpeedValue === "") {
-					(skinViewer.animation as unknown as { addHitAnimation: () => void }).addHitAnimation();
-				} else {
-					(skinViewer.animation as unknown as { addHitAnimation: (speed: string) => void }).addHitAnimation(
-						hitSpeedValue
-					);
+			if (value) {
+				const anim = skinViewer.getAnimation(selectedPlayer);
+				if (anim) {
+					const hitSpeedValue = hitSpeed?.value;
+					if (hitSpeedValue === "") {
+						(anim as unknown as { addHitAnimation: () => void }).addHitAnimation();
+					} else {
+						(anim as unknown as { addHitAnimation: (speed: string) => void }).addHitAnimation(hitSpeedValue);
+					}
 				}
 			}
 		},
-	};
+	} as const;
 
 	const updateCrouchAnimation = () => {
-		const anim = skinViewer.loadAnimationClass(skinview3d.CrouchAnimation);
+		const anim = skinViewer.loadAnimationClass(skinview3d.CrouchAnimation, selectedPlayer);
 		if (anim && animationSpeed) {
 			anim.speed = Number(animationSpeed.value);
 		}
@@ -739,8 +821,9 @@ function initializeControls(): void {
 
 	animationSpeed?.addEventListener("change", e => {
 		const target = e.target as HTMLInputElement;
-		if (skinViewer.animation) {
-			skinViewer.animation.speed = Number(target.value);
+		const anim = skinViewer.getAnimation(selectedPlayer);
+		if (anim) {
+			anim.speed = Number(target.value);
 		}
 		if (animationCrouch?.checked && addHittingAnimation?.checked && hitSpeed?.value === "") {
 			updateCrouchAnimation();
@@ -763,7 +846,7 @@ function initializeControls(): void {
 	});
 
 	for (const part of skinParts) {
-		const skinPart = (skinViewer.playerObject.skin as any)[part];
+		const skinPart = (selectedPlayer.skin as any)[part];
 		for (const layer of skinLayers) {
 			const skinLayer = skinPart?.[layer];
 			if (!skinLayer) {
@@ -774,7 +857,11 @@ function initializeControls(): void {
 			);
 			checkbox?.addEventListener("change", e => {
 				const target = e.target as HTMLInputElement;
-				skinLayer.visible = target.checked;
+				const currentPart = (selectedPlayer.skin as any)[part];
+				const currentLayer = currentPart?.[layer];
+				if (currentLayer) {
+					currentLayer.visible = target.checked;
+				}
 			});
 		}
 	}
@@ -827,11 +914,11 @@ function initializeControls(): void {
 	for (const el of backEquipmentRadios) {
 		el.addEventListener("change", e => {
 			const target = e.target as HTMLInputElement;
-			if (skinViewer.playerObject.backEquipment === null) {
+			if (selectedPlayer.backEquipment === null) {
 				// cape texture hasn't been loaded yet
 				// this option will be processed on texture loading
 			} else {
-				skinViewer.playerObject.backEquipment = target.value as BackEquipment;
+				selectedPlayer.backEquipment = target.value as BackEquipment;
 			}
 		});
 	}
@@ -887,6 +974,7 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
+	selectPlayer(null);
 
 	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
 	canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
@@ -916,7 +1004,7 @@ function initializeViewer(): void {
 	const animationName = animationRadio?.value;
 	if (animationName) {
 		const cls = animationClasses[animationName as keyof typeof animationClasses];
-		const anim = cls ? skinViewer.loadAnimationClass(cls) : null;
+		const anim = cls ? skinViewer.loadAnimationClass(cls, selectedPlayer) : null;
 		if (anim && animationSpeed) {
 			anim.speed = Number(animationSpeed.value);
 		}
@@ -931,7 +1019,7 @@ function initializeViewer(): void {
 	});
 
 	for (const part of skinParts) {
-		const skinPart = (skinViewer.playerObject.skin as any)[part];
+		const skinPart = (selectedPlayer.skin as any)[part];
 		for (const layer of skinLayers) {
 			const skinLayer = skinPart?.[layer];
 			if (!skinLayer) {
@@ -957,6 +1045,7 @@ function initializeViewer(): void {
 initializeViewer();
 initializeControls();
 initializeBoneSelector();
+document.getElementById("skin_container")?.addEventListener("click", handlePlayerClick);
 
 function initializeBoneSelector(useIK = false): void {
 	const selector = document.getElementById("bone_selector") as HTMLSelectElement;
@@ -1010,10 +1099,11 @@ function toggleEditor(): void {
 
 	if (editorEnabled) {
 		previousAutoRotate = skinViewer.autoRotate;
-		previousAnimationPaused = skinViewer.animation?.paused ?? false;
+		previousAnimationPaused = skinViewer.getAnimation(selectedPlayer)?.paused ?? false;
 		skinViewer.autoRotate = false;
-		if (skinViewer.animation) {
-			skinViewer.animation.paused = true;
+		const anim = skinViewer.getAnimation(selectedPlayer);
+		if (anim) {
+			anim.paused = true;
 		}
 
 		updateViewportSize();
@@ -1040,8 +1130,9 @@ function toggleEditor(): void {
 		skinViewer.scene.add(transformControls);
 	} else {
 		skinViewer.autoRotate = previousAutoRotate;
-		if (skinViewer.animation) {
-			skinViewer.animation.paused = previousAnimationPaused;
+		const anim = skinViewer.getAnimation(selectedPlayer);
+		if (anim) {
+			anim.paused = previousAnimationPaused;
 		}
 
 		updateViewportSize();
@@ -1252,7 +1343,7 @@ async function uploadJson(e: Event): Promise<void> {
 		const text = await file.text();
 		const data = JSON.parse(text);
 		loadedAnimation = skinview3d.createKeyframeAnimation(data);
-		skinViewer.animation = loadedAnimation;
+		skinViewer.setAnimation(selectedPlayer, loadedAnimation);
 		keyframes.length = 0;
 		if (Array.isArray(data.keyframes)) {
 			for (const frame of data.keyframes) {
