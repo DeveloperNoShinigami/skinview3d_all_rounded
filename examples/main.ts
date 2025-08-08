@@ -1091,13 +1091,6 @@ function initializeViewer(): void {
 
 	selectPlayer(null);
 
-	const controlsContainer = document.getElementById("extra_player_controls");
-	if (controlsContainer) {
-		const control = createPlayerResourceMenu(skinViewer.playerObject, 1);
-		controlsContainer.appendChild(control);
-		extraPlayerControls.push(control);
-	}
-
 	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
 	canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
 	const fov = document.getElementById("fov") as HTMLInputElement;
