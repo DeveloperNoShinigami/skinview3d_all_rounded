@@ -361,8 +361,19 @@ export class SkinViewer {
 		}
 	}
 
+	/**
+	 * The spacing between players when laying them out.
+	 *
+	 * @defaultValue `20`
+	 */
+	playerSpacing: number = 20;
+
+	setPlayerSpacing(value: number): void {
+		this.playerSpacing = value;
+		this.updateLayout();
+	}
+
 	private animations: Map<PlayerObject, PlayerAnimation>;
-	private _animation: PlayerAnimation | null = null;
 	private clock: Clock;
 
 	private animationID: number | null;
@@ -754,15 +765,6 @@ export class SkinViewer {
 		}
 	}
 
-	private layoutPlayers(): void {
-		const count = this.players.length;
-		const spacing = 20;
-		const offset = ((count - 1) * spacing) / 2;
-		for (let i = 0; i < count; i++) {
-			this.players[i].position.x = i * spacing - offset;
-		}
-	}
-
 	addPlayer(options: SkinLoadOptions = {}): PlayerObject {
 		const player = new PlayerObject();
 		player.cape.visible = false;
@@ -814,7 +816,7 @@ export class SkinViewer {
 
 	private layoutPlayers(): void {
 		const count = this.players.length;
-		const spacing = 20;
+		const spacing = this.playerSpacing;
 		const offset = ((count - 1) * spacing) / 2;
 		for (let i = 0; i < count; i++) {
 			this.players[i].position.x = i * spacing - offset;
@@ -1057,9 +1059,6 @@ export class SkinViewer {
 			this.animations.set(player, animation);
 		} else {
 			this.animations.delete(player);
-		}
-		if (player === this.playerObject) {
-			this._animation = animation;
 		}
 	}
 

@@ -55,6 +55,8 @@ const extraPlayers: skinview3d.PlayerObject[] = [];
 const extraPlayerControls: HTMLElement[] = [];
 let canvasWidth: HTMLInputElement | null = null;
 let canvasHeight: HTMLInputElement | null = null;
+const spacingOptions = [20, 40, 60];
+let spacingIndex = 0;
 
 function updateJointHighlight(enabled: boolean): void {
 	for (const helper of jointHelpers) {
@@ -850,6 +852,12 @@ function initializeControls(): void {
 	addModelBtn?.addEventListener("click", addModel);
 	const removeModelBtn = document.getElementById("remove_model");
 	removeModelBtn?.addEventListener("click", removeModel);
+	const changePositioningBtn = document.getElementById("change_positioning");
+	changePositioningBtn?.addEventListener("click", () => {
+		spacingIndex = (spacingIndex + 1) % spacingOptions.length;
+		skinViewer.setPlayerSpacing(spacingOptions[spacingIndex]);
+		skinViewer.updateLayout();
+	});
 
 	const nametagText = document.getElementById("nametag_text") as HTMLInputElement;
 	nametagText?.addEventListener("change", reloadNameTag);
