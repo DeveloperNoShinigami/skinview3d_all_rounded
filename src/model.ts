@@ -279,23 +279,49 @@ export class SkinObject extends Group {
 		this.add(this.leftArm);
 
 		// Right Leg
-		const rightLegBox = new BoxGeometry(4, 12, 4);
-		setSkinUVs(rightLegBox, 0, 16, 4, 12, 4);
-		const rightLegMesh = new Mesh(rightLegBox, this.layer1MaterialBiased);
+		const rightLegUpperBox = new BoxGeometry(4, 4, 4);
+		setSkinUVs(rightLegUpperBox, 0, 16, 4, 4, 4);
+		const rightLegUpperMesh = new Mesh(rightLegUpperBox, this.layer1MaterialBiased);
+		rightLegUpperMesh.position.y = -2;
 
-		const rightLeg2Box = new BoxGeometry(4.5, 12.5, 4.5);
-		setSkinUVs(rightLeg2Box, 0, 32, 4, 12, 4);
-		const rightLeg2Mesh = new Mesh(rightLeg2Box, this.layer2MaterialBiased);
+		const rightLegMidBox = new BoxGeometry(4, 4, 4);
+		setSkinUVs(rightLegMidBox, 0, 20, 4, 4, 4);
+		const rightLegMidMesh = new Mesh(rightLegMidBox, this.layer1MaterialBiased);
+		rightLegMidMesh.position.y = -2;
+
+		const rightLegLowerBox = new BoxGeometry(4, 4, 4);
+		setSkinUVs(rightLegLowerBox, 0, 24, 4, 4, 4);
+		const rightLegLowerMesh = new Mesh(rightLegLowerBox, this.layer1MaterialBiased);
+		rightLegLowerMesh.position.y = -2;
+
+		const rightLegUpper2Box = new BoxGeometry(4.5, 4.5, 4.5);
+		setSkinUVs(rightLegUpper2Box, 0, 32, 4, 4, 4);
+		const rightLegUpper2Mesh = new Mesh(rightLegUpper2Box, this.layer2MaterialBiased);
+		rightLegUpper2Mesh.position.y = -2;
+
+		const rightLegMid2Box = new BoxGeometry(4.5, 4.5, 4.5);
+		setSkinUVs(rightLegMid2Box, 0, 36, 4, 4, 4);
+		const rightLegMid2Mesh = new Mesh(rightLegMid2Box, this.layer2MaterialBiased);
+		rightLegMid2Mesh.position.y = -2;
+
+		const rightLegLower2Box = new BoxGeometry(4.5, 4.5, 4.5);
+		setSkinUVs(rightLegLower2Box, 0, 40, 4, 4, 4);
+		const rightLegLower2Mesh = new Mesh(rightLegLower2Box, this.layer2MaterialBiased);
+		rightLegLower2Mesh.position.y = -2;
 
 		const rightLegPivot = new Group();
-		rightLegPivot.add(rightLegMesh, rightLeg2Mesh);
 		rightLegPivot.position.y = -6;
+		rightLegPivot.add(rightLegUpperMesh, rightLegUpper2Mesh);
 
 		const rightKnee = new Group();
-		const rightAnkle = new Group();
-		rightAnkle.position.y = -6;
-		rightKnee.add(rightAnkle);
+		rightKnee.position.y = -4;
+		rightKnee.add(rightLegMidMesh, rightLegMid2Mesh);
 		rightLegPivot.add(rightKnee);
+
+		const rightAnkle = new Group();
+		rightAnkle.position.y = -4;
+		rightAnkle.add(rightLegLowerMesh, rightLegLower2Mesh);
+		rightKnee.add(rightAnkle);
 
 		const rightFootBox = new BoxGeometry(4, 4, 4);
 		setSkinUVs(rightFootBox, 0, 24, 4, 4, 4);
@@ -312,7 +338,7 @@ export class SkinObject extends Group {
 		this.rightLegKnee = rightKnee;
 		this.rightLegAnkle = rightAnkle;
 
-		this.rightLeg = new BodyPart(rightLegMesh, rightLeg2Mesh);
+		this.rightLeg = new BodyPart(rightLegUpperMesh, rightLegUpper2Mesh);
 		this.rightLeg.name = "rightLeg";
 		this.rightLeg.add(rightLegPivot);
 		this.rightLeg.position.x = -1.9;
@@ -321,23 +347,49 @@ export class SkinObject extends Group {
 		this.add(this.rightLeg);
 
 		// Left Leg
-		const leftLegBox = new BoxGeometry(4, 12, 4);
-		setSkinUVs(leftLegBox, 16, 48, 4, 12, 4);
-		const leftLegMesh = new Mesh(leftLegBox, this.layer1MaterialBiased);
+		const leftLegUpperBox = new BoxGeometry(4, 4, 4);
+		setSkinUVs(leftLegUpperBox, 16, 48, 4, 4, 4);
+		const leftLegUpperMesh = new Mesh(leftLegUpperBox, this.layer1MaterialBiased);
+		leftLegUpperMesh.position.y = -2;
 
-		const leftLeg2Box = new BoxGeometry(4.5, 12.5, 4.5);
-		setSkinUVs(leftLeg2Box, 0, 48, 4, 12, 4);
-		const leftLeg2Mesh = new Mesh(leftLeg2Box, this.layer2MaterialBiased);
+		const leftLegMidBox = new BoxGeometry(4, 4, 4);
+		setSkinUVs(leftLegMidBox, 16, 52, 4, 4, 4);
+		const leftLegMidMesh = new Mesh(leftLegMidBox, this.layer1MaterialBiased);
+		leftLegMidMesh.position.y = -2;
+
+		const leftLegLowerBox = new BoxGeometry(4, 4, 4);
+		setSkinUVs(leftLegLowerBox, 16, 56, 4, 4, 4);
+		const leftLegLowerMesh = new Mesh(leftLegLowerBox, this.layer1MaterialBiased);
+		leftLegLowerMesh.position.y = -2;
+
+		const leftLegUpper2Box = new BoxGeometry(4.5, 4.5, 4.5);
+		setSkinUVs(leftLegUpper2Box, 0, 48, 4, 4, 4);
+		const leftLegUpper2Mesh = new Mesh(leftLegUpper2Box, this.layer2MaterialBiased);
+		leftLegUpper2Mesh.position.y = -2;
+
+		const leftLegMid2Box = new BoxGeometry(4.5, 4.5, 4.5);
+		setSkinUVs(leftLegMid2Box, 0, 52, 4, 4, 4);
+		const leftLegMid2Mesh = new Mesh(leftLegMid2Box, this.layer2MaterialBiased);
+		leftLegMid2Mesh.position.y = -2;
+
+		const leftLegLower2Box = new BoxGeometry(4.5, 4.5, 4.5);
+		setSkinUVs(leftLegLower2Box, 0, 56, 4, 4, 4);
+		const leftLegLower2Mesh = new Mesh(leftLegLower2Box, this.layer2MaterialBiased);
+		leftLegLower2Mesh.position.y = -2;
 
 		const leftLegPivot = new Group();
-		leftLegPivot.add(leftLegMesh, leftLeg2Mesh);
 		leftLegPivot.position.y = -6;
+		leftLegPivot.add(leftLegUpperMesh, leftLegUpper2Mesh);
 
 		const leftKnee = new Group();
-		const leftAnkle = new Group();
-		leftAnkle.position.y = -6;
-		leftKnee.add(leftAnkle);
+		leftKnee.position.y = -4;
+		leftKnee.add(leftLegMidMesh, leftLegMid2Mesh);
 		leftLegPivot.add(leftKnee);
+
+		const leftAnkle = new Group();
+		leftAnkle.position.y = -4;
+		leftAnkle.add(leftLegLowerMesh, leftLegLower2Mesh);
+		leftKnee.add(leftAnkle);
 
 		const leftFootBox = new BoxGeometry(4, 4, 4);
 		setSkinUVs(leftFootBox, 16, 56, 4, 4, 4);
@@ -354,7 +406,7 @@ export class SkinObject extends Group {
 		this.leftLegKnee = leftKnee;
 		this.leftLegAnkle = leftAnkle;
 
-		this.leftLeg = new BodyPart(leftLegMesh, leftLeg2Mesh);
+		this.leftLeg = new BodyPart(leftLegUpperMesh, leftLegUpper2Mesh);
 		this.leftLeg.name = "leftLeg";
 		this.leftLeg.add(leftLegPivot);
 		this.leftLeg.position.x = 1.9;
@@ -434,10 +486,10 @@ export class SkinObject extends Group {
 		this.rightArmWrist.position.set(0, -6, 0);
 		this.leftArmElbow.position.set(0, 0, 0);
 		this.leftArmWrist.position.set(0, -6, 0);
-		this.rightLegKnee.position.set(0, 0, 0);
-		this.rightLegAnkle.position.set(0, -6, 0);
-		this.leftLegKnee.position.set(0, 0, 0);
-		this.leftLegAnkle.position.set(0, -6, 0);
+		this.rightLegKnee.position.set(0, -4, 0);
+		this.rightLegAnkle.position.set(0, -4, 0);
+		this.leftLegKnee.position.set(0, -4, 0);
+		this.leftLegAnkle.position.set(0, -4, 0);
 		this.rightHand.position.set(0, 0, 0);
 		this.leftHand.position.set(0, 0, 0);
 		this.rightFoot.position.set(0, 0, 0);
