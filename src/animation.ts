@@ -123,7 +123,7 @@ export interface KeyframeData {
 }
 
 /**
- * Resolve a dotted bone path (e.g. "skin.leftArm") to the corresponding object
+ * Resolve a dotted bone path (e.g. "skin.leftUpperArm") to the corresponding object
  * on the player model.
  */
 function resolveBone(player: PlayerObject, path: string): any {
@@ -220,8 +220,8 @@ export class IdleAnimation extends PlayerAnimation {
 
 		// Arm swing
 		const basicArmRotationZ = Math.PI * 0.02;
-		player.skin.leftArm.rotation.z = Math.cos(t) * 0.03 + basicArmRotationZ;
-		player.skin.rightArm.rotation.z = Math.cos(t + Math.PI) * 0.03 - basicArmRotationZ;
+		player.skin.leftUpperArm.rotation.z = Math.cos(t) * 0.03 + basicArmRotationZ;
+		player.skin.rightUpperArm.rotation.z = Math.cos(t + Math.PI) * 0.03 - basicArmRotationZ;
 
 		// Always add an angle for cape around the x axis
 		const basicCapeRotationX = Math.PI * 0.06;
@@ -242,15 +242,15 @@ export class WalkingAnimation extends PlayerAnimation {
 		const t = this.progress * 8;
 
 		// Leg swing
-		player.skin.leftLeg.rotation.x = Math.sin(t) * 0.5;
-		player.skin.rightLeg.rotation.x = Math.sin(t + Math.PI) * 0.5;
+		player.skin.leftUpperLeg.rotation.x = Math.sin(t) * 0.5;
+		player.skin.rightUpperLeg.rotation.x = Math.sin(t + Math.PI) * 0.5;
 
 		// Arm swing
-		player.skin.leftArm.rotation.x = Math.sin(t + Math.PI) * 0.5;
-		player.skin.rightArm.rotation.x = Math.sin(t) * 0.5;
+		player.skin.leftUpperArm.rotation.x = Math.sin(t + Math.PI) * 0.5;
+		player.skin.rightUpperArm.rotation.x = Math.sin(t) * 0.5;
 		const basicArmRotationZ = Math.PI * 0.02;
-		player.skin.leftArm.rotation.z = Math.cos(t) * 0.03 + basicArmRotationZ;
-		player.skin.rightArm.rotation.z = Math.cos(t + Math.PI) * 0.03 - basicArmRotationZ;
+		player.skin.leftUpperArm.rotation.z = Math.cos(t) * 0.03 + basicArmRotationZ;
+		player.skin.rightUpperArm.rotation.z = Math.cos(t + Math.PI) * 0.03 - basicArmRotationZ;
 
 		if (this.headBobbing) {
 			// Head shaking with different frequency & amplitude
@@ -273,15 +273,15 @@ export class RunningAnimation extends PlayerAnimation {
 		const t = this.progress * 15 + Math.PI * 0.5;
 
 		// Leg swing with larger amplitude
-		player.skin.leftLeg.rotation.x = Math.cos(t + Math.PI) * 1.3;
-		player.skin.rightLeg.rotation.x = Math.cos(t) * 1.3;
+		player.skin.leftUpperLeg.rotation.x = Math.cos(t + Math.PI) * 1.3;
+		player.skin.rightUpperLeg.rotation.x = Math.cos(t) * 1.3;
 
 		// Arm swing
-		player.skin.leftArm.rotation.x = Math.cos(t) * 1.5;
-		player.skin.rightArm.rotation.x = Math.cos(t + Math.PI) * 1.5;
+		player.skin.leftUpperArm.rotation.x = Math.cos(t) * 1.5;
+		player.skin.rightUpperArm.rotation.x = Math.cos(t + Math.PI) * 1.5;
 		const basicArmRotationZ = Math.PI * 0.1;
-		player.skin.leftArm.rotation.z = Math.cos(t) * 0.1 + basicArmRotationZ;
-		player.skin.rightArm.rotation.z = Math.cos(t + Math.PI) * 0.1 - basicArmRotationZ;
+		player.skin.leftUpperArm.rotation.z = Math.cos(t) * 0.1 + basicArmRotationZ;
+		player.skin.rightUpperArm.rotation.z = Math.cos(t + Math.PI) * 0.1 - basicArmRotationZ;
 
 		// Jumping
 		player.position.y = Math.cos(t * 2);
@@ -317,8 +317,8 @@ export class FlyingAnimation extends PlayerAnimation {
 		player.skin.head.rotation.x = startProgress > 0.5 ? Math.PI / 4 - player.rotation.x : 0;
 
 		const basicArmRotationZ = Math.PI * 0.25 * startProgress;
-		player.skin.leftArm.rotation.z = basicArmRotationZ;
-		player.skin.rightArm.rotation.z = -basicArmRotationZ;
+		player.skin.leftUpperArm.rotation.z = basicArmRotationZ;
+		player.skin.rightUpperArm.rotation.z = -basicArmRotationZ;
 
 		const elytraRotationX = 0.34906584;
 		const elytraRotationZ = Math.PI / 2;
@@ -340,7 +340,7 @@ export class WaveAnimation extends PlayerAnimation {
 	protected animate(player: PlayerObject): void {
 		const t = this.progress * 2 * Math.PI * 0.5;
 
-		const targetArm = this.whichArm === "left" ? player.skin.leftArm : player.skin.rightArm;
+		const targetArm = this.whichArm === "left" ? player.skin.leftUpperArm : player.skin.rightUpperArm;
 		targetArm.rotation.x = 180;
 		targetArm.rotation.z = Math.sin(t) * 0.5;
 	}
@@ -410,17 +410,17 @@ export class CrouchAnimation extends PlayerAnimation {
 			this.isCrouched = false;
 		}
 		player.skin.head.position.y = -3.618325234674 * Math.abs(Math.sin((pr * Math.PI) / 2));
-		player.skin.leftArm.position.z =
+		player.skin.leftUpperArm.position.z =
 			3.618325234674 * Math.abs(Math.sin((pr * Math.PI) / 2)) - 3.4500310377 * Math.abs(Math.sin((pr * Math.PI) / 2));
-		player.skin.rightArm.position.z = player.skin.leftArm.position.z;
-		player.skin.leftArm.rotation.x = 0.410367746202 * Math.abs(Math.sin((pr * Math.PI) / 2));
-		player.skin.rightArm.rotation.x = player.skin.leftArm.rotation.x;
-		player.skin.leftArm.rotation.z = 0.1;
-		player.skin.rightArm.rotation.z = -player.skin.leftArm.rotation.z;
-		player.skin.leftArm.position.y = -2 - 2.53943318 * Math.abs(Math.sin((pr * Math.PI) / 2));
-		player.skin.rightArm.position.y = player.skin.leftArm.position.y;
-		player.skin.rightLeg.position.z = -3.4500310377 * Math.abs(Math.sin((pr * Math.PI) / 2));
-		player.skin.leftLeg.position.z = player.skin.rightLeg.position.z;
+		player.skin.rightUpperArm.position.z = player.skin.leftUpperArm.position.z;
+		player.skin.leftUpperArm.rotation.x = 0.410367746202 * Math.abs(Math.sin((pr * Math.PI) / 2));
+		player.skin.rightUpperArm.rotation.x = player.skin.leftUpperArm.rotation.x;
+		player.skin.leftUpperArm.rotation.z = 0.1;
+		player.skin.rightUpperArm.rotation.z = -player.skin.leftUpperArm.rotation.z;
+		player.skin.leftUpperArm.position.y = -2 - 2.53943318 * Math.abs(Math.sin((pr * Math.PI) / 2));
+		player.skin.rightUpperArm.position.y = player.skin.leftUpperArm.position.y;
+		player.skin.rightUpperLeg.position.z = -3.4500310377 * Math.abs(Math.sin((pr * Math.PI) / 2));
+		player.skin.leftUpperLeg.position.z = player.skin.rightUpperLeg.position.z;
 		if (this.isRunningHitAnimation) {
 			const pr2 = this.progress;
 			let t = (this.progress * 18 * this.hitAnimationSpeed) / this.speed;
@@ -430,16 +430,16 @@ export class CrouchAnimation extends PlayerAnimation {
 			}
 
 			const isCrouching = Math.abs(Math.sin((pr2 * Math.PI) / 2)) === 1;
-			player.skin.rightArm.rotation.x =
+			player.skin.rightUpperArm.rotation.x =
 				-0.4537860552 + 2 * Math.sin(t + Math.PI) * 0.3 - (isCrouching ? 0.4537860552 : 0);
 			const basicArmRotationZ = 0.01 * Math.PI + 0.06;
-			player.skin.rightArm.rotation.z = -Math.cos(t) * 0.403 + basicArmRotationZ;
+			player.skin.rightUpperArm.rotation.z = -Math.cos(t) * 0.403 + basicArmRotationZ;
 			player.skin.body.rotation.y = -Math.cos(t) * 0.06;
-			player.skin.leftArm.rotation.x = Math.sin(t + Math.PI) * 0.077 + (isCrouching ? 0.47 : 0);
-			player.skin.leftArm.rotation.z = -Math.cos(t) * 0.015 + 0.13 - (!isCrouching ? 0.05 : 0);
+			player.skin.leftUpperArm.rotation.x = Math.sin(t + Math.PI) * 0.077 + (isCrouching ? 0.47 : 0);
+			player.skin.leftUpperArm.rotation.z = -Math.cos(t) * 0.015 + 0.13 - (!isCrouching ? 0.05 : 0);
 			if (!isCrouching) {
-				player.skin.leftArm.position.z = Math.cos(t) * 0.3;
-				player.skin.leftArm.position.x = 5 - Math.cos(t) * 0.05;
+				player.skin.leftUpperArm.position.z = Math.cos(t) * 0.3;
+				player.skin.leftUpperArm.position.x = 5 - Math.cos(t) * 0.05;
 			}
 		}
 	}
@@ -447,14 +447,14 @@ export class CrouchAnimation extends PlayerAnimation {
 export class HitAnimation extends PlayerAnimation {
 	protected animate(player: PlayerObject): void {
 		const t = this.progress * 18;
-		player.skin.rightArm.rotation.x = -0.4537860552 * 2 + 2 * Math.sin(t + Math.PI) * 0.3;
+		player.skin.rightUpperArm.rotation.x = -0.4537860552 * 2 + 2 * Math.sin(t + Math.PI) * 0.3;
 		const basicArmRotationZ = 0.01 * Math.PI + 0.06;
-		player.skin.rightArm.rotation.z = -Math.cos(t) * 0.403 + basicArmRotationZ;
+		player.skin.rightUpperArm.rotation.z = -Math.cos(t) * 0.403 + basicArmRotationZ;
 		player.skin.body.rotation.y = -Math.cos(t) * 0.06;
-		player.skin.leftArm.rotation.x = Math.sin(t + Math.PI) * 0.077;
-		player.skin.leftArm.rotation.z = -Math.cos(t) * 0.015 + 0.13 - 0.05;
-		player.skin.leftArm.position.z = Math.cos(t) * 0.3;
-		player.skin.leftArm.position.x = 5 - Math.cos(t) * 0.05;
+		player.skin.leftUpperArm.rotation.x = Math.sin(t + Math.PI) * 0.077;
+		player.skin.leftUpperArm.rotation.z = -Math.cos(t) * 0.015 + 0.13 - 0.05;
+		player.skin.leftUpperArm.position.z = Math.cos(t) * 0.3;
+		player.skin.leftUpperArm.position.x = 5 - Math.cos(t) * 0.05;
 	}
 }
 
@@ -500,24 +500,27 @@ export class BendAnimation extends PlayerAnimation {
 		const armLower = 5;
 		const armShoulderRatio = armLower / (armUpper + armLower);
 		const armElbowRatio = armUpper / (armUpper + armLower);
-		player.skin.leftArm.rotation.x = arm * armShoulderRatio;
-		player.skin.rightArm.rotation.x = arm * armShoulderRatio;
+		player.skin.leftUpperArm.rotation.x = arm * armShoulderRatio;
+		player.skin.rightUpperArm.rotation.x = arm * armShoulderRatio;
 		const elbow = arm * armElbowRatio * 0.6;
 		const lower = arm * armElbowRatio * 0.4;
-		player.skin.leftElbowPivot.rotation.x = elbow;
+		player.skin.leftElbow.rotation.x = elbow;
 		player.skin.leftLowerArm.rotation.x = lower;
-		player.skin.rightElbowPivot.rotation.x = elbow;
+		player.skin.rightElbow.rotation.x = elbow;
 		player.skin.rightLowerArm.rotation.x = lower;
 
-		// Bend legs across hip and knee bones
+		// Bend legs across hip, knee and lower leg bones
 		const legUpper = 5;
 		const legLower = 5;
 		const legHipRatio = legLower / (legUpper + legLower);
 		const legKneeRatio = legUpper / (legUpper + legLower);
-		player.skin.leftLeg.rotation.x = -leg * legHipRatio;
-		player.skin.rightLeg.rotation.x = -leg * legHipRatio;
-		const knee = -leg * legKneeRatio;
-		player.skin.leftLegKnee.rotation.x = knee;
-		player.skin.rightLegKnee.rotation.x = knee;
+		player.skin.leftUpperLeg.rotation.x = -leg * legHipRatio;
+		player.skin.rightUpperLeg.rotation.x = -leg * legHipRatio;
+		const knee = -leg * legKneeRatio * 0.6;
+		const lowerLeg = -leg * legKneeRatio * 0.4;
+		player.skin.leftKnee.rotation.x = knee;
+		player.skin.leftLowerLeg.rotation.x = lowerLeg;
+		player.skin.rightKnee.rotation.x = knee;
+		player.skin.rightLowerLeg.rotation.x = lowerLeg;
 	}
 }

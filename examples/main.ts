@@ -11,20 +11,18 @@ import { GeneratedAnimation } from "./generated-animation";
 const skinParts = [
 	"head",
 	"body",
-	"rightArm",
-	"leftArm",
-	"rightLeg",
-	"leftLeg",
-	"rightElbowPivot",
-	"leftElbowPivot",
+	"rightUpperArm",
+	"leftUpperArm",
+	"rightUpperLeg",
+	"leftUpperLeg",
+	"rightElbow",
+	"leftElbow",
+	"rightKnee",
+	"leftKnee",
 	"rightLowerArm",
 	"leftLowerArm",
-	"rightLegKnee",
-	"leftLegKnee",
-	"rightArmWrist",
-	"leftArmWrist",
-	"rightHand",
-	"leftHand",
+	"rightLowerLeg",
+	"leftLowerLeg",
 ];
 const skinLayers = ["innerLayer", "outerLayer"];
 const animationClasses = {
@@ -64,14 +62,14 @@ function updateJointHighlight(enabled: boolean): void {
 	jointHelpers = [];
 	if (enabled) {
 		const joints = [
-			skinViewer.playerObject.skin.rightElbowPivot,
-			skinViewer.playerObject.skin.leftElbowPivot,
+			skinViewer.playerObject.skin.rightElbow,
+			skinViewer.playerObject.skin.leftElbow,
 			skinViewer.playerObject.skin.rightLowerArm,
 			skinViewer.playerObject.skin.leftLowerArm,
-			skinViewer.playerObject.skin.rightLegKnee,
-			skinViewer.playerObject.skin.leftLegKnee,
-			skinViewer.playerObject.skin.rightHand,
-			skinViewer.playerObject.skin.leftHand,
+			skinViewer.playerObject.skin.rightKnee,
+			skinViewer.playerObject.skin.leftKnee,
+			skinViewer.playerObject.skin.rightLowerLeg,
+			skinViewer.playerObject.skin.leftLowerLeg,
 		];
 		for (const joint of joints) {
 			const helper = new BoxHelper(joint, 0xff0000);
@@ -423,16 +421,16 @@ function setupIK(): void {
 	skinViewer.scene.add(rightLowerArmTarget);
 	const rIK = new IK();
 	const rChain = new IKChain();
-	const rRoot = new IKJoint(skin.rightArm);
+	const rRoot = new IKJoint(skin.rightUpperArm);
 	rChain.add(rRoot); // keep shoulder static
-	rChain.add(new IKJoint(skin.rightElbowPivot));
+	rChain.add(new IKJoint(skin.rightElbow));
 	rChain.add(new IKJoint(skin.rightLowerArm), { target: rightLowerArmTarget });
 	rChain.effectorIndex = rChain.joints.length - 1;
 	rIK.add(rChain);
 	ikChains["ik.rightArm"] = {
 		target: rightLowerArmTarget,
 		ik: rIK,
-		bones: ["skin.rightArm", "skin.rightElbowPivot", "skin.rightLowerArm"],
+		bones: ["skin.rightUpperArm", "skin.rightElbow", "skin.rightLowerArm"],
 		root: rRoot,
 	};
 
@@ -444,9 +442,9 @@ function setupIK(): void {
 	skinViewer.scene.add(leftLowerArmTarget);
 	const lIK = new IK();
 	const lChain = new IKChain();
-	const lRoot = new IKJoint(skin.leftArm);
+	const lRoot = new IKJoint(skin.leftUpperArm);
 	lChain.add(lRoot); // keep shoulder static
-	lChain.add(new IKJoint(skin.leftElbowPivot));
+	lChain.add(new IKJoint(skin.leftElbow));
 	lChain.add(new IKJoint(skin.leftLowerArm), { target: leftLowerArmTarget });
 	lChain.effectorIndex = lChain.joints.length - 1;
 	lIK.add(lChain);
@@ -454,8 +452,51 @@ function setupIK(): void {
 		target: leftLowerArmTarget,
 
 		ik: lIK,
-		bones: ["skin.leftArm", "skin.leftElbowPivot", "skin.leftLowerArm"],
+		bones: ["skin.leftUpperArm", "skin.leftElbow", "skin.leftLowerArm"],
 		root: lRoot,
+	};
+
+	const rightLowerLegTarget = new Object3D();
+	const rightLowerLegMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x0000ff }));
+	rightLowerLegTarget.add(rightLowerLegMesh);
+
+	rightLowerLegTarget.position.copy(skin.rightLowerLeg.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(rightLowerLegTarget);
+	const rLegIK = new IK();
+	const rLegChain = new IKChain();
+	const rLegRoot = new IKJoint(skin.rightUpperLeg);
+	rLegChain.add(rLegRoot); // keep hip static
+	rLegChain.add(new IKJoint(skin.rightKnee));
+	rLegChain.add(new IKJoint(skin.rightLowerLeg), { target: rightLowerLegTarget });
+	rLegChain.effectorIndex = rLegChain.joints.length - 1;
+	rLegIK.add(rLegChain);
+	ikChains["ik.rightLeg"] = {
+		target: rightLowerLegTarget,
+
+		ik: rLegIK,
+		bones: ["skin.rightUpperLeg", "skin.rightKnee", "skin.rightLowerLeg"],
+		root: rLegRoot,
+	};
+
+	const leftLowerLegTarget = new Object3D();
+	const leftLowerLegMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xffff00 }));
+	leftLowerLegTarget.add(leftLowerLegMesh);
+
+	leftLowerLegTarget.position.copy(skin.leftLowerLeg.getWorldPosition(new Vector3()));
+	skinViewer.scene.add(leftLowerLegTarget);
+	const lLegIK = new IK();
+	const lLegChain = new IKChain();
+	const lLegRoot = new IKJoint(skin.leftUpperLeg);
+	lLegChain.add(lLegRoot); // keep hip static
+	lLegChain.add(new IKJoint(skin.leftKnee));
+	lLegChain.add(new IKJoint(skin.leftLowerLeg), { target: leftLowerLegTarget });
+	lLegChain.effectorIndex = lLegChain.joints.length - 1;
+	lLegIK.add(lLegChain);
+	ikChains["ik.leftLeg"] = {
+		target: leftLowerLegTarget,
+		ik: lLegIK,
+		bones: ["skin.leftUpperLeg", "skin.leftKnee", "skin.leftLowerLeg"],
+		root: lLegRoot,
 	};
 
 	if (ikUpdateId !== null) {
@@ -899,7 +940,10 @@ function initializeBoneSelector(useIK = false): void {
 	selector.appendChild(playerOption);
 
 	for (const part of skinParts) {
-		if (useIK && (part === "rightArm" || part === "leftArm" || part === "rightLeg" || part === "leftLeg")) {
+		if (
+			useIK &&
+			(part === "rightUpperArm" || part === "leftUpperArm" || part === "rightUpperLeg" || part === "leftUpperLeg")
+		) {
 			continue;
 		}
 		const option = document.createElement("option");
