@@ -1,5 +1,4 @@
 import * as skinview3d from "../src/skinview3d";
-import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
@@ -51,6 +50,11 @@ const animationClasses = {
 
 let skinViewer: skinview3d.SkinViewer;
 let transformControls: TransformControls | null = null;
+let positionControls: TransformControls | null = null;
+let selectedPlayer: skinview3d.PlayerObject;
+let positionControllerEnabled = false;
+let previousPositionAutoRotate = false;
+let previousPositionAnimationPaused = false;
 let selectedBone = "playerObject";
 const keyframes: Array<{ time: number; bone: string; position: Vector3; rotation: Euler }> = [];
 let editorEnabled = false;
@@ -71,6 +75,106 @@ let canvasWidth: HTMLInputElement | null = null;
 let canvasHeight: HTMLInputElement | null = null;
 const spacingOptions = [20, 40, 60];
 let spacingIndex = 0;
+
+function initializeAssetMenu(): void {
+	const mainMenu = document.getElementById("main_menu");
+	const subMenu = document.getElementById("sub_menu");
+	if (!mainMenu || !subMenu) {
+		return;
+	}
+
+	const showMain = () => {
+		subMenu.classList.add("hidden");
+		subMenu.innerHTML = "";
+		mainMenu.classList.remove("hidden");
+	};
+
+	const createMenu = (title: string, load: (source: string | File) => Promise<unknown> | unknown) => {
+		mainMenu.classList.add("hidden");
+		subMenu.classList.remove("hidden");
+		subMenu.innerHTML = `<h1>${title}</h1>
+<p class="control">Provide a URL or choose a file.</p>
+<input id="menu_url" type="text" class="control" placeholder="URL" />
+<input id="menu_file" type="file" class="control" />`;
+		const urlInput = subMenu.querySelector("#menu_url") as HTMLInputElement;
+		const fileInput = subMenu.querySelector("#menu_file") as HTMLInputElement;
+
+		urlInput?.addEventListener("change", () => {
+			const url = urlInput.value.trim();
+			if (url) {
+				void Promise.resolve(load(url)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+
+		fileInput?.addEventListener("change", () => {
+			const file = fileInput.files?.[0];
+			if (file) {
+				void Promise.resolve(load(file)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+	};
+
+	document.getElementById("menu_skin")?.addEventListener("click", () => {
+		createMenu("Load Skin", source => skinViewer.loadSkin(source));
+	});
+
+	document.getElementById("menu_back")?.addEventListener("click", () => {
+		mainMenu.classList.add("hidden");
+		subMenu.classList.remove("hidden");
+		subMenu.innerHTML = `<h1>Load Back Item</h1>
+<p class="control">Choose cape or elytra then provide a texture.</p>
+<div class="control"><label><input type="radio" name="back_type" value="cape" checked /> Cape</label>
+<label><input type="radio" name="back_type" value="elytra" /> Elytra</label></div>
+<input id="menu_url" type="text" class="control" placeholder="URL" />
+<input id="menu_file" type="file" class="control" />`;
+		const urlInput = subMenu.querySelector("#menu_url") as HTMLInputElement;
+		const fileInput = subMenu.querySelector("#menu_file") as HTMLInputElement;
+		const load = (source: string | File) => {
+			const equip = (subMenu.querySelector('input[name="back_type"]:checked') as HTMLInputElement)
+				?.value as BackEquipment;
+			return skinViewer.loadCape(source, { backEquipment: equip });
+		};
+		urlInput?.addEventListener("change", () => {
+			const url = urlInput.value.trim();
+			if (url) {
+				void Promise.resolve(load(url)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+		fileInput?.addEventListener("change", () => {
+			const file = fileInput.files?.[0];
+			if (file) {
+				void Promise.resolve(load(file)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+	});
+
+	document.getElementById("menu_ears")?.addEventListener("click", () => {
+		createMenu("Load Ears", source => skinViewer.loadEars(source));
+	});
+
+	document.getElementById("menu_animation")?.addEventListener("click", () => {
+		createMenu("Load Animation", async source => {
+			let text: string;
+			if (typeof source === "string") {
+				const resp = await fetch(source);
+				text = await resp.text();
+			} else {
+				text = await source.text();
+			}
+			const data = JSON.parse(text);
+			loadedAnimation = skinview3d.createKeyframeAnimation(data);
+			skinViewer.animation = loadedAnimation;
+		});
+	});
+}
 
 function updateJointHighlight(enabled: boolean): void {
 	for (const helper of jointHelpers) {
@@ -891,23 +995,9 @@ function initializeControls(): void {
 		unsetButton?.addEventListener("click", () => unsetAction());
 	};
 
-	initializeUploadButton("skin_url", reloadSkin);
-	initializeUploadButton("cape_url", reloadCape);
-	initializeUploadButton("ears_url", reloadEars);
 	initializeUploadButton("panorama_url", reloadPanorama);
 
-	const skinUrl = document.getElementById("skin_url") as HTMLInputElement;
-	const skinModel = document.getElementById("skin_model") as HTMLSelectElement;
-	const capeUrl = document.getElementById("cape_url") as HTMLInputElement;
-	const earsSource = document.getElementById("ears_source") as HTMLSelectElement;
-	const earsUrl = document.getElementById("ears_url") as HTMLInputElement;
 	const panoramaUrl = document.getElementById("panorama_url") as HTMLInputElement;
-
-	skinUrl?.addEventListener("change", reloadSkin);
-	skinModel?.addEventListener("change", reloadSkin);
-	capeUrl?.addEventListener("change", reloadCape);
-	earsSource?.addEventListener("change", () => reloadEars());
-	earsUrl?.addEventListener("change", () => reloadEars());
 	panoramaUrl?.addEventListener("change", reloadPanorama);
 
 	const backEquipmentRadios = document.querySelectorAll<HTMLInputElement>('input[type="radio"][name="back_equipment"]');
@@ -945,6 +1035,8 @@ function initializeControls(): void {
 		skinViewer.setPlayerSpacing(spacingOptions[spacingIndex]);
 		skinViewer.updateLayout();
 	});
+	const togglePositionBtn = document.getElementById("toggle_position_controller");
+	togglePositionBtn?.addEventListener("click", togglePositionController);
 
 	const nametagText = document.getElementById("nametag_text") as HTMLInputElement;
 	nametagText?.addEventListener("change", reloadNameTag);
@@ -962,6 +1054,8 @@ function initializeControls(): void {
 
 	// Initialize background type
 	updateBackground();
+
+	initializeAssetMenu();
 }
 
 function initializeViewer(): void {
@@ -974,6 +1068,7 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
+  
 	selectPlayer(null);
 
 	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
@@ -1032,10 +1127,9 @@ function initializeViewer(): void {
 		}
 	}
 
-	reloadSkin();
-	reloadCape();
-	reloadEars(true);
-	reloadPanorama();
+	void skinViewer.loadSkin("img/hatsune_miku.png");
+	void skinViewer.loadCape("img/mojang_cape.png", { backEquipment: "cape" });
+	void skinViewer.loadPanorama("img/panorama.png");
 	reloadNameTag();
 	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
 	updateJointHighlight(highlightJoints?.checked ?? false);
@@ -1145,6 +1239,48 @@ function toggleEditor(): void {
 		disposeIK();
 		initializeBoneSelector(false);
 		selectedBone = boneSelector?.value || "playerObject";
+	}
+}
+
+function onPositionControlKey(e: KeyboardEvent): void {
+	if (!positionControls) {
+		return;
+	}
+	if (e.key === "t" || e.key === "T") {
+		positionControls.setMode("translate");
+	} else if (e.key === "r" || e.key === "R") {
+		positionControls.setMode("rotate");
+	}
+}
+
+function togglePositionController(): void {
+	positionControllerEnabled = !positionControllerEnabled;
+	if (positionControllerEnabled) {
+		previousPositionAutoRotate = skinViewer.autoRotate;
+		previousPositionAnimationPaused = skinViewer.animation?.paused ?? false;
+		skinViewer.autoRotate = false;
+		if (skinViewer.animation) {
+			skinViewer.animation.paused = true;
+		}
+		positionControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
+		positionControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
+			skinViewer.controls.enabled = !e.value;
+		});
+		positionControls.setMode("translate");
+		positionControls.attach(selectedPlayer);
+		skinViewer.scene.add(positionControls);
+		window.addEventListener("keydown", onPositionControlKey);
+	} else {
+		skinViewer.autoRotate = previousPositionAutoRotate;
+		if (skinViewer.animation) {
+			skinViewer.animation.paused = previousPositionAnimationPaused;
+		}
+		if (positionControls) {
+			skinViewer.scene.remove(positionControls);
+			positionControls.dispose();
+			positionControls = null;
+		}
+		window.removeEventListener("keydown", onPositionControlKey);
 	}
 }
 

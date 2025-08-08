@@ -144,6 +144,10 @@ viewer.autoFit = false;
 viewer.updateLayout();
 ```
 
+### Position controller
+
+The example viewer (`examples/index.html`) includes a **Toggle Position Controller** button. When enabled, it attaches Three.js `TransformControls` to the selected player so you can move or rotate them directly. Press `T` for translation or `R` for rotation. Orbit controls are disabled while dragging, and the previous camera and animation state are restored when the controller is toggled off.
+
 ### Keyframe animations
 
 `KeyframeAnimation` lets you persist animations as JSON and restore them later.
@@ -267,6 +271,10 @@ To load this font, please add the `@font-face` rule to your CSS:
 	src: url('/path/to/minecraft.woff2') format('woff2');
 }
 ```
+
+# Development Notes
+
+See [viewport-player-resource-notes.md](viewport-player-resource-notes.md) for notes on viewport reset, player selection, and the resource menu, including current pitfalls and unresolved issues.
 
 # Build
 `npm run build`
