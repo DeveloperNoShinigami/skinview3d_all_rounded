@@ -331,7 +331,14 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 	div.appendChild(uploadBtn);
 
 	const menu = document.createElement("ul");
-	menu.classList.add("hidden");
+	menu.classList.add("resource-menu", "hidden");
+
+	function handleDocumentClick(event: MouseEvent): void {
+		if (!menu.contains(event.target as Node) && event.target !== uploadBtn) {
+			menu.classList.add("hidden");
+			document.removeEventListener("click", handleDocumentClick);
+		}
+	}
 
 	function createMenuItem(label: string, accept: string, load: (file: File) => void | Promise<void>): void {
 		const input = document.createElement("input");
@@ -345,6 +352,7 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 				await load(file);
 			}
 			menu.classList.add("hidden");
+			document.removeEventListener("click", handleDocumentClick);
 		});
 
 		const item = document.createElement("li");
@@ -371,8 +379,14 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 	});
 
 	div.appendChild(menu);
-	uploadBtn.addEventListener("click", () => {
+	uploadBtn.addEventListener("click", event => {
+		event.stopPropagation();
 		menu.classList.toggle("hidden");
+		if (menu.classList.contains("hidden")) {
+			document.removeEventListener("click", handleDocumentClick);
+		} else {
+			document.addEventListener("click", handleDocumentClick);
+		}
 	});
 
 	return div;
