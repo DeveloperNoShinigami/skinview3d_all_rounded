@@ -108,6 +108,15 @@ canvas: document.getElementById("skin_container"),
 skinViewer.animation = new BendAnimation();
 ```
 
+Enable `autoFit` to automatically spread multiple players and adjust the camera:
+
+```js
+const viewer = new SkinViewer({ autoFit: true });
+viewer.loadSkin("img/skin1.png");
+const extra = viewer.addPlayer();
+viewer.loadSkin("img/skin2.png", {}, extra);
+```
+
 ### Keyframe animations
 
 `KeyframeAnimation` lets you persist animations as JSON and restore them later.

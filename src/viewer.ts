@@ -246,6 +246,14 @@ export interface SkinViewerOptions {
 	 * @see {@link SkinViewer.nameTag}
 	 */
 	nameTag?: NameTagObject | string;
+
+	/**
+	 * Whether to automatically arrange multiple players and adjust the camera
+	 * so that all of them are visible.
+	 *
+	 * @defaultValue `false`
+	 */
+	autoFit?: boolean;
 }
 
 /**
@@ -334,6 +342,14 @@ export class SkinViewer {
 	 * @see {@link autoRotate}
 	 */
 	autoRotateSpeed: number = 1.0;
+
+	/**
+	 * Whether to automatically spread players and adjust the camera to fit all
+	 * of them into view.
+	 *
+	 * @defaultValue `false`
+	 */
+	autoFit: boolean = false;
 
 	private animations: Map<PlayerObject, PlayerAnimation>;
 	private clock: Clock;
@@ -447,6 +463,7 @@ export class SkinViewer {
 		if (options.nameTag !== undefined) {
 			this.nameTag = options.nameTag;
 		}
+		this.autoFit = options.autoFit === true;
 		this.camera.position.z = 1;
 		this._zoom = options.zoom === undefined ? 0.9 : options.zoom;
 		this.fov = options.fov === undefined ? 50 : options.fov;
@@ -719,6 +736,15 @@ export class SkinViewer {
 		}
 	}
 
+	private layoutPlayers(): void {
+		const count = this.players.length;
+		const spacing = 20;
+		const offset = ((count - 1) * spacing) / 2;
+		for (let i = 0; i < count; i++) {
+			this.players[i].position.x = i * spacing - offset;
+		}
+	}
+
 	addPlayer(options: SkinLoadOptions = {}): PlayerObject {
 		const player = new PlayerObject();
 		player.skin.visible = false;
@@ -777,15 +803,20 @@ export class SkinViewer {
 
 	private draw(): void {
 		const dt = this.clock.getDelta();
-		if (this._animation !== null) {
-			for (const player of this.players) {
-				this._animation.update(player, dt);
+		for (const player of this.players) {
+			const anim = this.animations.get(player);
+			if (anim !== undefined) {
+				anim.update(player, dt);
 			}
 		}
 		if (this.autoRotate) {
 			if (!(this.controls.enableRotate && this.isUserRotating)) {
 				this.playerWrapper.rotation.y += dt * this.autoRotateSpeed;
 			}
+		}
+		if (this.autoFit) {
+			this.layoutPlayers();
+			this.adjustCameraDistance();
 		}
 		this.controls.update();
 		this.render();
@@ -898,7 +929,11 @@ export class SkinViewer {
 	}
 
 	adjustCameraDistance(): void {
-		let distance = 4.5 + 16.5 / Math.tan(((this.fov / 180) * Math.PI) / 2) / this.zoom;
+		let width = 16.5;
+		if (this.autoFit && this.players.length > 1) {
+			width += 20 * (this.players.length - 1);
+		}
+		let distance = 4.5 + width / Math.tan(((this.fov / 180) * Math.PI) / 2) / this.zoom;
 
 		// limit distance between 10 ~ 256 (default min / max distance of OrbitControls)
 		if (distance < 10) {
@@ -963,13 +998,11 @@ export class SkinViewer {
 		return this.animations.get(player) ?? null;
 	}
 
-	set animation(animation: PlayerAnimation | null) {
-		if (this._animation !== animation) {
-			for (const player of this.players) {
-				player.resetJoints();
-				player.position.set(0, 0, 0);
-				player.rotation.set(0, 0, 0);
-			}
+	setAnimation(player: PlayerObject, animation: PlayerAnimation | null): void {
+		if (this.getAnimation(player) !== animation) {
+			player.resetJoints();
+			player.position.set(0, 0, 0);
+			player.rotation.set(0, 0, 0);
 			this.clock.stop();
 			this.clock.autoStart = true;
 		}
