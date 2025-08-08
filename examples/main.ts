@@ -845,6 +845,10 @@ function initializeControls(): void {
 		extraPlayerControls.length = 0;
 		skinViewer.dispose();
 		initializeViewer();
+		skinViewer.resetCameraPose();
+		skinViewer.controls.target.set(0, 0, 0);
+		skinViewer.controls.update();
+		skinViewer.controls.saveState();
 		updateViewportSize();
 	});
 

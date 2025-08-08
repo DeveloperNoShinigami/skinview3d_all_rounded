@@ -23,6 +23,9 @@ Three.js powered Minecraft skin viewer.
 
 [![CodeSandbox](https://img.shields.io/badge/Codesandbox-040404?style=for-the-badge&logo=codesandbox&logoColor=DBDBDB)](https://codesandbox.io/s/skinview3d-template-vdmuh4)
 
+The demo includes a **Reset All** button that returns the camera to its default
+pose and resets orbit controls after you rotate or zoom the view.
+
 Each texture option (`skin`, `cape`, `ears`, `background`, `panorama`, etc.)
 accepts a URL string, an existing `HTMLImageElement`/`HTMLCanvasElement`, or a
 user-uploaded `File`/`Blob` object.
