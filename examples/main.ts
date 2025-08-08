@@ -3,7 +3,7 @@ import type { ModelType } from "skinview-utils";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
-import { Euler, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
+import { BoxHelper, Euler, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3 } from "three";
 
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
@@ -53,6 +53,11 @@ let uploadStatusEl: HTMLElement | null = null;
 const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; bones: string[]; root: IKJoint }> = {};
 let ikUpdateId: number | null = null;
 let jointHelpers: BoxHelper[] = [];
+const extraPlayers: skinview3d.PlayerObject[] = [];
+const extraAnimations: skinview3d.Animation[] = [];
+const extraAnimationSelectors: HTMLSelectElement[] = [];
+let canvasWidth: HTMLInputElement | null = null;
+let canvasHeight: HTMLInputElement | null = null;
 
 function updateJointHighlight(enabled: boolean): void {
 	for (const helper of jointHelpers) {
@@ -99,6 +104,70 @@ function getBone(path: string): Object3D {
 		return ikChains[path]?.target ?? skinViewer.playerObject;
 	}
 	return path.split(".").reduce((obj: any, part) => obj?.[part], skinViewer.playerObject) ?? skinViewer.playerObject;
+}
+
+function updateViewportSize(): void {
+	const skinContainer = document.getElementById("skin_container") as HTMLCanvasElement;
+	if (!skinContainer) {
+		return;
+	}
+	if (editorEnabled || extraPlayers.length > 0) {
+		skinContainer.classList.add("expanded");
+		skinViewer.width = 800;
+		skinViewer.height = 600;
+	} else {
+		skinContainer.classList.remove("expanded");
+		if (canvasWidth && canvasHeight) {
+			skinViewer.width = Number(canvasWidth.value);
+			skinViewer.height = Number(canvasHeight.value);
+		}
+	}
+}
+
+function addModel(): void {
+	const player = skinViewer.addPlayer();
+	extraPlayers.push(player);
+	const anim = new skinview3d.IdleAnimation();
+	extraAnimations.push(anim);
+	(player as any).animation = anim;
+	const index = extraPlayers.length - 1;
+	const container = document.getElementById("extra_player_controls");
+	if (container) {
+		const div = document.createElement("div");
+		div.className = "control";
+		const label = document.createElement("label");
+		label.textContent = `Player ${index + 1} animation: `;
+		const select = document.createElement("select");
+		for (const name of Object.keys(animationClasses)) {
+			const option = document.createElement("option");
+			option.value = name;
+			option.textContent = name;
+			select.appendChild(option);
+		}
+		select.value = "idle";
+		select.addEventListener("change", () => {
+			const cls = animationClasses[select.value as keyof typeof animationClasses];
+			const newAnim = new cls();
+			extraAnimations[index] = newAnim;
+			(player as any).animation = newAnim;
+		});
+		label.appendChild(select);
+		div.appendChild(label);
+		container.appendChild(div);
+		extraAnimationSelectors.push(select);
+	}
+	updateViewportSize();
+}
+
+function removeModel(): void {
+	const player = extraPlayers.pop();
+	if (player) {
+		skinViewer.removePlayer(player);
+	}
+	extraAnimations.pop();
+	const select = extraAnimationSelectors.pop();
+	select?.parentElement?.remove();
+	updateViewportSize();
 }
 
 function obtainTextureUrl(id: string): string {
@@ -408,8 +477,8 @@ function disposeIK(): void {
 }
 
 function initializeControls(): void {
-	const canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
-	const canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
+	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
+	canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
 	const fov = document.getElementById("fov") as HTMLInputElement;
 	const zoom = document.getElementById("zoom") as HTMLInputElement;
 	const globalLight = document.getElementById("global_light") as HTMLInputElement;
@@ -681,9 +750,21 @@ function initializeControls(): void {
 
 	const resetAll = document.getElementById("reset_all");
 	resetAll?.addEventListener("click", () => {
+		extraPlayers.length = 0;
+		extraAnimations.length = 0;
+		for (const sel of extraAnimationSelectors) {
+			sel.parentElement?.remove();
+		}
+		extraAnimationSelectors.length = 0;
 		skinViewer.dispose();
 		initializeViewer();
+		updateViewportSize();
 	});
+
+	const addModelBtn = document.getElementById("add_model");
+	addModelBtn?.addEventListener("click", addModel);
+	const removeModelBtn = document.getElementById("remove_model");
+	removeModelBtn?.addEventListener("click", removeModel);
 
 	const nametagText = document.getElementById("nametag_text") as HTMLInputElement;
 	nametagText?.addEventListener("change", reloadNameTag);
@@ -714,8 +795,8 @@ function initializeViewer(): void {
 		canvas: skinContainer,
 	});
 
-	const canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
-	const canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
+	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
+	canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
 	const fov = document.getElementById("fov") as HTMLInputElement;
 	const zoom = document.getElementById("zoom") as HTMLInputElement;
 	const globalLight = document.getElementById("global_light") as HTMLInputElement;
@@ -771,6 +852,7 @@ function initializeViewer(): void {
 	reloadNameTag();
 	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
 	updateJointHighlight(highlightJoints?.checked ?? false);
+	updateViewportSize();
 }
 
 initializeViewer();
@@ -817,8 +899,6 @@ function initializeBoneSelector(useIK = false): void {
 function toggleEditor(): void {
 	const editor = document.getElementById("animation_editor");
 	const skinContainer = document.getElementById("skin_container") as HTMLCanvasElement;
-	const canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
-	const canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
 	if (!editor || !skinContainer) {
 		return;
 	}
@@ -834,9 +914,7 @@ function toggleEditor(): void {
 			skinViewer.animation.paused = true;
 		}
 
-		skinContainer.classList.add("expanded");
-		skinViewer.width = 800;
-		skinViewer.height = 600;
+		updateViewportSize();
 
 		setupIK();
 		initializeBoneSelector(true);
@@ -864,11 +942,7 @@ function toggleEditor(): void {
 			skinViewer.animation.paused = previousAnimationPaused;
 		}
 
-		skinContainer.classList.remove("expanded");
-		if (canvasWidth && canvasHeight) {
-			skinViewer.width = Number(canvasWidth.value);
-			skinViewer.height = Number(canvasHeight.value);
-		}
+		updateViewportSize();
 
 		if (transformControls) {
 			skinViewer.scene.remove(transformControls);

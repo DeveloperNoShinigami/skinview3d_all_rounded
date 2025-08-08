@@ -96,6 +96,16 @@ label {
 	display: none;
 }
 
+#skin_container {
+	width: 400px;
+	height: 600px;
+}
+
+#skin_container.expanded {
+	width: 800px;
+	height: 600px;
+}
+
 #timeline {
 	border: 1px solid #ccc;
 	margin: 10px 0;
