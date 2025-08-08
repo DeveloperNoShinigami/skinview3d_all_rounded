@@ -66,7 +66,6 @@ const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; b
 let ikUpdateId: number | null = null;
 let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
-let selectedPlayer: skinview3d.PlayerObject;
 let selectionHelper: BoxHelper | null = null;
 const raycaster = new Raycaster();
 const pointer = new Vector2();
@@ -1072,7 +1071,7 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
-  
+
 	selectPlayer(null);
 
 	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
