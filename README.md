@@ -108,6 +108,25 @@ canvas: document.getElementById("skin_container"),
 skinViewer.animation = new BendAnimation();
 ```
 
+### Multiple players
+
+You can add more player models to the scene with `addPlayer()`. Pass the returned
+`PlayerObject` to texture-loading methods to control each player independently.
+
+```ts
+import { SkinViewer } from "skinview3d";
+
+const viewer = new SkinViewer({
+  canvas: document.getElementById("skin_container"),
+});
+
+const second = viewer.addPlayer();
+viewer.loadSkin("img/first.png");
+viewer.loadSkin("img/second.png", {}, second);
+viewer.loadCape("img/cape.png", {}, second);
+viewer.loadEars("img/ears.png", { textureType: "standalone" }, second);
+```
+
 ### Keyframe animations
 
 `KeyframeAnimation` lets you persist animations as JSON and restore them later.
