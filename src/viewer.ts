@@ -799,6 +799,7 @@ export class SkinViewer {
 			this.skinTextures.delete(player);
 			this.capeTextures.delete(player);
 			this.earsTextures.delete(player);
+			this.animations.delete(player);
 		}
 		if (this.autoFit) {
 			this.updateLayout();
