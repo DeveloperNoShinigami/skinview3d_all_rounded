@@ -1072,7 +1072,7 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
-  
+
 	selectPlayer(null);
 
 	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
@@ -1142,7 +1142,8 @@ function initializeViewer(): void {
 
 initializeViewer();
 initializeControls();
-initializeBoneSelector();
+setupIK();
+initializeBoneSelector(true);
 document.getElementById("skin_container")?.addEventListener("click", handlePlayerClick);
 
 function initializeBoneSelector(useIK = false): void {
