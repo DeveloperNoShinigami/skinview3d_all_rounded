@@ -7,6 +7,7 @@ import { BoxHelper, Euler, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Ve
 
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
+import { JumpAnimation } from "./jump-animation";
 
 const skinParts = [
 	"head",
@@ -35,6 +36,7 @@ const animationClasses = {
 	crouch: skinview3d.CrouchAnimation,
 	hit: skinview3d.HitAnimation,
 	generated: GeneratedAnimation,
+	jump: JumpAnimation,
 };
 
 let skinViewer: skinview3d.SkinViewer;
@@ -555,6 +557,27 @@ function initializeControls(): void {
 	const animationSpeed = document.getElementById("animation_speed") as HTMLInputElement;
 	const hitSpeed = document.getElementById("hit_speed") as HTMLInputElement;
 	const hitSpeedLabel = document.getElementById("hit_speed_label");
+
+	const animationOptions = document.getElementById("animation_options");
+	if (animationOptions) {
+		const createOption = (value: string, text: string): HTMLInputElement => {
+			const label = document.createElement("label");
+			const input = document.createElement("input");
+			input.type = "radio";
+			input.name = "animation";
+			input.value = value;
+			input.id = `animation_${value || "none"}`;
+			label.appendChild(input);
+			label.appendChild(document.createTextNode(` ${text}`));
+			animationOptions.appendChild(label);
+			return input;
+		};
+		createOption("", "None");
+		for (const name of Object.keys(animationClasses)) {
+			createOption(name, name.charAt(0).toUpperCase() + name.slice(1));
+		}
+	}
+
 	const animationCrouch = document.getElementById("animation_crouch") as HTMLInputElement;
 	const addHittingAnimation = document.getElementById("add_hitting_animation") as HTMLInputElement;
 
@@ -636,6 +659,12 @@ function initializeControls(): void {
 				}
 			}
 		});
+	}
+
+	const defaultRadio = document.getElementById("animation_bend") as HTMLInputElement;
+	if (defaultRadio) {
+		defaultRadio.checked = true;
+		defaultRadio.dispatchEvent(new Event("change"));
 	}
 
 	animationCrouch?.addEventListener("change", () => {
