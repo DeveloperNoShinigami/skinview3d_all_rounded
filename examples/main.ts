@@ -293,103 +293,89 @@ function updateViewportSize(): void {
 	}
 }
 
+function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number): HTMLElement {
+	const div = document.createElement("div");
+	div.className = "control-section";
+
+	const animLabel = document.createElement("label");
+	animLabel.textContent = `Player ${index} animation: `;
+	const select = document.createElement("select");
+	for (const name of Object.keys(animationClasses)) {
+		const option = document.createElement("option");
+		option.value = name;
+		option.textContent = name;
+		select.appendChild(option);
+	}
+	select.value = "idle";
+	select.addEventListener("change", () => {
+		const cls = animationClasses[select.value as keyof typeof animationClasses];
+		const newAnim = new cls();
+		skinViewer.setAnimation(player, newAnim);
+	});
+	animLabel.appendChild(select);
+	div.appendChild(animLabel);
+
+	const uploadBtn = document.createElement("button");
+	uploadBtn.className = "control";
+	uploadBtn.textContent = "Load...";
+	div.appendChild(uploadBtn);
+
+	const menu = document.createElement("ul");
+	menu.classList.add("hidden");
+
+	function createMenuItem(label: string, accept: string, load: (file: File) => void | Promise<void>): void {
+		const input = document.createElement("input");
+		input.type = "file";
+		input.accept = accept;
+		input.classList.add("hidden");
+		input.addEventListener("change", async () => {
+			const file = input.files?.[0];
+			if (file) {
+				await load(file);
+			}
+			menu.classList.add("hidden");
+		});
+
+		const item = document.createElement("li");
+		item.textContent = label;
+		item.addEventListener("click", () => input.click());
+		menu.appendChild(item);
+		div.appendChild(input);
+	}
+
+	createMenuItem("Skin", "image/*", file => {
+		void skinViewer.loadSkin(file, {}, player);
+	});
+	createMenuItem("Cape", "image/*", file => {
+		void skinViewer.loadCape(file, {}, player);
+	});
+	createMenuItem("Ears", "image/*", file => {
+		void skinViewer.loadEars(file, { textureType: "standalone" }, player);
+	});
+	createMenuItem("Animation", "application/json", async file => {
+		const text = await file.text();
+		const data = JSON.parse(text);
+		const anim = skinview3d.createKeyframeAnimation(data);
+		skinViewer.setAnimation(player, anim);
+	});
+
+	div.appendChild(menu);
+	uploadBtn.addEventListener("click", () => {
+		menu.classList.toggle("hidden");
+	});
+
+	return div;
+}
+
 function addModel(): void {
 	const player = skinViewer.addPlayer();
 	extraPlayers.push(player);
 	const anim = new skinview3d.IdleAnimation();
 	skinViewer.setAnimation(player, anim);
-	const index = extraPlayers.length - 1;
+	const playerNumber = extraPlayers.length + 1;
 	const container = document.getElementById("extra_player_controls");
 	if (container) {
-		const div = document.createElement("div");
-		div.className = "control-section";
-
-		const animLabel = document.createElement("label");
-		animLabel.textContent = `Player ${index + 1} animation: `;
-		const select = document.createElement("select");
-		for (const name of Object.keys(animationClasses)) {
-			const option = document.createElement("option");
-			option.value = name;
-			option.textContent = name;
-			select.appendChild(option);
-		}
-		select.value = "idle";
-		select.addEventListener("change", () => {
-			const cls = animationClasses[select.value as keyof typeof animationClasses];
-			const newAnim = new cls();
-			skinViewer.setAnimation(player, newAnim);
-		});
-		animLabel.appendChild(select);
-		div.appendChild(animLabel);
-
-		const uploadBtn = document.createElement("button");
-		uploadBtn.className = "control";
-		uploadBtn.textContent = "Load...";
-		div.appendChild(uploadBtn);
-
-		const menu = document.createElement("ul");
-		menu.classList.add("hidden");
-
-		const skinInput = document.createElement("input");
-		skinInput.type = "file";
-		skinInput.accept = "image/*";
-		skinInput.classList.add("hidden");
-		skinInput.addEventListener("change", () => {
-			const file = skinInput.files?.[0];
-			if (file) {
-				void skinViewer.loadSkin(file, {}, player);
-			}
-			menu.classList.add("hidden");
-		});
-
-		const capeInput = document.createElement("input");
-		capeInput.type = "file";
-		capeInput.accept = "image/*";
-		capeInput.classList.add("hidden");
-		capeInput.addEventListener("change", () => {
-			const file = capeInput.files?.[0];
-			if (file) {
-				void skinViewer.loadCape(file, {}, player);
-			}
-			menu.classList.add("hidden");
-		});
-
-		const earsInput = document.createElement("input");
-		earsInput.type = "file";
-		earsInput.accept = "image/*";
-		earsInput.classList.add("hidden");
-		earsInput.addEventListener("change", () => {
-			const file = earsInput.files?.[0];
-			if (file) {
-				void skinViewer.loadEars(file, { textureType: "standalone" }, player);
-			}
-			menu.classList.add("hidden");
-		});
-
-		const skinItem = document.createElement("li");
-		skinItem.textContent = "Skin";
-		skinItem.addEventListener("click", () => skinInput.click());
-		menu.appendChild(skinItem);
-
-		const capeItem = document.createElement("li");
-		capeItem.textContent = "Cape";
-		capeItem.addEventListener("click", () => capeInput.click());
-		menu.appendChild(capeItem);
-
-		const earsItem = document.createElement("li");
-		earsItem.textContent = "Ears";
-		earsItem.addEventListener("click", () => earsInput.click());
-		menu.appendChild(earsItem);
-
-		div.appendChild(menu);
-		div.appendChild(skinInput);
-		div.appendChild(capeInput);
-		div.appendChild(earsInput);
-
-		uploadBtn.addEventListener("click", () => {
-			menu.classList.toggle("hidden");
-		});
-
+		const div = createPlayerResourceMenu(player, playerNumber);
 		container.appendChild(div);
 		extraPlayerControls.push(div);
 	}
@@ -404,9 +390,9 @@ function removeModel(): void {
 		if (selectedPlayer === player) {
 			selectPlayer(null);
 		}
+		const control = extraPlayerControls.pop();
+		control?.remove();
 	}
-	const control = extraPlayerControls.pop();
-	control?.remove();
 	updateViewportSize();
 	skinViewer.updateLayout();
 }
@@ -1073,6 +1059,13 @@ function initializeViewer(): void {
 	});
 
 	selectPlayer(null);
+
+	const controlsContainer = document.getElementById("extra_player_controls");
+	if (controlsContainer) {
+		const control = createPlayerResourceMenu(skinViewer.playerObject, 1);
+		controlsContainer.appendChild(control);
+		extraPlayerControls.push(control);
+	}
 
 	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
 	canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
