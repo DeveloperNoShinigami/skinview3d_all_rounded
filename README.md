@@ -94,6 +94,10 @@ skinViewer.animation = null;
 </script>
 ```
 
+To control animations for additional `PlayerObject` instances added to the scene, use
+`setAnimation(player, animation)` and `getAnimation(player)` to assign or retrieve the
+animation for a specific player.
+
 ```js
 import { SkinViewer, BendAnimation } from "skinview3d";
 
