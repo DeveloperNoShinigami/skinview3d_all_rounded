@@ -119,7 +119,7 @@ function initializeAssetMenu(): void {
 	};
 
 	document.getElementById("menu_skin")?.addEventListener("click", () => {
-		createMenu("Load Skin", source => skinViewer.loadSkin(source));
+		createMenu("Load Skin", source => skinViewer.loadSkin(source, {}, selectedPlayer));
 	});
 
 	document.getElementById("menu_back")?.addEventListener("click", () => {
@@ -136,7 +136,7 @@ function initializeAssetMenu(): void {
 		const load = (source: string | File) => {
 			const equip = (subMenu.querySelector('input[name="back_type"]:checked') as HTMLInputElement)
 				?.value as BackEquipment;
-			return skinViewer.loadCape(source, { backEquipment: equip });
+			return skinViewer.loadCape(source, { backEquipment: equip }, selectedPlayer);
 		};
 		urlInput?.addEventListener("change", () => {
 			const url = urlInput.value.trim();
@@ -157,7 +157,7 @@ function initializeAssetMenu(): void {
 	});
 
 	document.getElementById("menu_ears")?.addEventListener("click", () => {
-		createMenu("Load Ears", source => skinViewer.loadEars(source));
+		createMenu("Load Ears", source => skinViewer.loadEars(source, {}, selectedPlayer));
 	});
 
 	document.getElementById("menu_animation")?.addEventListener("click", () => {
@@ -171,7 +171,7 @@ function initializeAssetMenu(): void {
 			}
 			const data = JSON.parse(text);
 			loadedAnimation = skinview3d.createKeyframeAnimation(data);
-			skinViewer.animation = loadedAnimation;
+			skinViewer.setAnimation(selectedPlayer, loadedAnimation);
 		});
 	});
 }
