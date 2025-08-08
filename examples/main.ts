@@ -52,7 +52,6 @@ const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; b
 let ikUpdateId: number | null = null;
 let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
-const extraAnimations: skinview3d.Animation[] = [];
 const extraPlayerControls: HTMLElement[] = [];
 let canvasWidth: HTMLInputElement | null = null;
 let canvasHeight: HTMLInputElement | null = null;
@@ -122,8 +121,7 @@ function addModel(): void {
 	const player = skinViewer.addPlayer();
 	extraPlayers.push(player);
 	const anim = new skinview3d.IdleAnimation();
-	extraAnimations.push(anim);
-	(player as any).animation = anim;
+	skinViewer.setAnimation(player, anim);
 	const index = extraPlayers.length - 1;
 	const container = document.getElementById("extra_player_controls");
 	if (container) {
@@ -143,8 +141,7 @@ function addModel(): void {
 		select.addEventListener("change", () => {
 			const cls = animationClasses[select.value as keyof typeof animationClasses];
 			const newAnim = new cls();
-			extraAnimations[index] = newAnim;
-			(player as any).animation = newAnim;
+			skinViewer.setAnimation(player, newAnim);
 		});
 		animLabel.appendChild(select);
 		div.appendChild(animLabel);
@@ -229,7 +226,6 @@ function removeModel(): void {
 	if (player) {
 		skinViewer.removePlayer(player);
 	}
-	extraAnimations.pop();
 	const control = extraPlayerControls.pop();
 	control?.remove();
 	updateViewportSize();
@@ -841,7 +837,6 @@ function initializeControls(): void {
 	const resetAll = document.getElementById("reset_all");
 	resetAll?.addEventListener("click", () => {
 		extraPlayers.length = 0;
-		extraAnimations.length = 0;
 		for (const ctrl of extraPlayerControls) {
 			ctrl.remove();
 		}
