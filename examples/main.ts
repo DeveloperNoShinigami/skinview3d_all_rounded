@@ -21,12 +21,8 @@ const skinParts = [
 	"leftLegKnee",
 	"rightArmWrist",
 	"leftArmWrist",
-	"rightLegAnkle",
-	"leftLegAnkle",
 	"rightHand",
 	"leftHand",
-	"rightFoot",
-	"leftFoot",
 ];
 const skinLayers = ["innerLayer", "outerLayer"];
 const animationClasses = {
@@ -72,12 +68,8 @@ function updateJointHighlight(enabled: boolean): void {
 			skinViewer.playerObject.skin.leftArmWrist,
 			skinViewer.playerObject.skin.rightLegKnee,
 			skinViewer.playerObject.skin.leftLegKnee,
-			skinViewer.playerObject.skin.rightLegAnkle,
-			skinViewer.playerObject.skin.leftLegAnkle,
 			skinViewer.playerObject.skin.rightHand,
 			skinViewer.playerObject.skin.leftHand,
-			skinViewer.playerObject.skin.rightFoot,
-			skinViewer.playerObject.skin.leftFoot,
 		];
 		for (const joint of joints) {
 			const helper = new BoxHelper(joint, 0xff0000);
@@ -464,51 +456,6 @@ function setupIK(): void {
 		ik: lIK,
 		bones: ["skin.leftArm", "skin.leftArmElbow", "skin.leftArmWrist", "skin.leftHand"],
 		root: lRoot,
-	};
-
-	const rightFootTarget = new Object3D();
-	const rightFootMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x0000ff }));
-	rightFootTarget.add(rightFootMesh);
-
-	rightFootTarget.position.copy(skin.rightFoot.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(rightFootTarget);
-	const rLegIK = new IK();
-	const rLegChain = new IKChain();
-	const rLegRoot = new IKJoint(skin.rightLeg);
-	rLegChain.add(rLegRoot); // keep hip static
-	rLegChain.add(new IKJoint(skin.rightLegKnee));
-	rLegChain.add(new IKJoint(skin.rightLegAnkle));
-	rLegChain.add(new IKJoint(skin.rightFoot), { target: rightFootTarget });
-	rLegChain.effectorIndex = rLegChain.joints.length - 1;
-	rLegIK.add(rLegChain);
-	ikChains["ik.rightLeg"] = {
-		target: rightFootTarget,
-
-		ik: rLegIK,
-		bones: ["skin.rightLeg", "skin.rightLegKnee", "skin.rightLegAnkle", "skin.rightFoot"],
-		root: rLegRoot,
-	};
-
-	const leftFootTarget = new Object3D();
-	const leftFootMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xffff00 }));
-	leftFootTarget.add(leftFootMesh);
-
-	leftFootTarget.position.copy(skin.leftFoot.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(leftFootTarget);
-	const lLegIK = new IK();
-	const lLegChain = new IKChain();
-	const lLegRoot = new IKJoint(skin.leftLeg);
-	lLegChain.add(lLegRoot); // keep hip static
-	lLegChain.add(new IKJoint(skin.leftLegKnee));
-	lLegChain.add(new IKJoint(skin.leftLegAnkle));
-	lLegChain.add(new IKJoint(skin.leftFoot), { target: leftFootTarget });
-	lLegChain.effectorIndex = lLegChain.joints.length - 1;
-	lLegIK.add(lLegChain);
-	ikChains["ik.leftLeg"] = {
-		target: leftFootTarget,
-		ik: lLegIK,
-		bones: ["skin.leftLeg", "skin.leftLegKnee", "skin.leftLegAnkle", "skin.leftFoot"],
-		root: lLegRoot,
 	};
 
 	if (ikUpdateId !== null) {
