@@ -352,6 +352,7 @@ export class SkinViewer {
 	autoFit: boolean = false;
 
 	private animations: Map<PlayerObject, PlayerAnimation>;
+	private _animation: PlayerAnimation | null = null;
 	private clock: Clock;
 
 	private animationID: number | null;
@@ -550,6 +551,19 @@ export class SkinViewer {
 		this.earsTextures.set(player, null);
 	}
 
+	private applySkinPlaceholder(player: PlayerObject): void {
+		const canvas = this.skinCanvases.get(player) as HTMLCanvasElement;
+		canvas.width = 64;
+		canvas.height = 64;
+		const ctx = canvas.getContext("2d");
+		if (ctx) {
+			ctx.fillStyle = "#c6c6c6";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+		}
+		this.recreateSkinTexture(player);
+		player.skin.visible = true;
+	}
+
 	private recreateSkinTexture(player: PlayerObject): void {
 		const old = this.skinTextures.get(player);
 		if (old !== null && old !== undefined) {
@@ -638,13 +652,7 @@ export class SkinViewer {
 	}
 
 	resetSkin(player: PlayerObject = this.playerObject): void {
-		player.skin.visible = false;
-		player.skin.map = null;
-		const texture = this.skinTextures.get(player);
-		if (texture !== null && texture !== undefined) {
-			texture.dispose();
-			this.skinTextures.set(player, null);
-		}
+		this.applySkinPlaceholder(player);
 	}
 
 	loadCape(empty: null, options?: CapeLoadOptions, player?: PlayerObject): void;
@@ -747,12 +755,12 @@ export class SkinViewer {
 
 	addPlayer(options: SkinLoadOptions = {}): PlayerObject {
 		const player = new PlayerObject();
-		player.skin.visible = false;
 		player.cape.visible = false;
 		if (options.model !== undefined && options.model !== "auto-detect") {
 			player.skin.modelType = options.model;
 		}
 		this.initPlayerData(player);
+		this.applySkinPlaceholder(player);
 		this.players.push(player);
 		this.playerWrapper.add(player);
 		return player;
@@ -766,6 +774,10 @@ export class SkinViewer {
 			this.resetSkin(player);
 			this.resetCape(player);
 			this.resetEars(player);
+			const skinTexture = this.skinTextures.get(player);
+			if (skinTexture) {
+				skinTexture.dispose();
+			}
 			this.skinCanvases.delete(player);
 			this.capeCanvases.delete(player);
 			this.earsCanvases.delete(player);
@@ -1011,6 +1023,9 @@ export class SkinViewer {
 			this.animations.set(player, animation);
 		} else {
 			this.animations.delete(player);
+		}
+		if (player === this.playerObject) {
+			this._animation = animation;
 		}
 	}
 

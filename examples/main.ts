@@ -55,7 +55,7 @@ let ikUpdateId: number | null = null;
 let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
 const extraAnimations: skinview3d.Animation[] = [];
-const extraAnimationSelectors: HTMLSelectElement[] = [];
+const extraPlayerControls: HTMLElement[] = [];
 let canvasWidth: HTMLInputElement | null = null;
 let canvasHeight: HTMLInputElement | null = null;
 
@@ -134,9 +134,10 @@ function addModel(): void {
 	const container = document.getElementById("extra_player_controls");
 	if (container) {
 		const div = document.createElement("div");
-		div.className = "control";
-		const label = document.createElement("label");
-		label.textContent = `Player ${index + 1} animation: `;
+		div.className = "control-section";
+
+		const animLabel = document.createElement("label");
+		animLabel.textContent = `Player ${index + 1} animation: `;
 		const select = document.createElement("select");
 		for (const name of Object.keys(animationClasses)) {
 			const option = document.createElement("option");
@@ -151,10 +152,61 @@ function addModel(): void {
 			extraAnimations[index] = newAnim;
 			(player as any).animation = newAnim;
 		});
-		label.appendChild(select);
-		div.appendChild(label);
+		animLabel.appendChild(select);
+		div.appendChild(animLabel);
+
+		const skinLabel = document.createElement("label");
+		skinLabel.textContent = " Skin: ";
+		const skinInput = document.createElement("input");
+		skinInput.type = "file";
+		skinInput.accept = "image/*";
+		skinInput.addEventListener("change", () => {
+			const file = skinInput.files?.[0];
+			if (file) {
+				void skinViewer.loadSkin(file, {}, player);
+			}
+		});
+		skinLabel.appendChild(skinInput);
+		div.appendChild(skinLabel);
+
+		const capeLabel = document.createElement("label");
+		capeLabel.textContent = " Cape: ";
+		const capeInput = document.createElement("input");
+		capeInput.type = "file";
+		capeInput.accept = "image/*";
+		capeInput.addEventListener("change", () => {
+			const file = capeInput.files?.[0];
+			if (file) {
+				void skinViewer.loadCape(file, {}, player);
+			}
+		});
+		capeLabel.appendChild(capeInput);
+		div.appendChild(capeLabel);
+
+		const earsLabel = document.createElement("label");
+		earsLabel.textContent = " Ears: ";
+		const earsType = document.createElement("select");
+		for (const type of ["standalone", "skin"]) {
+			const option = document.createElement("option");
+			option.value = type;
+			option.textContent = type;
+			earsType.appendChild(option);
+		}
+		const earsInput = document.createElement("input");
+		earsInput.type = "file";
+		earsInput.accept = "image/*";
+		earsInput.addEventListener("change", () => {
+			const file = earsInput.files?.[0];
+			if (file) {
+				void skinViewer.loadEars(file, { textureType: earsType.value as "standalone" | "skin" }, player);
+			}
+		});
+		earsLabel.appendChild(earsType);
+		earsLabel.appendChild(earsInput);
+		div.appendChild(earsLabel);
+
 		container.appendChild(div);
-		extraAnimationSelectors.push(select);
+		extraPlayerControls.push(div);
 	}
 	updateViewportSize();
 }
@@ -165,8 +217,8 @@ function removeModel(): void {
 		skinViewer.removePlayer(player);
 	}
 	extraAnimations.pop();
-	const select = extraAnimationSelectors.pop();
-	select?.parentElement?.remove();
+	const control = extraPlayerControls.pop();
+	control?.remove();
 	updateViewportSize();
 }
 
@@ -197,6 +249,7 @@ function reloadSkin(): void {
 	const input = document.getElementById("skin_url") as HTMLInputElement;
 	const url = obtainTextureUrl("skin_url");
 	if (url === "") {
+		// Revert to placeholder skin when URL is empty
 		skinViewer.loadSkin(null);
 		input?.setCustomValidity("");
 		if (editorEnabled) {
@@ -752,10 +805,10 @@ function initializeControls(): void {
 	resetAll?.addEventListener("click", () => {
 		extraPlayers.length = 0;
 		extraAnimations.length = 0;
-		for (const sel of extraAnimationSelectors) {
-			sel.parentElement?.remove();
+		for (const ctrl of extraPlayerControls) {
+			ctrl.remove();
 		}
-		extraAnimationSelectors.length = 0;
+		extraPlayerControls.length = 0;
 		skinViewer.dispose();
 		initializeViewer();
 		updateViewportSize();
