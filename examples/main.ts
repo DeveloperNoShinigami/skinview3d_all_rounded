@@ -91,24 +91,12 @@ function updateJointHelpers(): void {
 }
 updateJointHelpers();
 
-function createLockConstraint(): any {
-	// Zero min/max values fully lock rotation, keeping the root joint static.
-	return {
-		rotationMin: new Vector3(0, 0, 0),
-		rotationMax: new Vector3(0, 0, 0),
-		_apply(joint: IKJoint): boolean {
-			joint._direction.copy(joint._originalDirection);
-			return true;
-		},
-	};
-}
-
 function getBone(path: string): Object3D {
 	if (path === "playerObject") {
 		return skinViewer.playerObject;
 	}
 	if (path.startsWith("ik.")) {
-		return ikChains[path]?.effector ?? skinViewer.playerObject;
+		return ikChains[path]?.target ?? skinViewer.playerObject;
 	}
 	return path.split(".").reduce((obj: any, part) => obj?.[part], skinViewer.playerObject) ?? skinViewer.playerObject;
 }
@@ -299,7 +287,7 @@ function setupIK(): void {
 	skinViewer.scene.add(rightHandTarget);
 	const rIK = new IK();
 	const rChain = new IKChain();
-	const rRoot = new IKJoint(skin.rightArm, { constraints: [createLockConstraint()] });
+	const rRoot = new IKJoint(skin.rightArm);
 	rChain.add(rRoot); // keep shoulder static
 	rChain.add(new IKJoint(skin.rightArmElbow));
 	rChain.add(new IKJoint(skin.rightArmWrist));
@@ -321,7 +309,7 @@ function setupIK(): void {
 	skinViewer.scene.add(leftHandTarget);
 	const lIK = new IK();
 	const lChain = new IKChain();
-	const lRoot = new IKJoint(skin.leftArm, { constraints: [createLockConstraint()] });
+	const lRoot = new IKJoint(skin.leftArm);
 	lChain.add(lRoot); // keep shoulder static
 	lChain.add(new IKJoint(skin.leftArmElbow));
 	lChain.add(new IKJoint(skin.leftArmWrist));
@@ -344,7 +332,7 @@ function setupIK(): void {
 	skinViewer.scene.add(rightFootTarget);
 	const rLegIK = new IK();
 	const rLegChain = new IKChain();
-	const rLegRoot = new IKJoint(skin.rightLeg, { constraints: [createLockConstraint()] });
+	const rLegRoot = new IKJoint(skin.rightLeg);
 	rLegChain.add(rLegRoot); // keep hip static
 	rLegChain.add(new IKJoint(skin.rightLegKnee));
 	rLegChain.add(new IKJoint(skin.rightLegAnkle));
@@ -367,7 +355,7 @@ function setupIK(): void {
 	skinViewer.scene.add(leftFootTarget);
 	const lLegIK = new IK();
 	const lLegChain = new IKChain();
-	const lLegRoot = new IKJoint(skin.leftLeg, { constraints: [createLockConstraint()] });
+	const lLegRoot = new IKJoint(skin.leftLeg);
 	lLegChain.add(lLegRoot); // keep hip static
 	lLegChain.add(new IKJoint(skin.leftLegKnee));
 	lLegChain.add(new IKJoint(skin.leftLegAnkle));
