@@ -155,55 +155,73 @@ function addModel(): void {
 		animLabel.appendChild(select);
 		div.appendChild(animLabel);
 
-		const skinLabel = document.createElement("label");
-		skinLabel.textContent = " Skin: ";
+		const uploadBtn = document.createElement("button");
+		uploadBtn.className = "control";
+		uploadBtn.textContent = "Load...";
+		div.appendChild(uploadBtn);
+
+		const menu = document.createElement("ul");
+		menu.classList.add("hidden");
+
 		const skinInput = document.createElement("input");
 		skinInput.type = "file";
 		skinInput.accept = "image/*";
+		skinInput.classList.add("hidden");
 		skinInput.addEventListener("change", () => {
 			const file = skinInput.files?.[0];
 			if (file) {
 				void skinViewer.loadSkin(file, {}, player);
 			}
+			menu.classList.add("hidden");
 		});
-		skinLabel.appendChild(skinInput);
-		div.appendChild(skinLabel);
 
-		const capeLabel = document.createElement("label");
-		capeLabel.textContent = " Cape: ";
 		const capeInput = document.createElement("input");
 		capeInput.type = "file";
 		capeInput.accept = "image/*";
+		capeInput.classList.add("hidden");
 		capeInput.addEventListener("change", () => {
 			const file = capeInput.files?.[0];
 			if (file) {
 				void skinViewer.loadCape(file, {}, player);
 			}
+			menu.classList.add("hidden");
 		});
-		capeLabel.appendChild(capeInput);
-		div.appendChild(capeLabel);
 
-		const earsLabel = document.createElement("label");
-		earsLabel.textContent = " Ears: ";
-		const earsType = document.createElement("select");
-		for (const type of ["standalone", "skin"]) {
-			const option = document.createElement("option");
-			option.value = type;
-			option.textContent = type;
-			earsType.appendChild(option);
-		}
 		const earsInput = document.createElement("input");
 		earsInput.type = "file";
 		earsInput.accept = "image/*";
+		earsInput.classList.add("hidden");
 		earsInput.addEventListener("change", () => {
 			const file = earsInput.files?.[0];
 			if (file) {
-				void skinViewer.loadEars(file, { textureType: earsType.value as "standalone" | "skin" }, player);
+				void skinViewer.loadEars(file, { textureType: "standalone" }, player);
 			}
+			menu.classList.add("hidden");
 		});
-		earsLabel.appendChild(earsType);
-		earsLabel.appendChild(earsInput);
-		div.appendChild(earsLabel);
+
+		const skinItem = document.createElement("li");
+		skinItem.textContent = "Skin";
+		skinItem.addEventListener("click", () => skinInput.click());
+		menu.appendChild(skinItem);
+
+		const capeItem = document.createElement("li");
+		capeItem.textContent = "Cape";
+		capeItem.addEventListener("click", () => capeInput.click());
+		menu.appendChild(capeItem);
+
+		const earsItem = document.createElement("li");
+		earsItem.textContent = "Ears";
+		earsItem.addEventListener("click", () => earsInput.click());
+		menu.appendChild(earsItem);
+
+		div.appendChild(menu);
+		div.appendChild(skinInput);
+		div.appendChild(capeInput);
+		div.appendChild(earsInput);
+
+		uploadBtn.addEventListener("click", () => {
+			menu.classList.toggle("hidden");
+		});
 
 		container.appendChild(div);
 		extraPlayerControls.push(div);
