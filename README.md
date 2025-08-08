@@ -26,6 +26,8 @@ Three.js powered Minecraft skin viewer.
 The demo includes a **Reset All** button that returns the camera to its default
 pose and resets orbit controls after you rotate or zoom the view.
 
+Use the **Player** selector to choose which model receives loaded skins, capes, and animations when multiple players are displayed.
+
 Each texture option (`skin`, `cape`, `ears`, `background`, `panorama`, etc.)
 accepts a URL string, an existing `HTMLImageElement`/`HTMLCanvasElement`, or a
 user-uploaded `File`/`Blob` object.
