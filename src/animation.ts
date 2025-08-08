@@ -509,18 +509,15 @@ export class BendAnimation extends PlayerAnimation {
 		player.skin.rightElbowPivot.rotation.x = elbow;
 		player.skin.rightLowerArm.rotation.x = lower;
 
-		// Bend legs across hip, knee and ankle bones
+		// Bend legs across hip and knee bones
 		const legUpper = 5;
 		const legLower = 5;
 		const legHipRatio = legLower / (legUpper + legLower);
 		const legKneeRatio = legUpper / (legUpper + legLower);
 		player.skin.leftLeg.rotation.x = -leg * legHipRatio;
 		player.skin.rightLeg.rotation.x = -leg * legHipRatio;
-		const knee = -leg * legKneeRatio * 0.6;
-		const ankle = -leg * legKneeRatio * 0.4;
+		const knee = -leg * legKneeRatio;
 		player.skin.leftLegKnee.rotation.x = knee;
-		player.skin.leftLegAnkle.rotation.x = ankle;
 		player.skin.rightLegKnee.rotation.x = knee;
-		player.skin.rightLegAnkle.rotation.x = ankle;
 	}
 }
