@@ -35,6 +35,11 @@ Welcome to the SkinView3D project. These guidelines help contributors build the 
 - Communicate design decisions and trade-offs in pull request descriptions.
 - Respond to review feedback promptly and respectfully.
 
+## Stability & Rollback Guidelines
+- Use `git reset --hard <hash>` to revert to a known-good commit when necessary.
+- Keep work on separate branches and open pull requests so CI verifies changes before merging.
+- Tag stable releases to mark rollback points and aid consumers.
+
 Following these practices will keep the project healthy, extensible, and bug-free. Happy hacking!
 
 ## Development Insights
