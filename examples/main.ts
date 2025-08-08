@@ -404,6 +404,12 @@ function addModel(): void {
 		container.appendChild(div);
 		extraPlayerControls.push(div);
 	}
+	if (playerSelector) {
+		const opt = document.createElement("option");
+		opt.value = String(extraPlayers.length);
+		opt.textContent = `Player ${playerNumber}`;
+		playerSelector.appendChild(opt);
+	}
 	updateViewportSize();
 	skinViewer.updateLayout();
 }
@@ -421,6 +427,12 @@ function removeModel(): void {
 		}
 		const control = extraPlayerControls.pop();
 		control?.remove();
+		if (playerSelector) {
+			playerSelector.remove(playerSelector.options.length - 1);
+			if (Number(playerSelector.value) > extraPlayers.length) {
+				playerSelector.value = String(extraPlayers.length);
+			}
+		}
 	}
 	updateViewportSize();
 	skinViewer.updateLayout();
