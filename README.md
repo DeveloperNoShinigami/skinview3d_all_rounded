@@ -157,15 +157,15 @@ const anim = new KeyframeAnimation({
     {
       time: 0,
       bones: {
-        "skin.leftArm": [0, 0, 0],
-        "skin.rightArm": [0, 0, 0],
+        "skin.leftUpperArm": [0, 0, 0],
+        "skin.rightUpperArm": [0, 0, 0],
       },
     },
     {
       time: 1,
       bones: {
-        "skin.leftArm": [Math.PI / 2, 0, 0],
-        "skin.rightArm": [-Math.PI / 2, 0, 0],
+        "skin.leftUpperArm": [Math.PI / 2, 0, 0],
+        "skin.rightUpperArm": [-Math.PI / 2, 0, 0],
       },
     },
   ],
@@ -187,7 +187,7 @@ interface KeyframeData {
 }
 ```
 
-Bone names are dotted paths relative to the `PlayerObject`, such as `"skin.leftArm"` or `"cape"`.
+Bone names are dotted paths relative to the `PlayerObject`, such as `"skin.leftUpperArm"` or `"cape"`.
 
 ```html
 <!-- Upload a new skin (the same approach works for capes, armor, items, panoramas, etc.) -->
