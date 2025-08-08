@@ -26,11 +26,35 @@ input[type="text"] {
 }
 
 .control {
-	display: inline;
+	display: flex;
+	flex-direction: column;
 }
 
 .control + .control {
-	margin-left: 10px;
+	margin-left: 0;
+	margin-top: 10px;
+}
+
+.dropdown {
+	position: relative;
+	display: block;
+}
+
+.dropdown-menu {
+	display: none;
+	position: absolute;
+	left: 0;
+	top: 100%;
+	margin-top: 4px;
+	padding: 4px 0;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	z-index: 1000;
+}
+
+.dropdown.open .dropdown-menu {
+	display: block;
 }
 
 .control-section {
@@ -94,6 +118,13 @@ label {
 
 .hidden {
 	display: none;
+}
+
+#extra_player_controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	max-width: 100%;
 }
 
 #skin_container {
