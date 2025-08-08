@@ -18,6 +18,7 @@ This document captures recent changes and lessons learned around viewport resett
 
 - Dropdown for choosing which player to control or texture.
 - **Pitfall:** Removing a player without clearing its animation causes animations to leak onto new players.
+- **Fix:** `removeModel()` clears animations and textures and removes the player's option from the selector to prevent leaks.
 - **Unresolved Issue:** Rapidly switching selections may duplicate meshes.
   - **Steps to Reproduce:**
     1. Open the multi-player example.
