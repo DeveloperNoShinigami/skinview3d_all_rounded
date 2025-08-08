@@ -1141,7 +1141,8 @@ function initializeViewer(): void {
 
 initializeViewer();
 initializeControls();
-initializeBoneSelector();
+setupIK();
+initializeBoneSelector(true);
 document.getElementById("skin_container")?.addEventListener("click", handlePlayerClick);
 
 function initializeBoneSelector(useIK = false): void {
