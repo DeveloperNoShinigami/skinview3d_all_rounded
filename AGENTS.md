@@ -44,3 +44,7 @@ Following these practices will keep the project healthy, extensible, and bug-fre
 - CCDIKSolver integration relies on existing body part groups as bones. Ensure IK targets are included in the bone selector and keyframes capture all bones in a chain.
 - Arm and leg IK chains must be maintained and exposed in the bone selector to avoid regressions.
 - The timeline viewer displays keyframes per bone row. Avoid reverting to a single-row timeline.
+- Viewport reset must be followed by `updateLayout()` to avoid off-center players.
+- Clearing animations when removing players prevents leaks in the player selection dropdown.
+- The resource menu should debounce file inputs; switching textures mid-load can blank the viewer.
+- See `viewport-player-resource-notes.md` for unresolved issues and reproduction steps.

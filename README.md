@@ -268,5 +268,9 @@ To load this font, please add the `@font-face` rule to your CSS:
 }
 ```
 
+# Development Notes
+
+See [viewport-player-resource-notes.md](viewport-player-resource-notes.md) for notes on viewport reset, player selection, and the resource menu, including current pitfalls and unresolved issues.
+
 # Build
 `npm run build`
