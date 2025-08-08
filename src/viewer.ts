@@ -335,6 +335,24 @@ export class SkinViewer {
 	 */
 	autoRotateSpeed: number = 1.0;
 
+	/**
+	 * Whether to automatically position players and adjust the camera so all players are visible.
+	 *
+	 * @defaultValue `true`
+	 */
+	private _autoFit: boolean = true;
+
+	get autoFit(): boolean {
+		return this._autoFit;
+	}
+
+	set autoFit(value: boolean) {
+		if (this._autoFit !== value) {
+			this._autoFit = value;
+			this.updateLayout();
+		}
+	}
+
 	private animations: Map<PlayerObject, PlayerAnimation>;
 	private _animation: PlayerAnimation | null = null;
 	private clock: Clock;
@@ -737,6 +755,9 @@ export class SkinViewer {
 		this.applySkinPlaceholder(player);
 		this.players.push(player);
 		this.playerWrapper.add(player);
+		if (this.autoFit) {
+			this.updateLayout();
+		}
 		return player;
 	}
 
@@ -758,6 +779,27 @@ export class SkinViewer {
 			this.skinTextures.delete(player);
 			this.capeTextures.delete(player);
 			this.earsTextures.delete(player);
+		}
+		if (this.autoFit) {
+			this.updateLayout();
+		}
+	}
+
+	/**
+	 * Positions players evenly and adjusts the camera distance.
+	 * Calling this method is necessary after adding or removing players when {@link autoFit} is disabled.
+	 */
+	updateLayout(): void {
+		this.layoutPlayers();
+		this.adjustCameraDistance();
+	}
+
+	private layoutPlayers(): void {
+		const count = this.players.length;
+		const spacing = 20;
+		const offset = ((count - 1) * spacing) / 2;
+		for (let i = 0; i < count; i++) {
+			this.players[i].position.x = i * spacing - offset;
 		}
 	}
 

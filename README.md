@@ -119,6 +119,11 @@ skinViewer.animation = new BendAnimation();
 You can add more player models to the scene with `addPlayer()`. Pass the returned
 `PlayerObject` to texture-loading methods to control each player independently.
 
+When `autoFit` is enabled (default), the viewer repositions players and adjusts
+the camera after `addPlayer()` or `removePlayer()`. If you disable `autoFit`,
+call `updateLayout()` whenever players are added or removed to keep them
+centered.
+
 ```ts
 import { SkinViewer } from "skinview3d";
 
@@ -131,6 +136,13 @@ viewer.loadSkin("img/first.png");
 viewer.loadSkin("img/second.png", {}, second);
 viewer.loadCape("img/cape.png", {}, second);
 viewer.loadEars("img/ears.png", { textureType: "standalone" }, second);
+```
+
+```ts
+// Disable automatic layout and trigger it manually when needed
+viewer.autoFit = false;
+// ... add or remove players ...
+viewer.updateLayout();
 ```
 
 ### Keyframe animations
