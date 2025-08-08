@@ -316,7 +316,7 @@ export class SkinViewer {
 	 */
 	autoRotateSpeed: number = 1.0;
 
-	private _animation: PlayerAnimation | null;
+	private animations: Map<PlayerObject, PlayerAnimation>;
 	private clock: Clock;
 
 	private animationID: number | null;
@@ -434,8 +434,12 @@ export class SkinViewer {
 		this._zoom = options.zoom === undefined ? 0.9 : options.zoom;
 		this.fov = options.fov === undefined ? 50 : options.fov;
 
-		this._animation = options.animation === undefined ? null : options.animation;
+		this.animations = new Map();
 		this.clock = new Clock();
+		if (options.animation !== undefined && options.animation !== null) {
+			options.animation.progress = 0;
+			this.animations.set(this.playerObject, options.animation);
+		}
 
 		if (options.renderPaused === true) {
 			this._renderPaused = true;
@@ -695,8 +699,8 @@ export class SkinViewer {
 
 	private draw(): void {
 		const dt = this.clock.getDelta();
-		if (this._animation !== null) {
-			this._animation.update(this.playerObject, dt);
+		for (const [player, animation] of this.animations) {
+			animation.update(player, dt);
 		}
 		if (this.autoRotate) {
 			if (!(this.controls.enableRotate && this.isUserRotating)) {
@@ -871,40 +875,61 @@ export class SkinViewer {
 	}
 
 	/**
-	 * The animation that is current playing, or `null` if no animation is playing.
-	 *
-	 * Setting this property to a different value will change the current animation.
-	 * The player's pose and the progress of the new animation will be reset before playing.
-	 *
-	 * Setting this property to `null` will stop the current animation and reset the player's pose.
+	 * Returns the animation currently assigned to the given player, or `null` if none is playing.
 	 */
-	get animation(): PlayerAnimation | null {
-		return this._animation;
+	getAnimation(player: PlayerObject): PlayerAnimation | null {
+		return this.animations.get(player) ?? null;
 	}
 
-	set animation(animation: PlayerAnimation | null) {
-		if (this._animation !== animation) {
-			this.playerObject.resetJoints();
-			this.playerObject.position.set(0, 0, 0);
-			this.playerObject.rotation.set(0, 0, 0);
+	/**
+	 * Assigns an animation to the given player.
+	 *
+	 * Setting a different animation will reset the player's pose and the progress of the new animation before playing.
+	 * Passing `null` will stop the current animation and reset the player's pose.
+	 */
+	setAnimation(player: PlayerObject, animation: PlayerAnimation | null): void {
+		const current = this.animations.get(player) ?? null;
+		if (current !== animation) {
+			player.resetJoints();
+			player.position.set(0, 0, 0);
+			player.rotation.set(0, 0, 0);
 			this.clock.stop();
 			this.clock.autoStart = true;
 		}
 		if (animation !== null) {
 			animation.progress = 0;
+			this.animations.set(player, animation);
+		} else {
+			this.animations.delete(player);
 		}
-		this._animation = animation;
 	}
 
 	/**
-	 * Instantiates the given animation class and assigns it as the current animation.
+	 * The animation that is current playing on the primary player, or `null` if no animation is playing.
+	 *
+	 * Setting this property to a different value will change the current animation for the primary player.
+	 * The player's pose and the progress of the new animation will be reset before playing.
+	 *
+	 * Setting this property to `null` will stop the current animation and reset the player's pose.
+	 */
+	get animation(): PlayerAnimation | null {
+		return this.getAnimation(this.playerObject);
+	}
+
+	set animation(animation: PlayerAnimation | null) {
+		this.setAnimation(this.playerObject, animation);
+	}
+
+	/**
+	 * Instantiates the given animation class and assigns it to a player.
 	 *
 	 * @param cls - The animation class to instantiate.
+	 * @param player - The player to assign the created animation to. Defaults to the primary player.
 	 * @returns The created animation instance.
 	 */
-	loadAnimationClass(cls: typeof PlayerAnimation): PlayerAnimation {
+	loadAnimationClass(cls: typeof PlayerAnimation, player: PlayerObject = this.playerObject): PlayerAnimation {
 		const animation = new (cls as new () => PlayerAnimation)();
-		this.animation = animation;
+		this.setAnimation(player, animation);
 		return animation;
 	}
 
