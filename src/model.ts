@@ -9,6 +9,7 @@ import {
 	MeshStandardMaterial,
 	Object3D,
 	Texture,
+	PlaneGeometry,
 	Vector2,
 } from "three";
 
@@ -112,6 +113,7 @@ export class SkinObject extends Group {
 	private slim = false;
 
 	private _map: Texture | null = null;
+	private _outerMap: Texture | null = null;
 	private layer1Material: MeshStandardMaterial;
 	private layer1MaterialBiased: MeshStandardMaterial;
 	private layer2Material: MeshStandardMaterial;
@@ -378,10 +380,25 @@ export class SkinObject extends Group {
 		this.layer1MaterialBiased.map = newMap;
 		this.layer1MaterialBiased.needsUpdate = true;
 
-		this.layer2Material.map = newMap;
-		this.layer2Material.needsUpdate = true;
+		if (this._outerMap === null) {
+			this.layer2Material.map = newMap;
+			this.layer2Material.needsUpdate = true;
 
-		this.layer2MaterialBiased.map = newMap;
+			this.layer2MaterialBiased.map = newMap;
+			this.layer2MaterialBiased.needsUpdate = true;
+		}
+	}
+
+	get outerLayerMap(): Texture | null {
+		return this._outerMap;
+	}
+
+	set outerLayerMap(newMap: Texture | null) {
+		this._outerMap = newMap;
+		const map = newMap === null ? this._map : newMap;
+		this.layer2Material.map = map;
+		this.layer2Material.needsUpdate = true;
+		this.layer2MaterialBiased.map = map;
 		this.layer2MaterialBiased.needsUpdate = true;
 	}
 
@@ -591,6 +608,37 @@ export class EarsObject extends Group {
 	}
 }
 
+export class ItemObject extends Group {
+	private material: MeshStandardMaterial;
+	readonly mesh: Mesh;
+
+	constructor() {
+		super();
+
+		this.material = new MeshStandardMaterial({
+			side: DoubleSide,
+			transparent: true,
+			alphaTest: 1e-5,
+		});
+
+		const plane = new PlaneGeometry(8, 8);
+		this.mesh = new Mesh(plane, this.material);
+		// Position the plane so it appears near the hand
+		this.mesh.position.y = -8;
+		this.mesh.rotation.y = Math.PI;
+		this.add(this.mesh);
+	}
+
+	get map(): Texture | null {
+		return this.material.map;
+	}
+
+	set map(newMap: Texture | null) {
+		this.material.map = newMap;
+		this.material.needsUpdate = true;
+	}
+}
+
 export type BackEquipment = "cape" | "elytra";
 
 const CapeDefaultAngle = (10.8 * Math.PI) / 180;
@@ -600,6 +648,7 @@ export class PlayerObject extends Group {
 	readonly cape: CapeObject;
 	readonly elytra: ElytraObject;
 	readonly ears: EarsObject;
+	readonly item: ItemObject;
 
 	constructor() {
 		super();
@@ -630,6 +679,11 @@ export class PlayerObject extends Group {
 		this.ears.position.z = 2 / 3;
 		this.ears.visible = false;
 		this.skin.head.add(this.ears);
+
+		this.item = new ItemObject();
+		this.item.name = "item";
+		this.item.visible = false;
+		this.skin.rightArm.add(this.item);
 	}
 
 	get backEquipment(): BackEquipment | null {

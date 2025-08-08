@@ -16,6 +16,8 @@ Three.js powered Minecraft skin viewer.
 * Elytras
 * Slim Arms
   * Automatic model detection (Slim / Default)
+* Armor
+* Hand-held items
 * FXAA (fast approximate anti-aliasing)
 
 # Usage
@@ -31,11 +33,13 @@ user-uploaded `File`/`Blob` object.
 <canvas id="skin_container"></canvas>
 <script>
 	let skinViewer = new skinview3d.SkinViewer({
-		canvas: document.getElementById("skin_container"),
-		width: 300,
-		height: 400,
-		skin: "img/skin.png"
-	});
+                canvas: document.getElementById("skin_container"),
+                width: 300,
+                height: 400,
+                skin: "img/skin.png",
+                armor: "img/armor.png",
+                item: "img/item.png"
+        });
 
 	// Change viewer size
 	skinViewer.width = 600;
@@ -44,8 +48,14 @@ user-uploaded `File`/`Blob` object.
 	// Load another skin
 	skinViewer.loadSkin("img/skin2.png");
 
-	// Load a cape
-	skinViewer.loadCape("img/cape.png");
+        // Load a cape
+        skinViewer.loadCape("img/cape.png");
+
+        // Load armor
+        skinViewer.loadArmor("img/armor.png");
+
+        // Load an item from a URL
+        skinViewer.loadItem("https://example.com/item.png");
 
 	// Load an elytra (from a cape texture)
 	skinViewer.loadCape("img/cape.png", { backEquipment: "elytra" });

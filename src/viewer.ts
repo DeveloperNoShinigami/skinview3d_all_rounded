@@ -170,6 +170,20 @@ export interface SkinViewerOptions {
 		  };
 
 	/**
+	 * The armor texture of the player.
+	 *
+	 * @defaultValue If unspecified, the skin's outer layer will be used.
+	 */
+	armor?: RemoteImage | TextureSource;
+
+	/**
+	 * The item texture to display in the player's right hand.
+	 *
+	 * @defaultValue If unspecified, no item will be displayed.
+	 */
+	item?: RemoteImage | TextureSource;
+
+	/**
 	 * Whether to preserve the buffers until manually cleared or overwritten.
 	 *
 	 * @defaultValue `false`
@@ -291,9 +305,13 @@ export class SkinViewer {
 	readonly skinCanvas: HTMLCanvasElement;
 	readonly capeCanvas: HTMLCanvasElement;
 	readonly earsCanvas: HTMLCanvasElement;
+	readonly armorCanvas: HTMLCanvasElement;
+	readonly itemCanvas: HTMLCanvasElement;
 	private skinTexture: Texture | null = null;
 	private capeTexture: Texture | null = null;
 	private earsTexture: Texture | null = null;
+	private armorTexture: Texture | null = null;
+	private itemTexture: Texture | null = null;
 	private backgroundTexture: Texture | null = null;
 
 	private _disposed: boolean = false;
@@ -335,6 +353,8 @@ export class SkinViewer {
 		this.skinCanvas = document.createElement("canvas");
 		this.capeCanvas = document.createElement("canvas");
 		this.earsCanvas = document.createElement("canvas");
+		this.armorCanvas = document.createElement("canvas");
+		this.itemCanvas = document.createElement("canvas");
 
 		this.scene = new Scene();
 		this.camera = new PerspectiveCamera();
@@ -414,6 +434,12 @@ export class SkinViewer {
 			this.loadEars(options.ears.source, {
 				textureType: options.ears.textureType,
 			});
+		}
+		if (options.armor !== undefined) {
+			this.loadArmor(options.armor);
+		}
+		if (options.item !== undefined) {
+			this.loadItem(options.item);
 		}
 		if (options.width !== undefined) {
 			this.width = options.width;
@@ -532,6 +558,26 @@ export class SkinViewer {
 		this.earsTexture.magFilter = NearestFilter;
 		this.earsTexture.minFilter = NearestFilter;
 		this.playerObject.ears.map = this.earsTexture;
+	}
+
+	private recreateArmorTexture(): void {
+		if (this.armorTexture !== null) {
+			this.armorTexture.dispose();
+		}
+		this.armorTexture = new CanvasTexture(this.armorCanvas);
+		this.armorTexture.magFilter = NearestFilter;
+		this.armorTexture.minFilter = NearestFilter;
+		this.playerObject.skin.outerLayerMap = this.armorTexture;
+	}
+
+	private recreateItemTexture(): void {
+		if (this.itemTexture !== null) {
+			this.itemTexture.dispose();
+		}
+		this.itemTexture = new CanvasTexture(this.itemCanvas);
+		this.itemTexture.magFilter = NearestFilter;
+		this.itemTexture.minFilter = NearestFilter;
+		this.playerObject.item.map = this.itemTexture;
 	}
 
 	loadSkin(empty: null): void;
@@ -664,6 +710,73 @@ export class SkinViewer {
 		if (this.earsTexture !== null) {
 			this.earsTexture.dispose();
 			this.earsTexture = null;
+		}
+	}
+
+	loadArmor(empty: null): void;
+	loadArmor<S extends TextureSource | RemoteImage>(
+		source: S,
+		options?: LoadOptions
+	): S extends TextureSource ? void : Promise<void>;
+
+	loadArmor(source: TextureSource | RemoteImage | null, options: LoadOptions = {}): void | Promise<void> {
+		if (source === null) {
+			this.resetArmor();
+		} else if (isTextureSource(source)) {
+			loadSkinToCanvas(this.armorCanvas, source);
+			this.recreateArmorTexture();
+
+			this.playerObject.skin.setOuterLayerVisible(options.makeVisible !== false);
+		} else {
+			return loadImage(source).then(image => this.loadArmor(image, options));
+		}
+	}
+
+	resetArmor(): void {
+		this.playerObject.skin.setOuterLayerVisible(false);
+		this.playerObject.skin.outerLayerMap = null;
+		if (this.armorTexture !== null) {
+			this.armorTexture.dispose();
+			this.armorTexture = null;
+		}
+	}
+
+	loadItem(empty: null): void;
+	loadItem<S extends TextureSource | RemoteImage>(
+		source: S,
+		options?: LoadOptions
+	): S extends TextureSource ? void : Promise<void>;
+
+	loadItem(source: TextureSource | RemoteImage | null, options: LoadOptions = {}): void | Promise<void> {
+		if (source === null) {
+			this.resetItem();
+		} else if (isTextureSource(source)) {
+			const ctx = this.itemCanvas.getContext("2d");
+			if (ctx === null) {
+				throw new Error("Failed to get 2D context");
+			}
+			const width = (source as any).width ?? 16;
+			const height = (source as any).height ?? 16;
+			this.itemCanvas.width = width;
+			this.itemCanvas.height = height;
+			ctx.clearRect(0, 0, width, height);
+			ctx.drawImage(source as CanvasImageSource, 0, 0, width, height);
+			this.recreateItemTexture();
+
+			if (options.makeVisible !== false) {
+				this.playerObject.item.visible = true;
+			}
+		} else {
+			return loadImage(source).then(image => this.loadItem(image, options));
+		}
+	}
+
+	resetItem(): void {
+		this.playerObject.item.visible = false;
+		this.playerObject.item.map = null;
+		if (this.itemTexture !== null) {
+			this.itemTexture.dispose();
+			this.itemTexture = null;
 		}
 	}
 
