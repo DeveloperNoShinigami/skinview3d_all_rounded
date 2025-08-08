@@ -400,9 +400,17 @@ function addModel(): void {
 function removeModel(): void {
 	const player = extraPlayers.pop();
 	if (player) {
+		skinViewer.setAnimation(player, null);
+		void skinViewer.loadSkin(null, {}, player);
+		void skinViewer.loadCape(null, {}, player);
+		void skinViewer.loadEars(null, {}, player);
 		skinViewer.removePlayer(player);
 		if (selectedPlayer === player) {
 			selectPlayer(null);
+		}
+		const selector = document.getElementById("player_selector") as HTMLSelectElement | null;
+		if (selector && selector.options.length > 0) {
+			selector.remove(selector.options.length - 1);
 		}
 	}
 	const control = extraPlayerControls.pop();
