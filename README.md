@@ -116,11 +116,33 @@ skinViewer.animation = new BendAnimation();
 
 Enable `autoFit` to automatically spread multiple players and adjust the camera:
 
-```js
-const viewer = new SkinViewer({ autoFit: true });
-viewer.loadSkin("img/skin1.png");
-const extra = viewer.addPlayer();
-viewer.loadSkin("img/skin2.png", {}, extra);
+You can add more player models to the scene with `addPlayer()`. Pass the returned
+`PlayerObject` to texture-loading methods to control each player independently.
+
+When `autoFit` is enabled (default), the viewer repositions players and adjusts
+the camera after `addPlayer()` or `removePlayer()`. If you disable `autoFit`,
+call `updateLayout()` whenever players are added or removed to keep them
+centered.
+
+```ts
+import { SkinViewer } from "skinview3d";
+
+const viewer = new SkinViewer({
+  canvas: document.getElementById("skin_container"),
+});
+
+const second = viewer.addPlayer();
+viewer.loadSkin("img/first.png");
+viewer.loadSkin("img/second.png", {}, second);
+viewer.loadCape("img/cape.png", {}, second);
+viewer.loadEars("img/ears.png", { textureType: "standalone" }, second);
+```
+
+```ts
+// Disable automatic layout and trigger it manually when needed
+viewer.autoFit = false;
+// ... add or remove players ...
+viewer.updateLayout();
 ```
 
 ### Keyframe animations

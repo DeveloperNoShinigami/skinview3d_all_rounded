@@ -209,6 +209,7 @@ function addModel(): void {
 		extraPlayerControls.push(div);
 	}
 	updateViewportSize();
+	skinViewer.updateLayout();
 }
 
 function removeModel(): void {
@@ -220,6 +221,7 @@ function removeModel(): void {
 	const control = extraPlayerControls.pop();
 	control?.remove();
 	updateViewportSize();
+	skinViewer.updateLayout();
 }
 
 function obtainTextureUrl(id: string): string {
@@ -860,6 +862,7 @@ function initializeViewer(): void {
 	const controlZoom = document.getElementById("control_zoom") as HTMLInputElement;
 	const controlPan = document.getElementById("control_pan") as HTMLInputElement;
 	const animationSpeed = document.getElementById("animation_speed") as HTMLInputElement;
+	const autoFit = document.getElementById("auto_fit") as HTMLInputElement;
 
 	skinViewer.width = Number(canvasWidth?.value);
 	skinViewer.height = Number(canvasHeight?.value);
@@ -869,6 +872,7 @@ function initializeViewer(): void {
 	skinViewer.cameraLight.intensity = Number(cameraLight?.value);
 	skinViewer.autoRotate = autoRotate?.checked ?? false;
 	skinViewer.autoRotateSpeed = Number(autoRotateSpeed?.value);
+	skinViewer.autoFit = autoFit?.checked ?? true;
 
 	const animationRadio = document.querySelector<HTMLInputElement>('input[type="radio"][name="animation"]:checked');
 	const animationName = animationRadio?.value;
@@ -883,6 +887,10 @@ function initializeViewer(): void {
 	skinViewer.controls.enableRotate = controlRotate?.checked ?? false;
 	skinViewer.controls.enableZoom = controlZoom?.checked ?? false;
 	skinViewer.controls.enablePan = controlPan?.checked ?? false;
+
+	autoFit?.addEventListener("change", () => {
+		skinViewer.autoFit = autoFit.checked;
+	});
 
 	for (const part of skinParts) {
 		const skinPart = (skinViewer.playerObject.skin as any)[part];
