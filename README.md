@@ -114,23 +114,13 @@ canvas: document.getElementById("skin_container"),
 skinViewer.animation = new BendAnimation();
 ```
 
-### Multiple players
+Enable `autoFit` to automatically spread multiple players and adjust the camera:
 
-You can add more player models to the scene with `addPlayer()`. Pass the returned
-`PlayerObject` to texture-loading methods to control each player independently.
-
-```ts
-import { SkinViewer } from "skinview3d";
-
-const viewer = new SkinViewer({
-  canvas: document.getElementById("skin_container"),
-});
-
-const second = viewer.addPlayer();
-viewer.loadSkin("img/first.png");
-viewer.loadSkin("img/second.png", {}, second);
-viewer.loadCape("img/cape.png", {}, second);
-viewer.loadEars("img/ears.png", { textureType: "standalone" }, second);
+```js
+const viewer = new SkinViewer({ autoFit: true });
+viewer.loadSkin("img/skin1.png");
+const extra = viewer.addPlayer();
+viewer.loadSkin("img/skin2.png", {}, extra);
 ```
 
 ### Keyframe animations
