@@ -271,9 +271,16 @@ export class SkinViewer {
 	readonly controls: OrbitControls;
 
 	/**
-	 * The player object.
+	 * All player objects in the scene. The first entry is used for backward compatibility.
 	 */
-	readonly playerObject: PlayerObject;
+	readonly players: PlayerObject[];
+
+	/**
+	 * The default player object for backward compatibility.
+	 */
+	get playerObject(): PlayerObject {
+		return this.players[0];
+	}
 
 	/**
 	 * A group that wraps the player object.
@@ -288,13 +295,25 @@ export class SkinViewer {
 	readonly renderPass: RenderPass;
 	readonly fxaaPass: ShaderPass;
 
-	readonly skinCanvas: HTMLCanvasElement;
-	readonly capeCanvas: HTMLCanvasElement;
-	readonly earsCanvas: HTMLCanvasElement;
-	private skinTexture: Texture | null = null;
-	private capeTexture: Texture | null = null;
-	private earsTexture: Texture | null = null;
+	private skinCanvases: Map<PlayerObject, HTMLCanvasElement> = new Map();
+	private capeCanvases: Map<PlayerObject, HTMLCanvasElement> = new Map();
+	private earsCanvases: Map<PlayerObject, HTMLCanvasElement> = new Map();
+	private skinTextures: Map<PlayerObject, Texture | null> = new Map();
+	private capeTextures: Map<PlayerObject, Texture | null> = new Map();
+	private earsTextures: Map<PlayerObject, Texture | null> = new Map();
 	private backgroundTexture: Texture | null = null;
+
+	get skinCanvas(): HTMLCanvasElement {
+		return this.skinCanvases.get(this.playerObject) as HTMLCanvasElement;
+	}
+
+	get capeCanvas(): HTMLCanvasElement {
+		return this.capeCanvases.get(this.playerObject) as HTMLCanvasElement;
+	}
+
+	get earsCanvas(): HTMLCanvasElement {
+		return this.earsCanvases.get(this.playerObject) as HTMLCanvasElement;
+	}
 
 	private _disposed: boolean = false;
 	private _renderPaused: boolean = false;
@@ -331,10 +350,6 @@ export class SkinViewer {
 
 	constructor(options: SkinViewerOptions = {}) {
 		this.canvas = options.canvas === undefined ? document.createElement("canvas") : options.canvas;
-
-		this.skinCanvas = document.createElement("canvas");
-		this.capeCanvas = document.createElement("canvas");
-		this.earsCanvas = document.createElement("canvas");
 
 		this.scene = new Scene();
 		this.camera = new PerspectiveCamera();
@@ -384,13 +399,15 @@ export class SkinViewer {
 		this.composer.addPass(this.renderPass);
 		this.composer.addPass(this.fxaaPass);
 
-		this.playerObject = new PlayerObject();
-		this.playerObject.name = "player";
-		this.playerObject.skin.visible = false;
-		this.playerObject.cape.visible = false;
+		const defaultPlayer = new PlayerObject();
+		defaultPlayer.name = "player";
+		defaultPlayer.skin.visible = false;
+		defaultPlayer.cape.visible = false;
+		this.players = [defaultPlayer];
 		this.playerWrapper = new Group();
-		this.playerWrapper.add(this.playerObject);
+		this.playerWrapper.add(defaultPlayer);
 		this.scene.add(this.playerWrapper);
+		this.initPlayerData(defaultPlayer);
 
 		this.controls = new OrbitControls(this.camera, this.canvas);
 		this.controls.enablePan = false; // disable pan by default
@@ -507,167 +524,228 @@ export class SkinViewer {
 		this.fxaaPass.material.uniforms["resolution"].value.y = 1 / (this.height * pixelRatio);
 	}
 
-	private recreateSkinTexture(): void {
-		if (this.skinTexture !== null) {
-			this.skinTexture.dispose();
-		}
-		this.skinTexture = new CanvasTexture(this.skinCanvas);
-		this.skinTexture.magFilter = NearestFilter;
-		this.skinTexture.minFilter = NearestFilter;
-		this.playerObject.skin.map = this.skinTexture;
+	private initPlayerData(player: PlayerObject): void {
+		this.skinCanvases.set(player, document.createElement("canvas"));
+		this.capeCanvases.set(player, document.createElement("canvas"));
+		this.earsCanvases.set(player, document.createElement("canvas"));
+		this.skinTextures.set(player, null);
+		this.capeTextures.set(player, null);
+		this.earsTextures.set(player, null);
 	}
 
-	private recreateCapeTexture(): void {
-		if (this.capeTexture !== null) {
-			this.capeTexture.dispose();
+	private recreateSkinTexture(player: PlayerObject): void {
+		const old = this.skinTextures.get(player);
+		if (old !== null && old !== undefined) {
+			old.dispose();
 		}
-		this.capeTexture = new CanvasTexture(this.capeCanvas);
-		this.capeTexture.magFilter = NearestFilter;
-		this.capeTexture.minFilter = NearestFilter;
-		this.playerObject.cape.map = this.capeTexture;
-		this.playerObject.elytra.map = this.capeTexture;
+		const canvas = this.skinCanvases.get(player) as HTMLCanvasElement;
+		const texture = new CanvasTexture(canvas);
+		texture.magFilter = NearestFilter;
+		texture.minFilter = NearestFilter;
+		player.skin.map = texture;
+		this.skinTextures.set(player, texture);
 	}
 
-	private recreateEarsTexture(): void {
-		if (this.earsTexture !== null) {
-			this.earsTexture.dispose();
+	private recreateCapeTexture(player: PlayerObject): void {
+		const old = this.capeTextures.get(player);
+		if (old !== null && old !== undefined) {
+			old.dispose();
 		}
-		this.earsTexture = new CanvasTexture(this.earsCanvas);
-		this.earsTexture.magFilter = NearestFilter;
-		this.earsTexture.minFilter = NearestFilter;
-		this.playerObject.ears.map = this.earsTexture;
+		const canvas = this.capeCanvases.get(player) as HTMLCanvasElement;
+		const texture = new CanvasTexture(canvas);
+		texture.magFilter = NearestFilter;
+		texture.minFilter = NearestFilter;
+		player.cape.map = texture;
+		player.elytra.map = texture;
+		this.capeTextures.set(player, texture);
 	}
 
-	loadSkin(empty: null): void;
+	private recreateEarsTexture(player: PlayerObject): void {
+		const old = this.earsTextures.get(player);
+		if (old !== null && old !== undefined) {
+			old.dispose();
+		}
+		const canvas = this.earsCanvases.get(player) as HTMLCanvasElement;
+		const texture = new CanvasTexture(canvas);
+		texture.magFilter = NearestFilter;
+		texture.minFilter = NearestFilter;
+		player.ears.map = texture;
+		this.earsTextures.set(player, texture);
+	}
+
+	loadSkin(empty: null, options?: SkinLoadOptions, player?: PlayerObject): void;
 	loadSkin<S extends TextureSource | RemoteImage | File | Blob>(
 		source: S,
-		options?: SkinLoadOptions
+		options?: SkinLoadOptions,
+		player?: PlayerObject
 	): S extends TextureSource ? void : Promise<void>;
 
 	loadSkin(
 		source: TextureSource | RemoteImage | File | Blob | null,
-		options: SkinLoadOptions = {}
+		options: SkinLoadOptions = {},
+		player: PlayerObject = this.playerObject
 	): void | Promise<void> {
+		const skinCanvas = this.skinCanvases.get(player) as HTMLCanvasElement;
+		const earsCanvas = this.earsCanvases.get(player) as HTMLCanvasElement;
 		if (source === null) {
-			this.resetSkin();
+			this.resetSkin(player);
 		} else if (isTextureSource(source)) {
-			loadSkinToCanvas(this.skinCanvas, source);
-			this.recreateSkinTexture();
+			loadSkinToCanvas(skinCanvas, source);
+			this.recreateSkinTexture(player);
 
 			if (options.model === undefined || options.model === "auto-detect") {
-				this.playerObject.skin.modelType = inferModelType(this.skinCanvas);
+				player.skin.modelType = inferModelType(skinCanvas);
 			} else {
-				this.playerObject.skin.modelType = options.model;
+				player.skin.modelType = options.model;
 			}
 
 			if (options.makeVisible !== false) {
-				this.playerObject.skin.visible = true;
+				player.skin.visible = true;
 			}
 
 			if (options.ears === true || options.ears == "load-only") {
-				loadEarsToCanvasFromSkin(this.earsCanvas, source);
-				this.recreateEarsTexture();
+				loadEarsToCanvasFromSkin(earsCanvas, source);
+				this.recreateEarsTexture(player);
 				if (options.ears === true) {
-					this.playerObject.ears.visible = true;
+					player.ears.visible = true;
 				}
 			}
 		} else if (source instanceof File || source instanceof Blob) {
 			const url = URL.createObjectURL(source);
 			return loadImage(url)
-				.then(image => this.loadSkin(image, options))
+				.then(image => this.loadSkin(image, options, player))
 				.finally(() => URL.revokeObjectURL(url));
 		} else {
-			return loadImage(source).then(image => this.loadSkin(image, options));
+			return loadImage(source).then(image => this.loadSkin(image, options, player));
 		}
 	}
 
-	resetSkin(): void {
-		this.playerObject.skin.visible = false;
-		this.playerObject.skin.map = null;
-		if (this.skinTexture !== null) {
-			this.skinTexture.dispose();
-			this.skinTexture = null;
+	resetSkin(player: PlayerObject = this.playerObject): void {
+		player.skin.visible = false;
+		player.skin.map = null;
+		const texture = this.skinTextures.get(player);
+		if (texture !== null && texture !== undefined) {
+			texture.dispose();
+			this.skinTextures.set(player, null);
 		}
 	}
 
-	loadCape(empty: null): void;
+	loadCape(empty: null, options?: CapeLoadOptions, player?: PlayerObject): void;
 	loadCape<S extends TextureSource | RemoteImage | File | Blob>(
 		source: S,
-		options?: CapeLoadOptions
+		options?: CapeLoadOptions,
+		player?: PlayerObject
 	): S extends TextureSource ? void : Promise<void>;
 
 	loadCape(
 		source: TextureSource | RemoteImage | File | Blob | null,
-		options: CapeLoadOptions = {}
+		options: CapeLoadOptions = {},
+		player: PlayerObject = this.playerObject
 	): void | Promise<void> {
+		const capeCanvas = this.capeCanvases.get(player) as HTMLCanvasElement;
 		if (source === null) {
-			this.resetCape();
+			this.resetCape(player);
 		} else if (isTextureSource(source)) {
-			loadCapeToCanvas(this.capeCanvas, source);
-			this.recreateCapeTexture();
+			loadCapeToCanvas(capeCanvas, source);
+			this.recreateCapeTexture(player);
 
 			if (options.makeVisible !== false) {
-				this.playerObject.backEquipment = options.backEquipment === undefined ? "cape" : options.backEquipment;
+				player.backEquipment = options.backEquipment === undefined ? "cape" : options.backEquipment;
 			}
 		} else if (source instanceof File || source instanceof Blob) {
 			const url = URL.createObjectURL(source);
 			return loadImage(url)
-				.then(image => this.loadCape(image, options))
+				.then(image => this.loadCape(image, options, player))
 				.finally(() => URL.revokeObjectURL(url));
 		} else {
-			return loadImage(source).then(image => this.loadCape(image, options));
+			return loadImage(source).then(image => this.loadCape(image, options, player));
 		}
 	}
 
-	resetCape(): void {
-		this.playerObject.backEquipment = null;
-		this.playerObject.cape.map = null;
-		this.playerObject.elytra.map = null;
-		if (this.capeTexture !== null) {
-			this.capeTexture.dispose();
-			this.capeTexture = null;
+	resetCape(player: PlayerObject = this.playerObject): void {
+		player.backEquipment = null;
+		player.cape.map = null;
+		player.elytra.map = null;
+		const texture = this.capeTextures.get(player);
+		if (texture !== null && texture !== undefined) {
+			texture.dispose();
+			this.capeTextures.set(player, null);
 		}
 	}
 
-	loadEars(empty: null): void;
+	loadEars(empty: null, options?: EarsLoadOptions, player?: PlayerObject): void;
 	loadEars<S extends TextureSource | RemoteImage | File | Blob>(
 		source: S,
-		options?: EarsLoadOptions
+		options?: EarsLoadOptions,
+		player?: PlayerObject
 	): S extends TextureSource ? void : Promise<void>;
 
 	loadEars(
 		source: TextureSource | RemoteImage | File | Blob | null,
-		options: EarsLoadOptions = {}
+		options: EarsLoadOptions = {},
+		player: PlayerObject = this.playerObject
 	): void | Promise<void> {
+		const earsCanvas = this.earsCanvases.get(player) as HTMLCanvasElement;
 		if (source === null) {
-			this.resetEars();
+			this.resetEars(player);
 		} else if (isTextureSource(source)) {
 			if (options.textureType === "skin") {
-				loadEarsToCanvasFromSkin(this.earsCanvas, source);
+				loadEarsToCanvasFromSkin(earsCanvas, source);
 			} else {
-				loadEarsToCanvas(this.earsCanvas, source);
+				loadEarsToCanvas(earsCanvas, source);
 			}
-			this.recreateEarsTexture();
+			this.recreateEarsTexture(player);
 
 			if (options.makeVisible !== false) {
-				this.playerObject.ears.visible = true;
+				player.ears.visible = true;
 			}
 		} else if (source instanceof File || source instanceof Blob) {
 			const url = URL.createObjectURL(source);
 			return loadImage(url)
-				.then(image => this.loadEars(image, options))
+				.then(image => this.loadEars(image, options, player))
 				.finally(() => URL.revokeObjectURL(url));
 		} else {
-			return loadImage(source).then(image => this.loadEars(image, options));
+			return loadImage(source).then(image => this.loadEars(image, options, player));
 		}
 	}
 
-	resetEars(): void {
-		this.playerObject.ears.visible = false;
-		this.playerObject.ears.map = null;
-		if (this.earsTexture !== null) {
-			this.earsTexture.dispose();
-			this.earsTexture = null;
+	resetEars(player: PlayerObject = this.playerObject): void {
+		player.ears.visible = false;
+		player.ears.map = null;
+		const texture = this.earsTextures.get(player);
+		if (texture !== null && texture !== undefined) {
+			texture.dispose();
+			this.earsTextures.set(player, null);
+		}
+	}
+
+	addPlayer(options: SkinLoadOptions = {}): PlayerObject {
+		const player = new PlayerObject();
+		player.skin.visible = false;
+		player.cape.visible = false;
+		if (options.model !== undefined && options.model !== "auto-detect") {
+			player.skin.modelType = options.model;
+		}
+		this.initPlayerData(player);
+		this.players.push(player);
+		this.playerWrapper.add(player);
+		return player;
+	}
+
+	removePlayer(player: PlayerObject): void {
+		const index = this.players.indexOf(player);
+		if (index !== -1) {
+			this.playerWrapper.remove(player);
+			this.players.splice(index, 1);
+			this.resetSkin(player);
+			this.resetCape(player);
+			this.resetEars(player);
+			this.skinCanvases.delete(player);
+			this.capeCanvases.delete(player);
+			this.earsCanvases.delete(player);
+			this.skinTextures.delete(player);
+			this.capeTextures.delete(player);
+			this.earsTextures.delete(player);
 		}
 	}
 
@@ -699,8 +777,10 @@ export class SkinViewer {
 
 	private draw(): void {
 		const dt = this.clock.getDelta();
-		for (const [player, animation] of this.animations) {
-			animation.update(player, dt);
+		if (this._animation !== null) {
+			for (const player of this.players) {
+				this._animation.update(player, dt);
+			}
 		}
 		if (this.autoRotate) {
 			if (!(this.controls.enableRotate && this.isUserRotating)) {
@@ -745,9 +825,11 @@ export class SkinViewer {
 
 		this.controls.dispose();
 		this.renderer.dispose();
-		this.resetSkin();
-		this.resetCape();
-		this.resetEars();
+		for (const player of this.players) {
+			this.resetSkin(player);
+			this.resetCape(player);
+			this.resetEars(player);
+		}
 		this.background = null;
 		(this.fxaaPass.fsQuad as FullScreenQuad).dispose();
 	}
@@ -881,18 +963,13 @@ export class SkinViewer {
 		return this.animations.get(player) ?? null;
 	}
 
-	/**
-	 * Assigns an animation to the given player.
-	 *
-	 * Setting a different animation will reset the player's pose and the progress of the new animation before playing.
-	 * Passing `null` will stop the current animation and reset the player's pose.
-	 */
-	setAnimation(player: PlayerObject, animation: PlayerAnimation | null): void {
-		const current = this.animations.get(player) ?? null;
-		if (current !== animation) {
-			player.resetJoints();
-			player.position.set(0, 0, 0);
-			player.rotation.set(0, 0, 0);
+	set animation(animation: PlayerAnimation | null) {
+		if (this._animation !== animation) {
+			for (const player of this.players) {
+				player.resetJoints();
+				player.position.set(0, 0, 0);
+				player.rotation.set(0, 0, 0);
+			}
 			this.clock.stop();
 			this.clock.autoStart = true;
 		}
