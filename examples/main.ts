@@ -236,70 +236,68 @@ function updateViewportSize(): void {
 			skinViewer.height = Number(canvasHeight.value);
 		}
 	}
+}
 
-	function selectPlayer(player: skinview3d.PlayerObject | null): void {
-		if (selectionHelper) {
-			skinViewer.scene.remove(selectionHelper);
-			selectionHelper = null;
-		}
-		selectedPlayer = player ?? skinViewer.playerObject;
-		if (player) {
-			selectionHelper = new BoxHelper(selectedPlayer, 0x00ff00);
-			selectionHelper.update();
-			skinViewer.scene.add(selectionHelper);
-		}
-		const highlight = (document.getElementById("highlight_joints") as HTMLInputElement)?.checked ?? false;
-		updateJointHighlight(highlight);
-		if (editorEnabled) {
-			setupIK();
-		}
-		for (const part of skinParts) {
-			const skinPart = (selectedPlayer.skin as any)[part];
-			for (const layer of skinLayers) {
-				const checkbox = document.querySelector<HTMLInputElement>(
-					`#layers_table input[type="checkbox"][data-part="${part}"][data-layer="${layer}"]`
-				);
-				const skinLayer = skinPart?.[layer];
-				if (checkbox && skinLayer) {
-					checkbox.checked = skinLayer.visible;
-				}
-			}
-		}
-		const backEquipmentRadios = document.querySelectorAll<HTMLInputElement>(
-			'input[type="radio"][name="back_equipment"]'
-		);
-		for (const el of backEquipmentRadios) {
-			el.checked = selectedPlayer.backEquipment === el.value;
-		}
-
-		if (playerSelector) {
-			if (selectedPlayer === skinViewer.playerObject) {
-				playerSelector.value = "0";
-			} else {
-				const idx = extraPlayers.indexOf(selectedPlayer);
-				playerSelector.value = idx >= 0 ? String(idx + 1) : "0";
+function selectPlayer(player: skinview3d.PlayerObject | null): void {
+	if (selectionHelper) {
+		skinViewer.scene.remove(selectionHelper);
+		selectionHelper = null;
+	}
+	selectedPlayer = player ?? skinViewer.playerObject;
+	if (player) {
+		selectionHelper = new BoxHelper(selectedPlayer, 0x00ff00);
+		selectionHelper.update();
+		skinViewer.scene.add(selectionHelper);
+	}
+	const highlight = (document.getElementById("highlight_joints") as HTMLInputElement)?.checked ?? false;
+	updateJointHighlight(highlight);
+	if (editorEnabled) {
+		setupIK();
+	}
+	for (const part of skinParts) {
+		const skinPart = (selectedPlayer.skin as any)[part];
+		for (const layer of skinLayers) {
+			const checkbox = document.querySelector<HTMLInputElement>(
+				`#layers_table input[type="checkbox"][data-part="${part}"][data-layer="${layer}"]`
+			);
+			const skinLayer = skinPart?.[layer];
+			if (checkbox && skinLayer) {
+				checkbox.checked = skinLayer.visible;
 			}
 		}
 	}
+	const backEquipmentRadios = document.querySelectorAll<HTMLInputElement>('input[type="radio"][name="back_equipment"]');
+	for (const el of backEquipmentRadios) {
+		el.checked = selectedPlayer.backEquipment === el.value;
+	}
 
-	function handlePlayerClick(event: MouseEvent): void {
-		const rect = skinViewer.renderer.domElement.getBoundingClientRect();
-		pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-		pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-		raycaster.setFromCamera(pointer, skinViewer.camera);
-		const players = [skinViewer.playerObject, ...extraPlayers];
-		let hit: skinview3d.PlayerObject | null = null;
-		for (const p of players) {
-			if (raycaster.intersectObject(p, true).length > 0) {
-				hit = p;
-				break;
-			}
-		}
-		if (hit && hit !== selectedPlayer) {
-			selectPlayer(hit);
+	if (playerSelector) {
+		if (selectedPlayer === skinViewer.playerObject) {
+			playerSelector.value = "0";
 		} else {
-			selectPlayer(null);
+			const idx = extraPlayers.indexOf(selectedPlayer);
+			playerSelector.value = idx >= 0 ? String(idx + 1) : "0";
 		}
+	}
+}
+
+function handlePlayerClick(event: MouseEvent): void {
+	const rect = skinViewer.renderer.domElement.getBoundingClientRect();
+	pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+	pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+	raycaster.setFromCamera(pointer, skinViewer.camera);
+	const players = [skinViewer.playerObject, ...extraPlayers];
+	let hit: skinview3d.PlayerObject | null = null;
+	for (const p of players) {
+		if (raycaster.intersectObject(p, true).length > 0) {
+			hit = p;
+			break;
+		}
+	}
+	if (hit && hit !== selectedPlayer) {
+		selectPlayer(hit);
+	} else {
+		selectPlayer(null);
 	}
 }
 
