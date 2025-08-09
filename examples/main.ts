@@ -29,12 +29,287 @@ let previousAutoRotate = false;
 let previousAnimationPaused = false;
 let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
+const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; bones: string[]; root: IKJoint }> = {};
+let ikUpdateId: number | null = null;
+let jointHelpers: BoxHelper[] = [];
+const extraPlayers: skinview3d.PlayerObject[] = [];
+let selectionHelper: BoxHelper | null = null;
+const raycaster = new Raycaster();
+const pointer = new Vector2();
+const extraPlayerControls: HTMLElement[] = [];
+let canvasWidth: HTMLInputElement | null = null;
+let canvasHeight: HTMLInputElement | null = null;
+let playerSelector: HTMLSelectElement | null = null;
+const spacingOptions = [20, 40, 60];
+let spacingIndex = 0;
+
+function initializeAssetMenu(): void {
+	const mainMenu = document.getElementById("main_menu");
+	const subMenu = document.getElementById("sub_menu");
+	if (!mainMenu || !subMenu) {
+		return;
+	}
+
+	const showMain = () => {
+		subMenu.classList.add("hidden");
+		subMenu.innerHTML = "";
+		mainMenu.classList.remove("hidden");
+	};
+
+	const createMenu = (title: string, load: (source: string | File) => Promise<unknown> | unknown) => {
+		mainMenu.classList.add("hidden");
+		subMenu.classList.remove("hidden");
+		subMenu.innerHTML = `<h1>${title}</h1>
+<p class="control">Provide a URL or choose a file.</p>
+<input id="menu_url" type="text" class="control" placeholder="URL" />
+<input id="menu_file" type="file" class="control" />`;
+		const urlInput = subMenu.querySelector("#menu_url") as HTMLInputElement;
+		const fileInput = subMenu.querySelector("#menu_file") as HTMLInputElement;
+
+		urlInput?.addEventListener("change", () => {
+			const url = urlInput.value.trim();
+			if (url) {
+				void Promise.resolve(load(url)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+
+		fileInput?.addEventListener("change", () => {
+			const file = fileInput.files?.[0];
+			if (file) {
+				void Promise.resolve(load(file)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+	};
+
+	document.getElementById("menu_skin")?.addEventListener("click", () => {
+		createMenu("Load Skin", source => skinViewer.loadSkin(source));
+	});
+
+	document.getElementById("menu_back")?.addEventListener("click", () => {
+		mainMenu.classList.add("hidden");
+		subMenu.classList.remove("hidden");
+		subMenu.innerHTML = `<h1>Load Back Item</h1>
+<p class="control">Choose cape or elytra then provide a texture.</p>
+<div class="control"><label><input type="radio" name="back_type" value="cape" checked /> Cape</label>
+<label><input type="radio" name="back_type" value="elytra" /> Elytra</label></div>
+<input id="menu_url" type="text" class="control" placeholder="URL" />
+<input id="menu_file" type="file" class="control" />`;
+		const urlInput = subMenu.querySelector("#menu_url") as HTMLInputElement;
+		const fileInput = subMenu.querySelector("#menu_file") as HTMLInputElement;
+		const load = (source: string | File) => {
+			const equip = (subMenu.querySelector('input[name="back_type"]:checked') as HTMLInputElement)
+				?.value as BackEquipment;
+			return skinViewer.loadCape(source, { backEquipment: equip });
+		};
+		urlInput?.addEventListener("change", () => {
+			const url = urlInput.value.trim();
+			if (url) {
+				void Promise.resolve(load(url)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+		fileInput?.addEventListener("change", () => {
+			const file = fileInput.files?.[0];
+			if (file) {
+				void Promise.resolve(load(file)).finally(showMain);
+			} else {
+				showMain();
+			}
+		});
+	});
+
+	document.getElementById("menu_ears")?.addEventListener("click", () => {
+		createMenu("Load Ears", source => skinViewer.loadEars(source));
+	});
+
+	document.getElementById("menu_animation")?.addEventListener("click", () => {
+		createMenu("Load Animation", async source => {
+			let text: string;
+			if (typeof source === "string") {
+				const resp = await fetch(source);
+				text = await resp.text();
+			} else {
+				text = await source.text();
+			}
+			const data = JSON.parse(text);
+			loadedAnimation = skinview3d.createKeyframeAnimation(data);
+			skinViewer.animation = loadedAnimation;
+		});
+	});
+}
+
+function updateJointHighlight(enabled: boolean): void {
+	for (const helper of jointHelpers) {
+		skinViewer.scene.remove(helper);
+	}
+	jointHelpers = [];
+	if (enabled) {
+		const joints = [
+			selectedPlayer.skin.rightElbow,
+			selectedPlayer.skin.leftElbow,
+			selectedPlayer.skin.rightLowerArm,
+			selectedPlayer.skin.leftLowerArm,
+			selectedPlayer.skin.rightKnee,
+			selectedPlayer.skin.leftKnee,
+			selectedPlayer.skin.rightLowerLeg,
+			selectedPlayer.skin.leftLowerLeg,
+		];
+		for (const joint of joints) {
+			const helper = new BoxHelper(joint, 0xff0000);
+			helper.update();
+			jointHelpers.push(helper);
+			skinViewer.scene.add(helper);
+		}
+	}
+}
+
+function updateJointHelpers(): void {
+	for (const helper of jointHelpers) {
+		helper.update();
+	}
+	selectionHelper?.update();
+	requestAnimationFrame(updateJointHelpers);
+}
+updateJointHelpers();
 
 function getBone(path: string): Object3D {
 	if (path === "playerObject") {
 		return skinViewer.playerObject;
 	}
-	return path.split(".").reduce((obj: any, part) => obj?.[part], skinViewer.playerObject) ?? skinViewer.playerObject;
+}
+
+function handlePlayerClick(event: MouseEvent): void {
+	const rect = skinViewer.renderer.domElement.getBoundingClientRect();
+	pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+	pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+	raycaster.setFromCamera(pointer, skinViewer.camera);
+	const players = [skinViewer.playerObject, ...extraPlayers];
+	let hit: skinview3d.PlayerObject | null = null;
+	for (const p of players) {
+		if (raycaster.intersectObject(p, true).length > 0) {
+			hit = p;
+			break;
+		}
+	}
+	if (hit && hit !== selectedPlayer) {
+		selectPlayer(hit);
+	} else {
+		selectPlayer(null);
+	}
+}
+
+function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number): HTMLElement {
+	const div = document.createElement("div");
+	div.className = "control-section";
+
+	const animLabel = document.createElement("label");
+	animLabel.textContent = `Player ${index} animation: `;
+	const select = document.createElement("select");
+	for (const name of Object.keys(animationClasses)) {
+		const option = document.createElement("option");
+		option.value = name;
+		option.textContent = name;
+		select.appendChild(option);
+	}
+	select.value = "idle";
+	select.addEventListener("change", () => {
+		const cls = animationClasses[select.value as keyof typeof animationClasses];
+		const newAnim = new cls();
+		skinViewer.setAnimation(player, newAnim);
+	});
+	animLabel.appendChild(select);
+	div.appendChild(animLabel);
+
+	const uploadBtn = document.createElement("button");
+	uploadBtn.className = "control";
+	uploadBtn.textContent = "Load...";
+	div.appendChild(uploadBtn);
+
+	const menu = document.createElement("ul");
+	menu.classList.add("hidden");
+
+	function createMenuItem(label: string, accept: string, load: (file: File) => void | Promise<void>): void {
+		const input = document.createElement("input");
+		input.type = "file";
+		input.accept = accept;
+		input.classList.add("hidden");
+		input.addEventListener("change", async () => {
+			const file = input.files?.[0];
+
+			if (file) {
+				await load(file);
+			}
+			menu.classList.add("hidden");
+		});
+
+		const item = document.createElement("li");
+		item.textContent = label;
+		item.addEventListener("click", () => input.click());
+		menu.appendChild(item);
+		div.appendChild(input);
+	}
+
+	createMenuItem("Skin", "image/*", file => {
+		void skinViewer.loadSkin(file, {}, player);
+	});
+	createMenuItem("Cape", "image/*", file => {
+		void skinViewer.loadCape(file, {}, player);
+	});
+	createMenuItem("Ears", "image/*", file => {
+		void skinViewer.loadEars(file, { textureType: "standalone" }, player);
+	});
+	createMenuItem("Animation", "application/json", async file => {
+		const text = await file.text();
+		const data = JSON.parse(text);
+		const anim = skinview3d.createKeyframeAnimation(data);
+		skinViewer.setAnimation(player, anim);
+	});
+
+	div.appendChild(menu);
+	uploadBtn.addEventListener("click", () => {
+		menu.classList.toggle("hidden");
+	});
+
+	return div;
+}
+
+function addModel(): void {
+	const player = skinViewer.addPlayer();
+	extraPlayers.push(player);
+	const anim = new skinview3d.IdleAnimation();
+	skinViewer.setAnimation(player, anim);
+	const playerNumber = extraPlayers.length + 1;
+	const container = document.getElementById("extra_player_controls");
+	if (container) {
+		const div = createPlayerResourceMenu(player, playerNumber);
+		container.appendChild(div);
+		extraPlayerControls.push(div);
+	}
+	updateViewportSize();
+	skinViewer.updateLayout();
+}
+
+function removeModel(): void {
+	const player = extraPlayers.pop();
+	if (player) {
+		skinViewer.setAnimation(player, null);
+		void skinViewer.loadSkin(null, {}, player);
+		void skinViewer.loadCape(null, {}, player);
+		void skinViewer.loadEars(null, {}, player);
+		skinViewer.removePlayer(player);
+		if (selectedPlayer === player) {
+			selectPlayer(null);
+		}
+		const control = extraPlayerControls.pop();
+		control?.remove();
+	}
+	updateViewportSize();
+	skinViewer.updateLayout();
 }
 
 function obtainTextureUrl(id: string): string {
@@ -489,8 +764,17 @@ function initializeViewer(): void {
 		canvas: skinContainer,
 	});
 
-	const canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
-	const canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
+	selectPlayer(null);
+
+	const controlsContainer = document.getElementById("extra_player_controls");
+	if (controlsContainer) {
+		const control = createPlayerResourceMenu(skinViewer.playerObject, 1);
+		controlsContainer.appendChild(control);
+		extraPlayerControls.push(control);
+	}
+
+	canvasWidth = document.getElementById("canvas_width") as HTMLInputElement;
+	canvasHeight = document.getElementById("canvas_height") as HTMLInputElement;
 	const fov = document.getElementById("fov") as HTMLInputElement;
 	const zoom = document.getElementById("zoom") as HTMLInputElement;
 	const globalLight = document.getElementById("global_light") as HTMLInputElement;
