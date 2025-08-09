@@ -116,23 +116,6 @@ label {
 	padding-left: 20px;
 }
 
-.control-section .resource-menu {
-	list-style: none;
-	margin: 4px 0 0 0;
-	padding: 0;
-	background: #fff;
-	border: 1px solid #ccc;
-}
-
-.control-section .resource-menu li {
-	padding: 4px 8px;
-	cursor: pointer;
-}
-
-.control-section .resource-menu li:hover {
-	background: #eee;
-}
-
 .hidden {
 	display: none;
 }
