@@ -1499,7 +1499,7 @@ addKeyframeBtn?.addEventListener("click", () => {
 	}
 });
 
-const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
+const modeSelector = document.querySelector<HTMLSelectElement>("#transform_mode select");
 modeSelector?.addEventListener("change", () => {
 	if (transformControls) {
 		transformControls.setMode(modeSelector.value as any);
