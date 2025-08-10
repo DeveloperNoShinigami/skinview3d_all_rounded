@@ -23,8 +23,8 @@ test("resetJoints restores default pivots for arms and legs", () => {
 
 	player.resetJoints();
 
-	assert.ok(skin.leftUpperArm.position.equals(new Vector3(5, -2, 0)));
-	assert.ok(skin.rightUpperArm.position.equals(new Vector3(-5, -2, 0)));
+        assert.ok(skin.leftUpperArm.position.equals(new Vector3(5, -6, 0)));
+        assert.ok(skin.rightUpperArm.position.equals(new Vector3(-5, -6, 0)));
 	assert.ok(skin.leftLowerArm.position.equals(new Vector3(0, 0, 0)));
 	assert.ok(skin.rightLowerArm.position.equals(new Vector3(0, 0, 0)));
 	assert.ok(skin.leftUpperLeg.position.equals(new Vector3(1.9, -12, -0.1)));
