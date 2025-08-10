@@ -164,7 +164,7 @@ export class SkinObject extends Group {
 		// ===== Right Arm (upper + elbow + lower) =====
 		const rightUpperArmBox = new BoxGeometry(); // 1x1x1, we scale it
 		const rightUpperArmMesh = new Mesh(rightUpperArmBox, this.layer1MaterialBiased);
-		rightUpperArmMesh.position.y = -6; // offset to keep top at pivot
+		rightUpperArmMesh.position.y = -2; // top-center to pivot
 
 		const rightForearmUpperBox = new BoxGeometry();
 		const rightForearmUpperMesh = new Mesh(rightForearmUpperBox, this.layer1MaterialBiased);
@@ -192,7 +192,7 @@ export class SkinObject extends Group {
 
 		const rightUpperArm2Box = new BoxGeometry();
 		const rightUpperArm2Mesh = new Mesh(rightUpperArm2Box, this.layer2MaterialBiased);
-		rightUpperArm2Mesh.position.y = -6;
+		rightUpperArm2Mesh.position.y = -2;
 
 		const rightForearmUpper2Box = new BoxGeometry();
 		const rightForearmUpper2Mesh = new Mesh(rightForearmUpper2Box, this.layer2MaterialBiased);
@@ -227,7 +227,7 @@ export class SkinObject extends Group {
 		this.modelListeners.push(() => {
 			this.rightUpperArmPivot.position.x = 0;
 		});
-		this.rightUpperArmPivot.position.y = 0;
+		this.rightUpperArmPivot.position.y = -4;
 
 		const rightElbow = new Group();
 		rightElbow.position.y = -4;
@@ -262,13 +262,13 @@ export class SkinObject extends Group {
 		this.rightUpperArm = new BodyPart(rightUpperArmMesh, rightUpperArm2Mesh);
 		this.rightUpperArm.name = "rightUpperArm";
 		this.rightUpperArm.add(this.rightUpperArmPivot);
-		this.rightUpperArm.position.set(-5, -6, 0); // hinge (shoulder)
+		this.rightUpperArm.position.set(-5, -2, 0); // hinge (shoulder)
 		this.add(this.rightUpperArm);
 
 		// ===== Left Arm =====
 		const leftUpperArmBox = new BoxGeometry();
 		const leftUpperArmMesh = new Mesh(leftUpperArmBox, this.layer1MaterialBiased);
-		leftUpperArmMesh.position.y = -6;
+		leftUpperArmMesh.position.y = -2;
 
 		const leftForearmUpperBox = new BoxGeometry();
 		const leftForearmUpperMesh = new Mesh(leftForearmUpperBox, this.layer1MaterialBiased);
@@ -295,7 +295,8 @@ export class SkinObject extends Group {
 
 		const leftUpperArm2Box = new BoxGeometry();
 		const leftUpperArm2Mesh = new Mesh(leftUpperArm2Box, this.layer2MaterialBiased);
-		leftUpperArm2Mesh.position.y = -6;
+		leftUpperArm2Mesh.position.y = -2;
+
 		const leftForearmUpper2Box = new BoxGeometry();
 		const leftForearmUpper2Mesh = new Mesh(leftForearmUpper2Box, this.layer2MaterialBiased);
 		leftForearmUpper2Mesh.position.y = -2;
@@ -327,7 +328,7 @@ export class SkinObject extends Group {
 		this.modelListeners.push(() => {
 			this.leftUpperArmPivot.position.x = 0; // ★ keep pivot at hinge, meshes handle offset
 		});
-		this.leftUpperArmPivot.position.y = 0;
+		this.leftUpperArmPivot.position.y = -4;
 
 		const leftElbow = new Group();
 		leftElbow.position.y = -4;
@@ -361,7 +362,7 @@ export class SkinObject extends Group {
 		this.leftUpperArm = new BodyPart(leftUpperArmMesh, leftUpperArm2Mesh);
 		this.leftUpperArm.name = "leftUpperArm";
 		this.leftUpperArm.add(this.leftUpperArmPivot);
-		this.leftUpperArm.position.set(5, -6, 0);
+		this.leftUpperArm.position.set(5, -2, 0);
 		this.add(this.leftUpperArm);
 
 		// ===== Right Leg =====
@@ -567,8 +568,8 @@ export class SkinObject extends Group {
 		this.leftKnee.position.set(0, -4, 0);
 
 		// Pivots sit at hinge origins; meshes provide X offsets
-		this.rightUpperArmPivot.position.set(0, 0, 0);
-		this.leftUpperArmPivot.position.set(0, 0, 0);
+		this.rightUpperArmPivot.position.set(0, -4, 0);
+		this.leftUpperArmPivot.position.set(0, -4, 0);
 		this.rightLowerArmPivot.position.set(0, -4, 0);
 		this.leftLowerArmPivot.position.set(0, -4, 0);
 		this.rightUpperLegPivot.position.set(0, -6, 0);
@@ -581,8 +582,8 @@ export class SkinObject extends Group {
 		this.head.position.y = 0;
 		this.body.position.set(0, -6, 0);
 
-		this.rightUpperArm.position.set(-5, -6, 0);
-		this.leftUpperArm.position.set(5, -6, 0);
+		this.rightUpperArm.position.set(-5, -2, 0);
+		this.leftUpperArm.position.set(5, -2, 0);
 
 		this.rightUpperLeg.position.set(-2, -12, 0);
 		this.leftUpperLeg.position.set(2, -12, 0);
