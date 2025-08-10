@@ -296,7 +296,6 @@ export class SkinObject extends Group {
 		const leftUpperArm2Box = new BoxGeometry();
 		const leftUpperArm2Mesh = new Mesh(leftUpperArm2Box, this.layer2MaterialBiased);
 		leftUpperArm2Mesh.position.y = -6;
-
 		const leftForearmUpper2Box = new BoxGeometry();
 		const leftForearmUpper2Mesh = new Mesh(leftForearmUpper2Box, this.layer2MaterialBiased);
 		leftForearmUpper2Mesh.position.y = -2;

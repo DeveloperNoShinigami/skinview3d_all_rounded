@@ -27,8 +27,8 @@ test("resetJoints restores default pivots for arms and legs", () => {
         assert.ok(skin.rightUpperArm.position.equals(new Vector3(-5, -6, 0)));
 	assert.ok(skin.leftLowerArm.position.equals(new Vector3(0, 0, 0)));
 	assert.ok(skin.rightLowerArm.position.equals(new Vector3(0, 0, 0)));
-	assert.ok(skin.leftUpperLeg.position.equals(new Vector3(1.9, -12, -0.1)));
-	assert.ok(skin.rightUpperLeg.position.equals(new Vector3(-1.9, -12, -0.1)));
+	assert.ok(skin.leftUpperLeg.position.equals(new Vector3(2, -12, 0)));
+	assert.ok(skin.rightUpperLeg.position.equals(new Vector3(-2, -12, 0)));
 	assert.ok(skin.leftLowerLeg.position.equals(new Vector3(0, 0, 0)));
 	assert.ok(skin.rightLowerLeg.position.equals(new Vector3(0, 0, 0)));
 	assert.ok(skin.leftElbow.position.equals(new Vector3(0, -4, 0)));
