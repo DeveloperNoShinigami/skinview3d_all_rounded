@@ -389,6 +389,15 @@ function addModel(): void {
 		container.appendChild(div);
 		extraPlayerControls.push(div);
 	}
+	if (playerSelector) {
+		const idx = extraPlayers.length;
+		const opt = document.createElement("option");
+		opt.value = String(idx);
+		opt.textContent = `Player ${idx + 1}`;
+		playerSelector.appendChild(opt);
+		playerSelector.value = String(idx);
+	}
+	selectPlayer(player);
 	updateViewportSize();
 	skinViewer.updateLayout();
 }
@@ -404,6 +413,8 @@ function removeModel(): void {
 		if (selectedPlayer === player) {
 			selectPlayer(null);
 		}
+		const option = playerSelector?.querySelector(`option[value="${extraPlayers.length + 1}"]`);
+		option?.remove();
 		const control = extraPlayerControls.pop();
 		control?.remove();
 	}
