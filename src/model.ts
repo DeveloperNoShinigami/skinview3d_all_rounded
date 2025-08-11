@@ -164,7 +164,7 @@ export class SkinObject extends Group {
 		// ===== Right Arm (upper + elbow + lower) =====
 		const rightUpperArmBox = new BoxGeometry(); // 1x1x1, we scale it
 		const rightUpperArmMesh = new Mesh(rightUpperArmBox, this.layer1MaterialBiased);
-		rightUpperArmMesh.position.y = -6; // offset to keep top at pivot
+		rightUpperArmMesh.position.y = -2; // offset so segment's top aligns with pivot
 
 		const rightForearmUpperBox = new BoxGeometry();
 		const rightForearmUpperMesh = new Mesh(rightForearmUpperBox, this.layer1MaterialBiased);
@@ -192,7 +192,7 @@ export class SkinObject extends Group {
 
 		const rightUpperArm2Box = new BoxGeometry();
 		const rightUpperArm2Mesh = new Mesh(rightUpperArm2Box, this.layer2MaterialBiased);
-		rightUpperArm2Mesh.position.y = -6;
+		rightUpperArm2Mesh.position.y = -2; // match inner layer offset
 
 		const rightForearmUpper2Box = new BoxGeometry();
 		const rightForearmUpper2Mesh = new Mesh(rightForearmUpper2Box, this.layer2MaterialBiased);
@@ -268,7 +268,7 @@ export class SkinObject extends Group {
 		// ===== Left Arm =====
 		const leftUpperArmBox = new BoxGeometry();
 		const leftUpperArmMesh = new Mesh(leftUpperArmBox, this.layer1MaterialBiased);
-		leftUpperArmMesh.position.y = -6;
+		leftUpperArmMesh.position.y = -2; // offset so segment's top aligns with pivot
 
 		const leftForearmUpperBox = new BoxGeometry();
 		const leftForearmUpperMesh = new Mesh(leftForearmUpperBox, this.layer1MaterialBiased);
@@ -295,7 +295,7 @@ export class SkinObject extends Group {
 
 		const leftUpperArm2Box = new BoxGeometry();
 		const leftUpperArm2Mesh = new Mesh(leftUpperArm2Box, this.layer2MaterialBiased);
-		leftUpperArm2Mesh.position.y = -6;
+		leftUpperArm2Mesh.position.y = -2; // match inner layer offset
 		const leftForearmUpper2Box = new BoxGeometry();
 		const leftForearmUpper2Mesh = new Mesh(leftForearmUpper2Box, this.layer2MaterialBiased);
 		leftForearmUpper2Mesh.position.y = -2;
@@ -396,7 +396,7 @@ export class SkinObject extends Group {
 		rightLowerLegLower2Mesh.position.set(-2, -2, 0); // ★
 
 		this.rightUpperLegPivot = new Group();
-		this.rightUpperLegPivot.position.y = -6;
+		this.rightUpperLegPivot.position.y = 0; // pivot starts at hip; meshes stack downward
 		this.rightUpperLegPivot.add(rightUpperLegMesh, rightUpperLeg2Mesh);
 
 		const rightKnee = new Group();
@@ -462,7 +462,7 @@ export class SkinObject extends Group {
 		leftLowerLegLower2Mesh.position.set(+2, -2, 0); // ★
 
 		this.leftUpperLegPivot = new Group();
-		this.leftUpperLegPivot.position.y = -6;
+		this.leftUpperLegPivot.position.y = 0; // pivot starts at hip; meshes stack downward
 		this.leftUpperLegPivot.add(leftUpperLegMesh, leftUpperLeg2Mesh);
 
 		const leftKnee = new Group();
@@ -571,8 +571,8 @@ export class SkinObject extends Group {
 		this.leftUpperArmPivot.position.set(0, 0, 0);
 		this.rightLowerArmPivot.position.set(0, -4, 0);
 		this.leftLowerArmPivot.position.set(0, -4, 0);
-		this.rightUpperLegPivot.position.set(0, -6, 0);
-		this.leftUpperLegPivot.position.set(0, -6, 0);
+		this.rightUpperLegPivot.position.set(0, 0, 0);
+		this.leftUpperLegPivot.position.set(0, 0, 0);
 		this.rightLowerLegPivot.position.set(0, -4, 0);
 		this.leftLowerLegPivot.position.set(0, -4, 0);
 
