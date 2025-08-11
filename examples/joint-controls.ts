@@ -13,13 +13,25 @@ declare module "../src/viewer" {
 function getJointObjects(player: PlayerObject): Object3D[] {
 	const skin = player.skin;
 	return [
+		// right arm
+		skin.rightUpperArmPivot,
 		skin.rightElbow,
-		skin.leftElbow,
+		skin.rightLowerArmPivot,
 		skin.rightLowerArm,
+		// left arm
+		skin.leftUpperArmPivot,
+		skin.leftElbow,
+		skin.leftLowerArmPivot,
 		skin.leftLowerArm,
+		// right leg
+		skin.rightUpperLegPivot,
 		skin.rightKnee,
-		skin.leftKnee,
+		skin.rightLowerLegPivot,
 		skin.rightLowerLeg,
+		// left leg
+		skin.leftUpperLegPivot,
+		skin.leftKnee,
+		skin.leftLowerLegPivot,
 		skin.leftLowerLeg,
 	];
 }
@@ -38,17 +50,24 @@ export function attachJointControls(viewer: SkinViewer): void {
 		pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
 		pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 		raycaster.setFromCamera(pointer, viewer.camera);
-		for (const joint of getJointObjects(viewer.playerObject)) {
-			if (raycaster.intersectObject(joint, true).length > 0) {
-				if (!control) {
-					control = new TransformControls(viewer.camera, viewer.renderer.domElement);
-					control.addEventListener("dragging-changed", (e: { value: boolean }) => {
-						viewer.controls.enabled = !e.value;
-					});
-					viewer.scene.add(control);
+		const joints = getJointObjects(viewer.playerObject);
+		const jointSet = new Set(joints);
+		const intersects = raycaster.intersectObject(viewer.playerObject.skin, true);
+		for (const intersect of intersects) {
+			let obj: Object3D | null = intersect.object;
+			while (obj) {
+				if (jointSet.has(obj)) {
+					if (!control) {
+						control = new TransformControls(viewer.camera, viewer.renderer.domElement);
+						control.addEventListener("dragging-changed", (e: { value: boolean }) => {
+							viewer.controls.enabled = !e.value;
+						});
+						viewer.scene.add(control);
+					}
+					control.attach(obj);
+					return;
 				}
-				control.attach(joint);
-				break;
+				obj = obj.parent;
 			}
 		}
 	}
@@ -56,14 +75,18 @@ export function attachJointControls(viewer: SkinViewer): void {
 	viewer.exportJointCoordinates = () => {
 		const skin = viewer.playerObject.skin;
 		const entries: [string, Object3D][] = [
+			["rightUpperArm", skin.rightUpperArmPivot],
 			["rightElbow", skin.rightElbow],
+			["rightLowerArm", skin.rightLowerArmPivot],
+			["leftUpperArm", skin.leftUpperArmPivot],
 			["leftElbow", skin.leftElbow],
-			["rightLowerArm", skin.rightLowerArm],
-			["leftLowerArm", skin.leftLowerArm],
+			["leftLowerArm", skin.leftLowerArmPivot],
+			["rightUpperLeg", skin.rightUpperLegPivot],
 			["rightKnee", skin.rightKnee],
+			["rightLowerLeg", skin.rightLowerLegPivot],
+			["leftUpperLeg", skin.leftUpperLegPivot],
 			["leftKnee", skin.leftKnee],
-			["rightLowerLeg", skin.rightLowerLeg],
-			["leftLowerLeg", skin.leftLowerLeg],
+			["leftLowerLeg", skin.leftLowerLegPivot],
 		];
 		const pos = new Vector3();
 		return entries
