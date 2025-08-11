@@ -13,6 +13,7 @@ import {
 	Vector2,
 	Vector3,
 } from "three";
+import { attachJointControls } from "./joint-controls";
 
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
@@ -1049,7 +1050,7 @@ function initializeControls(): void {
 
 	const exportJointBtn = document.getElementById("export_joint_coordinates");
 	exportJointBtn?.addEventListener("click", () => {
-		const data = (skinViewer as any).exportJointCoordinates();
+		const data = skinViewer.exportJointCoordinates();
 		const blob = new Blob([data], { type: "text/plain" });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
@@ -1089,7 +1090,8 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
-	(skinViewer as any).enableJointControls();
+	attachJointControls(skinViewer);
+	skinViewer.enableJointControls();
 	playerSelector = document.getElementById("player_selector") as HTMLSelectElement;
 	if (playerSelector) {
 		playerSelector.innerHTML = "";
