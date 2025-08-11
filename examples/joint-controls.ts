@@ -12,28 +12,7 @@ declare module "../src/viewer" {
 
 function getJointObjects(player: PlayerObject): Object3D[] {
 	const skin = player.skin;
-	return [
-		// right arm
-		skin.rightUpperArmPivot,
-		skin.rightElbow,
-		skin.rightLowerArmPivot,
-		skin.rightLowerArm,
-		// left arm
-		skin.leftUpperArmPivot,
-		skin.leftElbow,
-		skin.leftLowerArmPivot,
-		skin.leftLowerArm,
-		// right leg
-		skin.rightUpperLegPivot,
-		skin.rightKnee,
-		skin.rightLowerLegPivot,
-		skin.rightLowerLeg,
-		// left leg
-		skin.leftUpperLegPivot,
-		skin.leftKnee,
-		skin.leftLowerLegPivot,
-		skin.leftLowerLeg,
-	];
+	return [skin.rightUpperArm, skin.leftUpperArm, skin.rightUpperLeg, skin.leftUpperLeg];
 }
 
 export function attachJointControls(viewer: SkinViewer): void {
@@ -75,18 +54,10 @@ export function attachJointControls(viewer: SkinViewer): void {
 	viewer.exportJointCoordinates = () => {
 		const skin = viewer.playerObject.skin;
 		const entries: [string, Object3D][] = [
-			["rightUpperArm", skin.rightUpperArmPivot],
-			["rightElbow", skin.rightElbow],
-			["rightLowerArm", skin.rightLowerArmPivot],
-			["leftUpperArm", skin.leftUpperArmPivot],
-			["leftElbow", skin.leftElbow],
-			["leftLowerArm", skin.leftLowerArmPivot],
-			["rightUpperLeg", skin.rightUpperLegPivot],
-			["rightKnee", skin.rightKnee],
-			["rightLowerLeg", skin.rightLowerLegPivot],
-			["leftUpperLeg", skin.leftUpperLegPivot],
-			["leftKnee", skin.leftKnee],
-			["leftLowerLeg", skin.leftLowerLegPivot],
+			["rightUpperArm", skin.rightUpperArm],
+			["leftUpperArm", skin.leftUpperArm],
+			["rightUpperLeg", skin.rightUpperLeg],
+			["leftUpperLeg", skin.leftUpperLeg],
 		];
 		const pos = new Vector3();
 		return entries

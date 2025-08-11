@@ -2,39 +2,14 @@ import * as skinview3d from "../src/skinview3d";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { IK, IKChain, IKJoint } from "three-ik";
-import {
-	BoxHelper,
-	Euler,
-	Mesh,
-	MeshBasicMaterial,
-	Object3D,
-	Raycaster,
-	SphereGeometry,
-	Vector2,
-	Vector3,
-} from "three";
+import { BoxHelper, Euler, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import { attachJointControls } from "./joint-controls";
 
 import "./style.css";
 import { GeneratedAnimation } from "./generated-animation";
 import { JumpAnimation } from "./jump-animation";
 
-const skinParts = [
-	"head",
-	"body",
-	"rightUpperArm",
-	"leftUpperArm",
-	"rightUpperLeg",
-	"leftUpperLeg",
-	"rightElbow",
-	"leftElbow",
-	"rightKnee",
-	"leftKnee",
-	"rightLowerArm",
-	"leftLowerArm",
-	"rightLowerLeg",
-	"leftLowerLeg",
-];
+const skinParts = ["head", "body", "rightUpperArm", "leftUpperArm", "rightUpperLeg", "leftUpperLeg"];
 const skinLayers = ["innerLayer", "outerLayer"];
 const animationClasses = {
 	idle: skinview3d.IdleAnimation,
@@ -65,7 +40,6 @@ let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
 const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; bones: string[]; root: IKJoint }> = {};
 let ikUpdateId: number | null = null;
-let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
 let selectionHelper: BoxHelper | null = null;
 const raycaster = new Raycaster();
@@ -177,35 +151,7 @@ function initializeAssetMenu(): void {
 	});
 }
 
-function updateJointHighlight(enabled: boolean): void {
-	for (const helper of jointHelpers) {
-		skinViewer.scene.remove(helper);
-	}
-	jointHelpers = [];
-	if (enabled) {
-		const joints = [
-			selectedPlayer.skin.rightElbow,
-			selectedPlayer.skin.leftElbow,
-			selectedPlayer.skin.rightLowerArm,
-			selectedPlayer.skin.leftLowerArm,
-			selectedPlayer.skin.rightKnee,
-			selectedPlayer.skin.leftKnee,
-			selectedPlayer.skin.rightLowerLeg,
-			selectedPlayer.skin.leftLowerLeg,
-		];
-		for (const joint of joints) {
-			const helper = new BoxHelper(joint, 0xff0000);
-			helper.update();
-			jointHelpers.push(helper);
-			skinViewer.scene.add(helper);
-		}
-	}
-}
-
 function updateJointHelpers(): void {
-	for (const helper of jointHelpers) {
-		helper.update();
-	}
 	selectionHelper?.update();
 	requestAnimationFrame(updateJointHelpers);
 }
@@ -250,8 +196,6 @@ function selectPlayer(player: skinview3d.PlayerObject | null): void {
 		selectionHelper.update();
 		skinViewer.scene.add(selectionHelper);
 	}
-	const highlight = (document.getElementById("highlight_joints") as HTMLInputElement)?.checked ?? false;
-	updateJointHighlight(highlight);
 	if (editorEnabled) {
 		setupIK();
 	}
@@ -592,110 +536,10 @@ function setupIK(): void {
 	for (const key in ikChains) {
 		delete ikChains[key];
 	}
-	const skin = selectedPlayer.skin;
-
-	const rightLowerArmTarget = new Object3D();
-	const rightLowerArmMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xff0000 }));
-	rightLowerArmTarget.add(rightLowerArmMesh);
-
-	rightLowerArmTarget.position.copy(skin.rightLowerArm.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(rightLowerArmTarget);
-	const rIK = new IK();
-	const rChain = new IKChain();
-	const rRoot = new IKJoint(skin.rightUpperArm);
-	rChain.add(rRoot); // keep shoulder static
-	rChain.add(new IKJoint(skin.rightElbow));
-	rChain.add(new IKJoint(skin.rightLowerArm), { target: rightLowerArmTarget });
-	rChain.effectorIndex = rChain.joints.length - 1;
-	rIK.add(rChain);
-	ikChains["ik.rightArm"] = {
-		target: rightLowerArmTarget,
-		ik: rIK,
-		bones: ["skin.rightUpperArm", "skin.rightElbow", "skin.rightLowerArm"],
-		root: rRoot,
-	};
-
-	const leftLowerArmTarget = new Object3D();
-	const leftLowerArmMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x00ff00 }));
-	leftLowerArmTarget.add(leftLowerArmMesh);
-
-	leftLowerArmTarget.position.copy(skin.leftLowerArm.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(leftLowerArmTarget);
-	const lIK = new IK();
-	const lChain = new IKChain();
-	const lRoot = new IKJoint(skin.leftUpperArm);
-	lChain.add(lRoot); // keep shoulder static
-	lChain.add(new IKJoint(skin.leftElbow));
-	lChain.add(new IKJoint(skin.leftLowerArm), { target: leftLowerArmTarget });
-	lChain.effectorIndex = lChain.joints.length - 1;
-	lIK.add(lChain);
-	ikChains["ik.leftArm"] = {
-		target: leftLowerArmTarget,
-
-		ik: lIK,
-		bones: ["skin.leftUpperArm", "skin.leftElbow", "skin.leftLowerArm"],
-		root: lRoot,
-	};
-
-	const rightLowerLegTarget = new Object3D();
-	const rightLowerLegMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x0000ff }));
-	rightLowerLegTarget.add(rightLowerLegMesh);
-
-	rightLowerLegTarget.position.copy(skin.rightLowerLeg.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(rightLowerLegTarget);
-	const rLegIK = new IK();
-	const rLegChain = new IKChain();
-	const rLegRoot = new IKJoint(skin.rightUpperLeg);
-	rLegChain.add(rLegRoot); // keep hip static
-	rLegChain.add(new IKJoint(skin.rightKnee));
-	rLegChain.add(new IKJoint(skin.rightLowerLeg), { target: rightLowerLegTarget });
-	rLegChain.effectorIndex = rLegChain.joints.length - 1;
-	rLegIK.add(rLegChain);
-	ikChains["ik.rightLeg"] = {
-		target: rightLowerLegTarget,
-
-		ik: rLegIK,
-		bones: ["skin.rightUpperLeg", "skin.rightKnee", "skin.rightLowerLeg"],
-		root: rLegRoot,
-	};
-
-	const leftLowerLegTarget = new Object3D();
-	const leftLowerLegMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xffff00 }));
-	leftLowerLegTarget.add(leftLowerLegMesh);
-
-	leftLowerLegTarget.position.copy(skin.leftLowerLeg.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(leftLowerLegTarget);
-	const lLegIK = new IK();
-	const lLegChain = new IKChain();
-	const lLegRoot = new IKJoint(skin.leftUpperLeg);
-	lLegChain.add(lLegRoot); // keep hip static
-	lLegChain.add(new IKJoint(skin.leftKnee));
-	lLegChain.add(new IKJoint(skin.leftLowerLeg), { target: leftLowerLegTarget });
-	lLegChain.effectorIndex = lLegChain.joints.length - 1;
-	lLegIK.add(lLegChain);
-	ikChains["ik.leftLeg"] = {
-		target: leftLowerLegTarget,
-		ik: lLegIK,
-		bones: ["skin.leftUpperLeg", "skin.leftKnee", "skin.leftLowerLeg"],
-		root: lLegRoot,
-	};
-
 	if (ikUpdateId !== null) {
 		cancelAnimationFrame(ikUpdateId);
+		ikUpdateId = null;
 	}
-	const update = () => {
-		const time =
-			loadedAnimation && keyframes.length > 0 ? keyframes[0].time + loadedAnimation.progress * 1000 : Date.now();
-		for (const key of Object.keys(ikChains)) {
-			applyTargetKeyframe(key, time);
-			const chain = ikChains[key];
-			chain.target.updateMatrixWorld(true);
-			chain.ik.solve();
-		}
-		ikUpdateId = requestAnimationFrame(update);
-	};
-	update();
-
 	initializeBoneSelector();
 }
 
@@ -728,7 +572,6 @@ function initializeControls(): void {
 	playerSelector = document.getElementById("player_selector") as HTMLSelectElement;
 	const animationPauseResume = document.getElementById("animation_pause_resume");
 	const editorPlayPause = document.getElementById("editor_play_pause");
-	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
 	const autoRotate = document.getElementById("auto_rotate") as HTMLInputElement;
 	const autoRotateSpeed = document.getElementById("auto_rotate_speed") as HTMLInputElement;
 	const controlRotate = document.getElementById("control_rotate") as HTMLInputElement;
@@ -815,11 +658,6 @@ function initializeControls(): void {
 	autoRotate?.addEventListener("change", e => {
 		const target = e.target as HTMLInputElement;
 		skinViewer.autoRotate = target.checked;
-	});
-
-	highlightJoints?.addEventListener("change", e => {
-		const target = e.target as HTMLInputElement;
-		updateJointHighlight(target.checked);
 	});
 
 	autoRotateSpeed?.addEventListener("change", e => {
@@ -1171,18 +1009,16 @@ function initializeViewer(): void {
 	void skinViewer.loadCape("img/mojang_cape.png", { backEquipment: "cape" });
 	void skinViewer.loadPanorama("img/panorama.png");
 	reloadNameTag();
-	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
-	updateJointHighlight(highlightJoints?.checked ?? false);
 	updateViewportSize();
 }
 
 initializeViewer();
 initializeControls();
 setupIK();
-initializeBoneSelector(true);
+initializeBoneSelector();
 document.getElementById("skin_container")?.addEventListener("click", handlePlayerClick);
 
-function initializeBoneSelector(useIK = false): void {
+function initializeBoneSelector(): void {
 	const selector = document.getElementById("bone_selector") as HTMLSelectElement;
 	if (!selector) {
 		return;
@@ -1196,24 +1032,9 @@ function initializeBoneSelector(useIK = false): void {
 	selector.appendChild(playerOption);
 
 	for (const part of skinParts) {
-		if (
-			useIK &&
-			(part === "rightUpperArm" || part === "leftUpperArm" || part === "rightUpperLeg" || part === "leftUpperLeg")
-		) {
-			continue;
-		}
 		const option = document.createElement("option");
 		option.value = `skin.${part}`;
 		option.textContent = `skin.${part}`;
-		selector.appendChild(option);
-	}
-
-	for (const key of Object.keys(ikChains)) {
-		const option = document.createElement("option");
-		option.value = key;
-		const part = key.replace(/^ik\./, "");
-		const label = part.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase());
-		option.textContent = `IK Controller: ${label}`;
 		selector.appendChild(option);
 	}
 
@@ -1244,7 +1065,7 @@ function toggleEditor(): void {
 		updateViewportSize();
 
 		setupIK();
-		initializeBoneSelector(true);
+		initializeBoneSelector();
 		selectedBone = boneSelector?.value || "playerObject";
 
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
@@ -1278,7 +1099,7 @@ function toggleEditor(): void {
 			transformControls = null;
 		}
 		disposeIK();
-		initializeBoneSelector(false);
+		initializeBoneSelector();
 		selectedBone = boneSelector?.value || "playerObject";
 	}
 }

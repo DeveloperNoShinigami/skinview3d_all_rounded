@@ -78,9 +78,8 @@ export class BodyPart extends Group {
 }
 
 /**
- * Represents a Minecraft player skin with individually accessible body parts
- * and joints. Each limb is composed of 4-unit segments that are chained by
- * an offset of `-4` on the Y axis. Exposed pivots include the elbows and knees.
+ * Represents a Minecraft player skin with individually accessible body parts.
+ * Limbs are modeled as single 12‑unit meshes pivoted at the shoulders and hips.
  */
 export class SkinObject extends Group {
 	// body parts
@@ -90,22 +89,6 @@ export class SkinObject extends Group {
 	readonly leftUpperArm: BodyPart;
 	readonly rightUpperLeg: BodyPart;
 	readonly leftUpperLeg: BodyPart;
-	readonly rightLowerArm: BodyPart;
-	readonly leftLowerArm: BodyPart;
-	readonly rightLowerLeg: BodyPart;
-	readonly leftLowerLeg: BodyPart;
-	readonly rightUpperArmPivot: Group;
-	readonly leftUpperArmPivot: Group;
-	readonly rightLowerArmPivot: Group;
-	readonly leftLowerArmPivot: Group;
-	readonly rightUpperLegPivot: Group;
-	readonly leftUpperLegPivot: Group;
-	readonly rightLowerLegPivot: Group;
-	readonly leftLowerLegPivot: Group;
-	readonly rightElbow: Group;
-	readonly leftElbow: Group;
-	readonly rightKnee: Group;
-	readonly leftKnee: Group;
 
 	private modelListeners: Array<() => void> = [];
 	private slim = false;
@@ -161,339 +144,92 @@ export class SkinObject extends Group {
 		this.body.position.y = -6;
 		this.add(this.body);
 
-		// ===== Right Arm (upper + elbow + lower) =====
-		const rightUpperArmBox = new BoxGeometry(); // 1x1x1, we scale it
-		const rightUpperArmMesh = new Mesh(rightUpperArmBox, this.layer1MaterialBiased);
-		rightUpperArmMesh.position.y = -6; // offset to keep top at pivot
+		// ===== Right Arm =====
+		const rightArmBox = new BoxGeometry(4, 12, 4);
+		const rightArmMesh = new Mesh(rightArmBox, this.layer1MaterialBiased);
+		rightArmMesh.position.y = -6;
+		const rightArm2Box = new BoxGeometry(4.5, 12.5, 4.5);
+		const rightArm2Mesh = new Mesh(rightArm2Box, this.layer2MaterialBiased);
+		rightArm2Mesh.position.y = -6;
 
-		const rightForearmUpperBox = new BoxGeometry();
-		const rightForearmUpperMesh = new Mesh(rightForearmUpperBox, this.layer1MaterialBiased);
-		rightForearmUpperMesh.position.y = -2;
-
-		const rightForearmLowerBox = new BoxGeometry();
-		const rightForearmLowerMesh = new Mesh(rightForearmLowerBox, this.layer1MaterialBiased);
-		rightForearmLowerMesh.position.y = -2;
-
-		// ★ Keep inner face on hinge: position.x = -(width/2) for right side
-		this.modelListeners.push(() => {
-			const w = this.slim ? 3 : 4; // base arm width in px
-			rightUpperArmMesh.scale.set(w, 4, 4);
-			rightUpperArmMesh.position.x = -w / 2;
-			setSkinUVs(rightUpperArmBox, 40, 16, w, 4, 4);
-
-			rightForearmUpperMesh.scale.set(w, 4, 4);
-			rightForearmUpperMesh.position.x = -w / 2;
-			setSkinUVs(rightForearmUpperBox, 40, 20, w, 4, 4);
-
-			rightForearmLowerMesh.scale.set(w, 4, 4);
-			rightForearmLowerMesh.position.x = -w / 2;
-			setSkinUVs(rightForearmLowerBox, 40, 24, w, 4, 4);
-		});
-
-		const rightUpperArm2Box = new BoxGeometry();
-		const rightUpperArm2Mesh = new Mesh(rightUpperArm2Box, this.layer2MaterialBiased);
-		rightUpperArm2Mesh.position.y = -6;
-
-		const rightForearmUpper2Box = new BoxGeometry();
-		const rightForearmUpper2Mesh = new Mesh(rightForearmUpper2Box, this.layer2MaterialBiased);
-		rightForearmUpper2Mesh.position.y = -2;
-
-		const rightForearmLower2Box = new BoxGeometry();
-		const rightForearmLower2Mesh = new Mesh(rightForearmLower2Box, this.layer2MaterialBiased);
-		rightForearmLower2Mesh.position.y = -2;
-
-		// ★ Overlay: shift outward by half overlay width, then pull back inner face by (overlay-base)/2
 		this.modelListeners.push(() => {
 			const wBase = this.slim ? 3 : 4;
 			const wOver = this.slim ? 3.5 : 4.5;
-			const innerCorr = (wOver - wBase) / 2; // 0.25 (or 0.25 for slim)
+			const innerCorr = (wOver - wBase) / 2;
 
-			rightUpperArm2Mesh.scale.set(wOver, 4.5, 4.5);
-			rightUpperArm2Mesh.position.x = -(wOver / 2) + innerCorr;
-			setSkinUVs(rightUpperArm2Box, 40, 32, wBase, 4, 4);
+			rightArmMesh.scale.set(wBase / 4, 1, 1);
+			rightArmMesh.position.x = -wBase / 2;
+			setSkinUVs(rightArmBox, 40, 16, wBase, 12, 4);
 
-			rightForearmUpper2Mesh.scale.set(wOver, 4.5, 4.5);
-			rightForearmUpper2Mesh.position.x = -(wOver / 2) + innerCorr;
-			setSkinUVs(rightForearmUpper2Box, 40, 36, wBase, 4, 4);
-
-			rightForearmLower2Mesh.scale.set(wOver, 4.5, 4.5);
-			rightForearmLower2Mesh.position.x = -(wOver / 2) + innerCorr;
-			setSkinUVs(rightForearmLower2Box, 40, 40, wBase, 4, 4);
+			rightArm2Mesh.scale.set(wOver / 4.5, 1, 1);
+			rightArm2Mesh.position.x = -(wOver / 2) + innerCorr;
+			setSkinUVs(rightArm2Box, 40, 32, wBase, 12, 4);
 		});
 
-		this.rightUpperArmPivot = new Group();
-		this.rightUpperArmPivot.add(rightUpperArmMesh, rightUpperArm2Mesh);
-		// ★ Pivot must sit exactly at hinge; X stays 0 (we offset meshes instead)
-		this.modelListeners.push(() => {
-			this.rightUpperArmPivot.position.x = 0;
-		});
-		this.rightUpperArmPivot.position.y = 0;
-
-		const rightElbow = new Group();
-		rightElbow.position.y = -4;
-		rightElbow.add(rightForearmUpperMesh, rightForearmUpper2Mesh);
-
-		this.rightLowerArmPivot = new Group();
-		this.rightLowerArmPivot.position.y = -4;
-		this.rightLowerArmPivot.add(rightForearmLowerMesh, rightForearmLower2Mesh);
-
-		rightElbow.add(this.rightLowerArmPivot);
-		this.rightUpperArmPivot.add(rightElbow);
-
-		// Visual lower-arm BodyPart (bottom 4px segment)
-		const rightLowerArmBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(rightLowerArmBox, 40, 24, 4, 4, 4);
-		const rightLowerArmMesh = new Mesh(rightLowerArmBox, this.layer1MaterialBiased);
-		rightLowerArmMesh.position.y = -2;
-		rightLowerArmMesh.position.x = -2; // ★ hinge alignment
-
-		const rightLowerArm2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(rightLowerArm2Box, 40, 40, 4, 4, 4);
-		const rightLowerArm2Mesh = new Mesh(rightLowerArm2Box, this.layer2MaterialBiased);
-		rightLowerArm2Mesh.position.y = -2;
-		rightLowerArm2Mesh.position.x = -2; // ★ inner face pullback baked into scale (0.25 each side)
-
-		this.rightLowerArm = new BodyPart(rightLowerArmMesh, rightLowerArm2Mesh);
-		this.rightLowerArm.name = "rightLowerArm";
-		this.rightLowerArmPivot.add(this.rightLowerArm);
-
-		this.rightElbow = rightElbow;
-
-		this.rightUpperArm = new BodyPart(rightUpperArmMesh, rightUpperArm2Mesh);
+		this.rightUpperArm = new BodyPart(rightArmMesh, rightArm2Mesh);
 		this.rightUpperArm.name = "rightUpperArm";
-		this.rightUpperArm.add(this.rightUpperArmPivot);
-		this.rightUpperArm.position.set(-5, -6, 0); // hinge (shoulder)
+		this.rightUpperArm.add(rightArmMesh, rightArm2Mesh);
+		this.rightUpperArm.position.set(-5, -6, 0);
 		this.add(this.rightUpperArm);
 
 		// ===== Left Arm =====
-		const leftUpperArmBox = new BoxGeometry();
-		const leftUpperArmMesh = new Mesh(leftUpperArmBox, this.layer1MaterialBiased);
-		leftUpperArmMesh.position.y = -6;
-
-		const leftForearmUpperBox = new BoxGeometry();
-		const leftForearmUpperMesh = new Mesh(leftForearmUpperBox, this.layer1MaterialBiased);
-		leftForearmUpperMesh.position.y = -2;
-
-		const leftForearmLowerBox = new BoxGeometry();
-		const leftForearmLowerMesh = new Mesh(leftForearmLowerBox, this.layer1MaterialBiased);
-		leftForearmLowerMesh.position.y = -2;
-
-		this.modelListeners.push(() => {
-			const w = this.slim ? 3 : 4;
-			leftUpperArmMesh.scale.set(w, 4, 4);
-			leftUpperArmMesh.position.x = +w / 2; // ★ left side outwards
-			setSkinUVs(leftUpperArmBox, 32, 48, w, 4, 4);
-
-			leftForearmUpperMesh.scale.set(w, 4, 4);
-			leftForearmUpperMesh.position.x = +w / 2;
-			setSkinUVs(leftForearmUpperBox, 32, 52, w, 4, 4);
-
-			leftForearmLowerMesh.scale.set(w, 4, 4);
-			leftForearmLowerMesh.position.x = +w / 2;
-			setSkinUVs(leftForearmLowerBox, 32, 56, w, 4, 4);
-		});
-
-		const leftUpperArm2Box = new BoxGeometry();
-		const leftUpperArm2Mesh = new Mesh(leftUpperArm2Box, this.layer2MaterialBiased);
-		leftUpperArm2Mesh.position.y = -6;
-		const leftForearmUpper2Box = new BoxGeometry();
-		const leftForearmUpper2Mesh = new Mesh(leftForearmUpper2Box, this.layer2MaterialBiased);
-		leftForearmUpper2Mesh.position.y = -2;
-
-		const leftForearmLower2Box = new BoxGeometry();
-		const leftForearmLower2Mesh = new Mesh(leftForearmLower2Box, this.layer2MaterialBiased);
-		leftForearmLower2Mesh.position.y = -2;
+		const leftArmBox = new BoxGeometry(4, 12, 4);
+		const leftArmMesh = new Mesh(leftArmBox, this.layer1MaterialBiased);
+		leftArmMesh.position.y = -6;
+		const leftArm2Box = new BoxGeometry(4.5, 12.5, 4.5);
+		const leftArm2Mesh = new Mesh(leftArm2Box, this.layer2MaterialBiased);
+		leftArm2Mesh.position.y = -6;
 
 		this.modelListeners.push(() => {
 			const wBase = this.slim ? 3 : 4;
 			const wOver = this.slim ? 3.5 : 4.5;
-			const innerCorr = (wOver - wBase) / 2; // 0.25
+			const innerCorr = (wOver - wBase) / 2;
 
-			leftUpperArm2Mesh.scale.set(wOver, 4.5, 4.5);
-			leftUpperArm2Mesh.position.x = +(wOver / 2) - innerCorr;
-			setSkinUVs(leftUpperArm2Box, 48, 48, wBase, 4, 4);
+			leftArmMesh.scale.set(wBase / 4, 1, 1);
+			leftArmMesh.position.x = +wBase / 2;
+			setSkinUVs(leftArmBox, 32, 48, wBase, 12, 4);
 
-			leftForearmUpper2Mesh.scale.set(wOver, 4.5, 4.5);
-			leftForearmUpper2Mesh.position.x = +(wOver / 2) - innerCorr;
-			setSkinUVs(leftForearmUpper2Box, 48, 52, wBase, 4, 4);
-
-			leftForearmLower2Mesh.scale.set(wOver, 4.5, 4.5);
-			leftForearmLower2Mesh.position.x = +(wOver / 2) - innerCorr;
-			setSkinUVs(leftForearmLower2Box, 48, 56, wBase, 4, 4);
+			leftArm2Mesh.scale.set(wOver / 4.5, 1, 1);
+			leftArm2Mesh.position.x = +(wOver / 2) - innerCorr;
+			setSkinUVs(leftArm2Box, 48, 48, wBase, 12, 4);
 		});
 
-		this.leftUpperArmPivot = new Group();
-		this.leftUpperArmPivot.add(leftUpperArmMesh, leftUpperArm2Mesh);
-		this.modelListeners.push(() => {
-			this.leftUpperArmPivot.position.x = 0; // ★ keep pivot at hinge, meshes handle offset
-		});
-		this.leftUpperArmPivot.position.y = 0;
-
-		const leftElbow = new Group();
-		leftElbow.position.y = -4;
-		leftElbow.add(leftForearmUpperMesh, leftForearmUpper2Mesh);
-
-		this.leftLowerArmPivot = new Group();
-		this.leftLowerArmPivot.position.y = -4;
-		this.leftLowerArmPivot.add(leftForearmLowerMesh, leftForearmLower2Mesh);
-
-		leftElbow.add(this.leftLowerArmPivot);
-		this.leftUpperArmPivot.add(leftElbow);
-
-		const leftLowerArmBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(leftLowerArmBox, 32, 56, 4, 4, 4);
-		const leftLowerArmMesh = new Mesh(leftLowerArmBox, this.layer1MaterialBiased);
-		leftLowerArmMesh.position.y = -2;
-		leftLowerArmMesh.position.x = +2; // ★ hinge alignment
-
-		const leftLowerArm2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(leftLowerArm2Box, 48, 56, 4, 4, 4);
-		const leftLowerArm2Mesh = new Mesh(leftLowerArm2Box, this.layer2MaterialBiased);
-		leftLowerArm2Mesh.position.y = -2;
-		leftLowerArm2Mesh.position.x = +2; // ★
-
-		this.leftLowerArm = new BodyPart(leftLowerArmMesh, leftLowerArm2Mesh);
-		this.leftLowerArm.name = "leftLowerArm";
-		this.leftLowerArmPivot.add(this.leftLowerArm);
-
-		this.leftElbow = leftElbow;
-
-		this.leftUpperArm = new BodyPart(leftUpperArmMesh, leftUpperArm2Mesh);
+		this.leftUpperArm = new BodyPart(leftArmMesh, leftArm2Mesh);
 		this.leftUpperArm.name = "leftUpperArm";
-		this.leftUpperArm.add(this.leftUpperArmPivot);
+		this.leftUpperArm.add(leftArmMesh, leftArm2Mesh);
 		this.leftUpperArm.position.set(5, -6, 0);
 		this.add(this.leftUpperArm);
 
 		// ===== Right Leg =====
-		const rightUpperLegBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(rightUpperLegBox, 0, 16, 4, 4, 4);
-		const rightUpperLegMesh = new Mesh(rightUpperLegBox, this.layer1MaterialBiased);
-		rightUpperLegMesh.position.set(-2, -2, 0); // ★ hinge alignment (x = -2)
+		const rightLegBox = new BoxGeometry(4, 12, 4);
+		setSkinUVs(rightLegBox, 0, 16, 4, 12, 4);
+		const rightLegMesh = new Mesh(rightLegBox, this.layer1MaterialBiased);
+		rightLegMesh.position.y = -6;
+		const rightLeg2Box = new BoxGeometry(4.5, 12.5, 4.5);
+		setSkinUVs(rightLeg2Box, 0, 32, 4, 12, 4);
+		const rightLeg2Mesh = new Mesh(rightLeg2Box, this.layer2MaterialBiased);
+		rightLeg2Mesh.position.y = -6;
 
-		const rightLowerLegUpperBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(rightLowerLegUpperBox, 0, 20, 4, 4, 4);
-		const rightLowerLegUpperMesh = new Mesh(rightLowerLegUpperBox, this.layer1MaterialBiased);
-		rightLowerLegUpperMesh.position.set(-2, -2, 0); // ★
-
-		const rightLowerLegLowerBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(rightLowerLegLowerBox, 0, 24, 4, 4, 4);
-		const rightLowerLegLowerMesh = new Mesh(rightLowerLegLowerBox, this.layer1MaterialBiased);
-		rightLowerLegLowerMesh.position.set(-2, -2, 0); // ★
-
-		const rightUpperLeg2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(rightUpperLeg2Box, 0, 32, 4, 4, 4);
-		const rightUpperLeg2Mesh = new Mesh(rightUpperLeg2Box, this.layer2MaterialBiased);
-		rightUpperLeg2Mesh.position.set(-2, -2, 0); // ★ keep inner face flush
-
-		const rightLowerLegUpper2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(rightLowerLegUpper2Box, 0, 36, 4, 4, 4);
-		const rightLowerLegUpper2Mesh = new Mesh(rightLowerLegUpper2Box, this.layer2MaterialBiased);
-		rightLowerLegUpper2Mesh.position.set(-2, -2, 0); // ★
-
-		const rightLowerLegLower2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(rightLowerLegLower2Box, 0, 40, 4, 4, 4);
-		const rightLowerLegLower2Mesh = new Mesh(rightLowerLegLower2Box, this.layer2MaterialBiased);
-		rightLowerLegLower2Mesh.position.set(-2, -2, 0); // ★
-
-		this.rightUpperLegPivot = new Group();
-		this.rightUpperLegPivot.position.y = -6;
-		this.rightUpperLegPivot.add(rightUpperLegMesh, rightUpperLeg2Mesh);
-
-		const rightKnee = new Group();
-		rightKnee.position.y = -4;
-		rightKnee.add(rightLowerLegUpperMesh, rightLowerLegUpper2Mesh);
-		this.rightUpperLegPivot.add(rightKnee);
-
-		this.rightLowerLegPivot = new Group();
-		this.rightLowerLegPivot.position.y = -4;
-		this.rightLowerLegPivot.add(rightLowerLegLowerMesh, rightLowerLegLower2Mesh);
-		rightKnee.add(this.rightLowerLegPivot);
-
-		const rightLowerLegBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(rightLowerLegBox, 0, 24, 4, 4, 4);
-		const rightLowerLegMesh = new Mesh(rightLowerLegBox, this.layer1MaterialBiased);
-		rightLowerLegMesh.position.set(-2, -2, 0); // ★
-		const rightLowerLeg2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(rightLowerLeg2Box, 0, 40, 4, 4, 4);
-		const rightLowerLeg2Mesh = new Mesh(rightLowerLeg2Box, this.layer2MaterialBiased);
-		rightLowerLeg2Mesh.position.set(-2, -2, 0); // ★
-
-		this.rightLowerLeg = new BodyPart(rightLowerLegMesh, rightLowerLeg2Mesh);
-		this.rightLowerLeg.name = "rightLowerLeg";
-		this.rightLowerLegPivot.add(this.rightLowerLeg);
-
-		this.rightKnee = rightKnee;
-
-		this.rightUpperLeg = new BodyPart(rightUpperLegMesh, rightUpperLeg2Mesh);
+		this.rightUpperLeg = new BodyPart(rightLegMesh, rightLeg2Mesh);
 		this.rightUpperLeg.name = "rightUpperLeg";
-		this.rightUpperLeg.add(this.rightUpperLegPivot);
-		this.rightUpperLeg.position.set(-2, -12, 0); // ★ exact hip hinge
+		this.rightUpperLeg.add(rightLegMesh, rightLeg2Mesh);
+		this.rightUpperLeg.position.set(-2, -12, 0);
 		this.add(this.rightUpperLeg);
 
 		// ===== Left Leg =====
-		const leftUpperLegBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(leftUpperLegBox, 16, 48, 4, 4, 4);
-		const leftUpperLegMesh = new Mesh(leftUpperLegBox, this.layer1MaterialBiased);
-		leftUpperLegMesh.position.set(+2, -2, 0); // ★
+		const leftLegBox = new BoxGeometry(4, 12, 4);
+		setSkinUVs(leftLegBox, 16, 48, 4, 12, 4);
+		const leftLegMesh = new Mesh(leftLegBox, this.layer1MaterialBiased);
+		leftLegMesh.position.y = -6;
+		const leftLeg2Box = new BoxGeometry(4.5, 12.5, 4.5);
+		setSkinUVs(leftLeg2Box, 0, 48, 4, 12, 4);
+		const leftLeg2Mesh = new Mesh(leftLeg2Box, this.layer2MaterialBiased);
+		leftLeg2Mesh.position.y = -6;
 
-		const leftLowerLegUpperBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(leftLowerLegUpperBox, 16, 52, 4, 4, 4);
-		const leftLowerLegUpperMesh = new Mesh(leftLowerLegUpperBox, this.layer1MaterialBiased);
-		leftLowerLegUpperMesh.position.set(+2, -2, 0); // ★
-
-		const leftLowerLegLowerBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(leftLowerLegLowerBox, 16, 56, 4, 4, 4);
-		const leftLowerLegLowerMesh = new Mesh(leftLowerLegLowerBox, this.layer1MaterialBiased);
-		leftLowerLegLowerMesh.position.set(+2, -2, 0); // ★
-
-		const leftUpperLeg2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(leftUpperLeg2Box, 0, 48, 4, 4, 4);
-		const leftUpperLeg2Mesh = new Mesh(leftUpperLeg2Box, this.layer2MaterialBiased);
-		leftUpperLeg2Mesh.position.set(+2, -2, 0); // ★
-
-		const leftLowerLegUpper2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(leftLowerLegUpper2Box, 0, 52, 4, 4, 4);
-		const leftLowerLegUpper2Mesh = new Mesh(leftLowerLegUpper2Box, this.layer2MaterialBiased);
-		leftLowerLegUpper2Mesh.position.set(+2, -2, 0); // ★
-
-		const leftLowerLegLower2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(leftLowerLegLower2Box, 0, 56, 4, 4, 4);
-		const leftLowerLegLower2Mesh = new Mesh(leftLowerLegLower2Box, this.layer2MaterialBiased);
-		leftLowerLegLower2Mesh.position.set(+2, -2, 0); // ★
-
-		this.leftUpperLegPivot = new Group();
-		this.leftUpperLegPivot.position.y = -6;
-		this.leftUpperLegPivot.add(leftUpperLegMesh, leftUpperLeg2Mesh);
-
-		const leftKnee = new Group();
-		leftKnee.position.y = -4;
-		leftKnee.add(leftLowerLegUpperMesh, leftLowerLegUpper2Mesh);
-		this.leftUpperLegPivot.add(leftKnee);
-
-		this.leftLowerLegPivot = new Group();
-		this.leftLowerLegPivot.position.y = -4;
-		this.leftLowerLegPivot.add(leftLowerLegLowerMesh, leftLowerLegLower2Mesh);
-		leftKnee.add(this.leftLowerLegPivot);
-
-		const leftLowerLegBox = new BoxGeometry(4, 4, 4);
-		setSkinUVs(leftLowerLegBox, 16, 56, 4, 4, 4);
-		const leftLowerLegMesh = new Mesh(leftLowerLegBox, this.layer1MaterialBiased);
-		leftLowerLegMesh.position.set(+2, -2, 0); // ★
-		const leftLowerLeg2Box = new BoxGeometry(4.5, 4.5, 4.5);
-		setSkinUVs(leftLowerLeg2Box, 0, 56, 4, 4, 4);
-		const leftLowerLeg2Mesh = new Mesh(leftLowerLeg2Box, this.layer2MaterialBiased);
-		leftLowerLeg2Mesh.position.set(+2, -2, 0); // ★
-
-		this.leftLowerLeg = new BodyPart(leftLowerLegMesh, leftLowerLeg2Mesh);
-		this.leftLowerLeg.name = "leftLowerLeg";
-		this.leftLowerLegPivot.add(this.leftLowerLeg);
-
-		this.leftKnee = leftKnee;
-
-		this.leftUpperLeg = new BodyPart(leftUpperLegMesh, leftUpperLeg2Mesh);
+		this.leftUpperLeg = new BodyPart(leftLegMesh, leftLeg2Mesh);
 		this.leftUpperLeg.name = "leftUpperLeg";
-		this.leftUpperLeg.add(this.leftUpperLegPivot);
-		this.leftUpperLeg.position.set(+2, -12, 0); // ★ exact hip hinge
+		this.leftUpperLeg.add(leftLegMesh, leftLeg2Mesh);
+		this.leftUpperLeg.position.set(2, -12, 0);
 		this.add(this.leftUpperLeg);
 
 		this.modelType = "default";
@@ -543,47 +279,18 @@ export class SkinObject extends Group {
 	}
 
 	resetJoints(): void {
-		// ★ Rotate pivot groups, not the BodyPart containers
 		this.head.rotation.set(0, 0, 0);
-		this.rightUpperArmPivot.rotation.set(0, 0, 0);
-		this.leftUpperArmPivot.rotation.set(0, 0, 0);
-		this.rightUpperLegPivot.rotation.set(0, 0, 0);
-		this.leftUpperLegPivot.rotation.set(0, 0, 0);
+		this.rightUpperArm.rotation.set(0, 0, 0);
+		this.leftUpperArm.rotation.set(0, 0, 0);
+		this.rightUpperLeg.rotation.set(0, 0, 0);
+		this.leftUpperLeg.rotation.set(0, 0, 0);
 
-		this.rightLowerArmPivot.rotation.set(0, 0, 0);
-		this.leftLowerArmPivot.rotation.set(0, 0, 0);
-		this.rightLowerLegPivot.rotation.set(0, 0, 0);
-		this.leftLowerLegPivot.rotation.set(0, 0, 0);
-
-		this.rightElbow.rotation.set(0, 0, 0);
-		this.leftElbow.rotation.set(0, 0, 0);
-		this.rightKnee.rotation.set(0, 0, 0);
-		this.leftKnee.rotation.set(0, 0, 0);
-
-		// Positions of intermediate joints
-		this.rightElbow.position.set(0, -4, 0);
-		this.leftElbow.position.set(0, -4, 0);
-		this.rightKnee.position.set(0, -4, 0);
-		this.leftKnee.position.set(0, -4, 0);
-
-		// Pivots sit at hinge origins; meshes provide X offsets
-		this.rightUpperArmPivot.position.set(0, 0, 0);
-		this.leftUpperArmPivot.position.set(0, 0, 0);
-		this.rightLowerArmPivot.position.set(0, -4, 0);
-		this.leftLowerArmPivot.position.set(0, -4, 0);
-		this.rightUpperLegPivot.position.set(0, -6, 0);
-		this.leftUpperLegPivot.position.set(0, -6, 0);
-		this.rightLowerLegPivot.position.set(0, -4, 0);
-		this.leftLowerLegPivot.position.set(0, -4, 0);
-
-		// BodyPart containers place the pivots in world
 		this.body.rotation.set(0, 0, 0);
 		this.head.position.y = 0;
 		this.body.position.set(0, -6, 0);
 
 		this.rightUpperArm.position.set(-5, -6, 0);
 		this.leftUpperArm.position.set(5, -6, 0);
-
 		this.rightUpperLeg.position.set(-2, -12, 0);
 		this.leftUpperLeg.position.set(2, -12, 0);
 	}
