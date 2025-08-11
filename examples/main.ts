@@ -847,7 +847,7 @@ function initializeControls(): void {
 		});
 	}
 
-	const defaultRadio = document.getElementById("animation_bend") as HTMLInputElement;
+	const defaultRadio = document.getElementById("animation_jump") as HTMLInputElement;
 	if (defaultRadio) {
 		defaultRadio.checked = true;
 		defaultRadio.dispatchEvent(new Event("change"));
@@ -1047,6 +1047,18 @@ function initializeControls(): void {
 	const togglePositionBtn = document.getElementById("toggle_position_controller");
 	togglePositionBtn?.addEventListener("click", togglePositionController);
 
+	const exportJointBtn = document.getElementById("export_joint_coordinates");
+	exportJointBtn?.addEventListener("click", () => {
+		const data = (skinViewer as any).exportJointCoordinates();
+		const blob = new Blob([data], { type: "text/plain" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "joint-coordinates.txt";
+		a.click();
+		URL.revokeObjectURL(url);
+	});
+
 	const nametagText = document.getElementById("nametag_text") as HTMLInputElement;
 	nametagText?.addEventListener("change", reloadNameTag);
 
@@ -1077,6 +1089,7 @@ function initializeViewer(): void {
 	skinViewer = new skinview3d.SkinViewer({
 		canvas: skinContainer,
 	});
+	(skinViewer as any).enableJointControls();
 	playerSelector = document.getElementById("player_selector") as HTMLSelectElement;
 	if (playerSelector) {
 		playerSelector.innerHTML = "";
