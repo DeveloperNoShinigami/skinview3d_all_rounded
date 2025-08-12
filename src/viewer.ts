@@ -789,6 +789,7 @@ export class SkinViewer {
 			this.resetSkin(player);
 			this.resetCape(player);
 			this.resetEars(player);
+			player.resetJoints();
 			const skinTexture = this.skinTextures.get(player);
 			if (skinTexture) {
 				skinTexture.dispose();
@@ -909,6 +910,7 @@ export class SkinViewer {
 			this.resetSkin(player);
 			this.resetCape(player);
 			this.resetEars(player);
+			player.resetJoints();
 		}
 		this.background = null;
 		(this.fxaaPass.fsQuad as FullScreenQuad).dispose();
