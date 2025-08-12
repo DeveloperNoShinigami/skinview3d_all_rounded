@@ -26,5 +26,5 @@
 		"target": "es2021",
 		"useDefineForClassFields": true
 	},
-	"include": ["src"]
+	"include": ["src", "types"]
 }
