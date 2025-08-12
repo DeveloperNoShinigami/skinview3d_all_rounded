@@ -28,7 +28,7 @@ pose and resets orbit controls after you rotate or zoom the view.
 
 Use the **Player** selector to choose which model receives loaded skins, capes, and animations when multiple players are displayed.
 
-While the animation editor is open, use **Reset Pose** to restore the selected player's bones and IK targets to their default state without affecting other players.
+While the animation editor is open, the keyframe controls include a **Reset Pose** button that restores the selected player's bones and IK targets to their default state without affecting other players.
 
 Each texture option (`skin`, `cape`, `ears`, `background`, `panorama`, etc.)
 accepts a URL string, an existing `HTMLImageElement`/`HTMLCanvasElement`, or a
