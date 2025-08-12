@@ -739,21 +739,15 @@ export class PlayerObject extends Group {
 
 		this.skin = new SkinObject();
 		this.skin.name = "skin";
-		this.skin.position.y = 8;
 		this.add(this.skin);
 
 		this.cape = new CapeObject();
 		this.cape.name = "cape";
-		this.cape.position.y = 8;
-		this.cape.position.z = -2;
-		this.cape.rotation.x = CapeDefaultAngle;
 		this.cape.rotation.y = Math.PI;
 		this.add(this.cape);
 
 		this.elytra = new ElytraObject();
 		this.elytra.name = "elytra";
-		this.elytra.position.y = 8;
-		this.elytra.position.z = -2;
 		this.elytra.visible = false;
 		this.add(this.elytra);
 
@@ -763,6 +757,8 @@ export class PlayerObject extends Group {
 		this.ears.position.z = 2 / 3;
 		this.ears.visible = false;
 		this.skin.head.add(this.ears);
+
+		this.resetJoints();
 	}
 
 	get backEquipment(): BackEquipment | null {
