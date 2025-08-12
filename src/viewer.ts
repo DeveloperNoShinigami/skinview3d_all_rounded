@@ -1048,8 +1048,9 @@ export class SkinViewer {
 	}
 
 	setAnimation(player: PlayerObject, animation: PlayerAnimation | null): void {
-		if (this.getAnimation(player) !== animation) {
-			player.resetJoints();
+		const current = this.getAnimation(player);
+		player.resetJoints();
+		if (current !== animation) {
 			player.position.set(0, 0, 0);
 			player.rotation.set(0, 0, 0);
 			if (this.autoFit) {
