@@ -51,14 +51,14 @@ test("resetJoints restores default pivots for arms and legs", () => {
         assertWorldPosition(skin.rightUpperArm, new Vector3(-4.089, 8.6, 0));
         assertWorldPosition(skin.leftLowerArm, new Vector3(4.085, 0.867, 0));
         assertWorldPosition(skin.rightLowerArm, new Vector3(-4.089, 0.6, 0));
-        assertWorldPosition(skin.leftUpperLeg, new Vector3(2, -3.133, 0));
-        assertWorldPosition(skin.rightUpperLeg, new Vector3(-2, -3.4, 0));
-        assertWorldPosition(skin.leftLowerLeg, new Vector3(2, -11.133, 0));
-        assertWorldPosition(skin.rightLowerLeg, new Vector3(-2, -11.4, 0));
+        assertWorldPosition(skin.leftUpperLeg, new Vector3(0.041, -3.133, 0));
+        assertWorldPosition(skin.rightUpperLeg, new Vector3(0.076, -3.145, 0));
+        assertWorldPosition(skin.leftLowerLeg, new Vector3(0.041, -11.133, 0));
+        assertWorldPosition(skin.rightLowerLeg, new Vector3(0.076, -11.145, 0));
         assertWorldPosition(skin.leftElbow, new Vector3(4.085, 4.867, 0));
         assertWorldPosition(skin.rightElbow, new Vector3(-4.089, 4.6, 0));
-        assertWorldPosition(skin.leftKnee, new Vector3(2, -7.133, 0));
-        assertWorldPosition(skin.rightKnee, new Vector3(-2, -7.4, 0));
+        assertWorldPosition(skin.leftKnee, new Vector3(0.041, -7.133, 0));
+        assertWorldPosition(skin.rightKnee, new Vector3(0.076, -7.145, 0));
 });
 
 test("resetJoints restores the skin root translation", () => {
