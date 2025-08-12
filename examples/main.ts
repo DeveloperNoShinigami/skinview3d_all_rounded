@@ -11,7 +11,8 @@ import { JumpAnimation } from "./jump-animation";
 
 const skinParts = [
 	"head",
-	"body",
+	"upperBody",
+	"lowerBody",
 	"rightUpperArm",
 	"leftUpperArm",
 	"rightUpperLeg",
