@@ -112,13 +112,17 @@
 				<h1>Animation Editor</h1>
 				<button id="toggle_editor" type="button" class="control">Create Animation</button>
 				<div id="animation_editor" class="hidden">
-					<p class="control">Select an IK controller and drag its colored sphere in the viewer to pose the limb.</p>
+					<p class="control">
+						Select an IK controller and drag its colored sphere in the viewer to pose the limb. Controllers are offset
+						along the limb's forward direction so the spheres sit at the limb's end.
+					</p>
 					<label class="control">
 						Bone:
 						<select id="bone_selector">
 							<option value="playerObject">Player</option>
 							<option value="skin.head">skin.head</option>
-							<option value="skin.body">skin.body</option>
+							<option value="skin.upperBody">skin.upperBody</option>
+							<option value="skin.lowerBody">skin.lowerBody</option>
 							<option value="skin.rightUpperArm">skin.rightUpperArm</option>
 							<option value="skin.rightElbow">skin.rightElbow</option>
 							<option value="skin.rightLowerArm">skin.rightLowerArm</option>
@@ -236,7 +240,8 @@
 						<tr>
 							<th></th>
 							<th>head</th>
-							<th>body</th>
+							<th>upper body</th>
+							<th>lower body</th>
 							<th>right upper arm</th>
 							<th>left upper arm</th>
 							<th>right upper leg</th>
@@ -247,7 +252,8 @@
 						<tr>
 							<th>inner</th>
 							<td><input type="checkbox" data-layer="innerLayer" data-part="head" checked /></td>
-							<td><input type="checkbox" data-layer="innerLayer" data-part="body" checked /></td>
+							<td><input type="checkbox" data-layer="innerLayer" data-part="upperBody" checked /></td>
+							<td><input type="checkbox" data-layer="innerLayer" data-part="lowerBody" checked /></td>
 							<td><input type="checkbox" data-layer="innerLayer" data-part="rightUpperArm" checked /></td>
 							<td><input type="checkbox" data-layer="innerLayer" data-part="leftUpperArm" checked /></td>
 							<td><input type="checkbox" data-layer="innerLayer" data-part="rightUpperLeg" checked /></td>
@@ -256,7 +262,8 @@
 						<tr>
 							<th>outer</th>
 							<td><input type="checkbox" data-layer="outerLayer" data-part="head" checked /></td>
-							<td><input type="checkbox" data-layer="outerLayer" data-part="body" checked /></td>
+							<td><input type="checkbox" data-layer="outerLayer" data-part="upperBody" checked /></td>
+							<td><input type="checkbox" data-layer="outerLayer" data-part="lowerBody" checked /></td>
 							<td><input type="checkbox" data-layer="outerLayer" data-part="rightUpperArm" checked /></td>
 							<td><input type="checkbox" data-layer="outerLayer" data-part="leftUpperArm" checked /></td>
 							<td><input type="checkbox" data-layer="outerLayer" data-part="rightUpperLeg" checked /></td>

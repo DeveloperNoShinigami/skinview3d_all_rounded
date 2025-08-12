@@ -283,5 +283,12 @@ To load this font, please add the `@font-face` rule to your CSS:
 
 See [viewport-player-resource-notes.md](viewport-player-resource-notes.md) for notes on viewport reset, player selection, and the resource menu, including current pitfalls and unresolved issues.
 
+# Migration
+
+The former `body` part has been split into `upperBody` and `lowerBody` segments
+joined by a `waist` pivot. Update any references to `skin.body` to use
+`skin.upperBody`, `skin.lowerBody`, or `skin.waist` depending on the desired
+torso joint.
+
 # Build
 `npm run build`
