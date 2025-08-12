@@ -71,6 +71,7 @@ let selectionHelper: BoxHelper | null = null;
 const raycaster = new Raycaster();
 const pointer = new Vector2();
 const extraPlayerControls: HTMLElement[] = [];
+const playerAnimations = new Map<skinview3d.PlayerObject, Record<string, skinview3d.Animation>>();
 let canvasWidth: HTMLInputElement | null = null;
 let canvasHeight: HTMLInputElement | null = null;
 let playerSelector: HTMLSelectElement | null = null;
@@ -306,10 +307,20 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 	const div = document.createElement("div");
 	div.className = "control-section";
 
+	let animations = playerAnimations.get(player);
+	if (!animations) {
+		animations = {};
+		for (const name of Object.keys(animationClasses)) {
+			const cls = animationClasses[name as keyof typeof animationClasses];
+			animations[name] = new cls();
+		}
+		playerAnimations.set(player, animations);
+	}
+
 	const animLabel = document.createElement("label");
 	animLabel.textContent = `Player ${index} animation: `;
 	const select = document.createElement("select");
-	for (const name of Object.keys(animationClasses)) {
+	for (const name of Object.keys(animations)) {
 		const option = document.createElement("option");
 		option.value = name;
 		option.textContent = name;
@@ -317,9 +328,8 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 	}
 	select.value = "idle";
 	select.addEventListener("change", () => {
-		const cls = animationClasses[select.value as keyof typeof animationClasses];
-		const newAnim = new cls();
-		skinViewer.setAnimation(player, newAnim);
+		const anim = playerAnimations.get(player)?.[select.value];
+		skinViewer.setAnimation(player, anim ?? null);
 	});
 	animLabel.appendChild(select);
 	div.appendChild(animLabel);
@@ -366,6 +376,16 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 		const text = await file.text();
 		const data = JSON.parse(text);
 		const anim = skinview3d.createKeyframeAnimation(data);
+		const key = file.name.replace(/\.[^/.]+$/, "");
+		const animations = playerAnimations.get(player);
+		if (animations) {
+			animations[key] = anim;
+		}
+		const option = document.createElement("option");
+		option.value = key;
+		option.textContent = key;
+		select.appendChild(option);
+		select.value = key;
 		skinViewer.setAnimation(player, anim);
 	});
 
