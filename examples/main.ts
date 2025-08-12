@@ -1,18 +1,8 @@
 import * as skinview3d from "../src/skinview3d";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
-import { IK, IKChain, IKJoint } from "three-ik";
-import {
-	BoxHelper,
-	Euler,
-	Mesh,
-	MeshBasicMaterial,
-	Object3D,
-	Raycaster,
-	SphereGeometry,
-	Vector2,
-	Vector3,
-} from "three";
+import { BoxHelper, Euler, Object3D, Raycaster, Vector2, Vector3 } from "three";
+import { buildLimbIKChains, type IKChainMap } from "../src/ik";
 import { attachJointControls } from "./joint-controls";
 
 import "./style.css";
@@ -63,7 +53,7 @@ let previousAutoRotate = false;
 let previousAnimationPaused = false;
 let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
-const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; bones: string[]; root: IKJoint }> = {};
+let ikChains: IKChainMap = {};
 let ikUpdateId: number | null = null;
 let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
@@ -613,106 +603,13 @@ function reloadNameTag(): void {
 }
 
 function setupIK(): void {
+	disposeIK();
+	ikChains = buildLimbIKChains(selectedPlayer);
 	for (const chain of Object.values(ikChains)) {
-		chain.root.constraints = [];
-		skinViewer.scene.remove(chain.target);
-		if (chain.effector !== chain.target) {
-			skinViewer.scene.remove(chain.effector);
+		skinViewer.scene.add(chain.target);
+		if (chain.effector && chain.effector !== chain.target) {
+			skinViewer.scene.add(chain.effector);
 		}
-	}
-	for (const key in ikChains) {
-		delete ikChains[key];
-	}
-	const skin = selectedPlayer.skin;
-
-	const rightLowerArmTarget = new Object3D();
-	const rightLowerArmMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xff0000 }));
-	rightLowerArmTarget.add(rightLowerArmMesh);
-
-	rightLowerArmTarget.position.copy(skin.rightLowerArm.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(rightLowerArmTarget);
-	const rIK = new IK();
-	const rChain = new IKChain();
-	const rRoot = new IKJoint(skin.rightUpperArm);
-	rChain.add(rRoot); // keep shoulder static
-	rChain.add(new IKJoint(skin.rightElbow));
-	rChain.add(new IKJoint(skin.rightLowerArm), { target: rightLowerArmTarget });
-	rChain.effectorIndex = rChain.joints.length - 1;
-	rIK.add(rChain);
-	ikChains["ik.rightArm"] = {
-		target: rightLowerArmTarget,
-		ik: rIK,
-		bones: ["skin.rightUpperArm", "skin.rightElbow", "skin.rightLowerArm"],
-		root: rRoot,
-	};
-
-	const leftLowerArmTarget = new Object3D();
-	const leftLowerArmMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x00ff00 }));
-	leftLowerArmTarget.add(leftLowerArmMesh);
-
-	leftLowerArmTarget.position.copy(skin.leftLowerArm.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(leftLowerArmTarget);
-	const lIK = new IK();
-	const lChain = new IKChain();
-	const lRoot = new IKJoint(skin.leftUpperArm);
-	lChain.add(lRoot); // keep shoulder static
-	lChain.add(new IKJoint(skin.leftElbow));
-	lChain.add(new IKJoint(skin.leftLowerArm), { target: leftLowerArmTarget });
-	lChain.effectorIndex = lChain.joints.length - 1;
-	lIK.add(lChain);
-	ikChains["ik.leftArm"] = {
-		target: leftLowerArmTarget,
-
-		ik: lIK,
-		bones: ["skin.leftUpperArm", "skin.leftElbow", "skin.leftLowerArm"],
-		root: lRoot,
-	};
-
-	const rightLowerLegTarget = new Object3D();
-	const rightLowerLegMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x0000ff }));
-	rightLowerLegTarget.add(rightLowerLegMesh);
-
-	rightLowerLegTarget.position.copy(skin.rightLowerLeg.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(rightLowerLegTarget);
-	const rLegIK = new IK();
-	const rLegChain = new IKChain();
-	const rLegRoot = new IKJoint(skin.rightUpperLeg);
-	rLegChain.add(rLegRoot); // keep hip static
-	rLegChain.add(new IKJoint(skin.rightKnee));
-	rLegChain.add(new IKJoint(skin.rightLowerLeg), { target: rightLowerLegTarget });
-	rLegChain.effectorIndex = rLegChain.joints.length - 1;
-	rLegIK.add(rLegChain);
-	ikChains["ik.rightLeg"] = {
-		target: rightLowerLegTarget,
-
-		ik: rLegIK,
-		bones: ["skin.rightUpperLeg", "skin.rightKnee", "skin.rightLowerLeg"],
-		root: rLegRoot,
-	};
-
-	const leftLowerLegTarget = new Object3D();
-	const leftLowerLegMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xffff00 }));
-	leftLowerLegTarget.add(leftLowerLegMesh);
-
-	leftLowerLegTarget.position.copy(skin.leftLowerLeg.getWorldPosition(new Vector3()));
-	skinViewer.scene.add(leftLowerLegTarget);
-	const lLegIK = new IK();
-	const lLegChain = new IKChain();
-	const lLegRoot = new IKJoint(skin.leftUpperLeg);
-	lLegChain.add(lLegRoot); // keep hip static
-	lLegChain.add(new IKJoint(skin.leftKnee));
-	lLegChain.add(new IKJoint(skin.leftLowerLeg), { target: leftLowerLegTarget });
-	lLegChain.effectorIndex = lLegChain.joints.length - 1;
-	lLegIK.add(lLegChain);
-	ikChains["ik.leftLeg"] = {
-		target: leftLowerLegTarget,
-		ik: lLegIK,
-		bones: ["skin.leftUpperLeg", "skin.leftKnee", "skin.leftLowerLeg"],
-		root: lLegRoot,
-	};
-
-	if (ikUpdateId !== null) {
-		cancelAnimationFrame(ikUpdateId);
 	}
 	const update = () => {
 		const time =
@@ -726,8 +623,7 @@ function setupIK(): void {
 		ikUpdateId = requestAnimationFrame(update);
 	};
 	update();
-
-	initializeBoneSelector();
+	initializeBoneSelector(true);
 }
 
 function disposeIK(): void {
@@ -738,15 +634,12 @@ function disposeIK(): void {
 	for (const chain of Object.values(ikChains)) {
 		chain.root.constraints = [];
 		skinViewer.scene.remove(chain.target);
-		if (chain.effector !== chain.target) {
+		if (chain.effector && chain.effector !== chain.target) {
 			skinViewer.scene.remove(chain.effector);
 		}
 	}
-	for (const key in ikChains) {
-		delete ikChains[key];
-	}
-
-	initializeBoneSelector();
+	ikChains = {};
+	initializeBoneSelector(false);
 }
 
 function initializeControls(): void {
@@ -1290,7 +1183,6 @@ function toggleEditor(): void {
 		updateViewportSize();
 
 		setupIK();
-		initializeBoneSelector(true);
 		selectedBone = boneSelector?.value || "playerObject";
 
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
@@ -1324,7 +1216,6 @@ function toggleEditor(): void {
 			transformControls = null;
 		}
 		disposeIK();
-		initializeBoneSelector(false);
 		selectedBone = boneSelector?.value || "playerObject";
 	}
 }
