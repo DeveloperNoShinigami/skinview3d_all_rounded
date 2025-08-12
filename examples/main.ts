@@ -8,6 +8,7 @@ import {
 	Mesh,
 	MeshBasicMaterial,
 	Object3D,
+	Quaternion,
 	Raycaster,
 	SphereGeometry,
 	Vector2,
@@ -630,6 +631,11 @@ function setupIK(): void {
 	rightLowerArmTarget.add(rightLowerArmMesh);
 
 	rightLowerArmTarget.position.copy(skin.rightLowerArm.getWorldPosition(new Vector3()));
+	rightLowerArmTarget.position.add(
+		new Vector3(0, -4, 0)
+			.multiplyScalar(selectedPlayer.scale.y)
+			.applyQuaternion(skin.rightLowerArm.getWorldQuaternion(new Quaternion()))
+	);
 	skinViewer.scene.add(rightLowerArmTarget);
 	const rIK = new IK();
 	const rChain = new IKChain();
@@ -651,6 +657,11 @@ function setupIK(): void {
 	leftLowerArmTarget.add(leftLowerArmMesh);
 
 	leftLowerArmTarget.position.copy(skin.leftLowerArm.getWorldPosition(new Vector3()));
+	leftLowerArmTarget.position.add(
+		new Vector3(0, -4, 0)
+			.multiplyScalar(selectedPlayer.scale.y)
+			.applyQuaternion(skin.leftLowerArm.getWorldQuaternion(new Quaternion()))
+	);
 	skinViewer.scene.add(leftLowerArmTarget);
 	const lIK = new IK();
 	const lChain = new IKChain();
@@ -673,6 +684,11 @@ function setupIK(): void {
 	rightLowerLegTarget.add(rightLowerLegMesh);
 
 	rightLowerLegTarget.position.copy(skin.rightLowerLeg.getWorldPosition(new Vector3()));
+	rightLowerLegTarget.position.add(
+		new Vector3(0, -4, 0)
+			.multiplyScalar(selectedPlayer.scale.y)
+			.applyQuaternion(skin.rightLowerLeg.getWorldQuaternion(new Quaternion()))
+	);
 	skinViewer.scene.add(rightLowerLegTarget);
 	const rLegIK = new IK();
 	const rLegChain = new IKChain();
@@ -695,6 +711,11 @@ function setupIK(): void {
 	leftLowerLegTarget.add(leftLowerLegMesh);
 
 	leftLowerLegTarget.position.copy(skin.leftLowerLeg.getWorldPosition(new Vector3()));
+	leftLowerLegTarget.position.add(
+		new Vector3(0, -4, 0)
+			.multiplyScalar(selectedPlayer.scale.y)
+			.applyQuaternion(skin.leftLowerLeg.getWorldQuaternion(new Quaternion()))
+	);
 	skinViewer.scene.add(leftLowerLegTarget);
 	const lLegIK = new IK();
 	const lLegChain = new IKChain();
