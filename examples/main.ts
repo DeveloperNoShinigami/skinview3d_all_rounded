@@ -818,9 +818,15 @@ function initializeControls(): void {
 	});
 
 	editorPlayPause?.addEventListener("click", () => {
-		if (loadedAnimation) {
-			loadedAnimation.paused = !loadedAnimation.paused;
+		const wasPaused = loadedAnimation?.paused ?? true;
+		const anim = buildKeyframeAnimation();
+		if (!anim) {
+			return;
 		}
+		skinViewer.setAnimation(selectedPlayer, anim);
+		loadedAnimation = anim;
+		anim.paused = !wasPaused;
+		(editorPlayPause as HTMLButtonElement).textContent = anim.paused ? "Play" : "Pause";
 	});
 
 	autoRotate?.addEventListener("change", e => {
