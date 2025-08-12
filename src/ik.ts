@@ -40,7 +40,7 @@ export function buildLimbIKChains(player: PlayerObject): IKChainMap {
 
 		chains[`ik.${name}`] = {
 			target,
-			effector: target,
+			effector: lower,
 			ik,
 			bones,
 			root,
@@ -72,4 +72,27 @@ export function buildLimbIKChains(player: PlayerObject): IKChainMap {
 	]);
 
 	return chains;
+}
+
+export function getTargetRelativePosition(controller: IKController): Vector3 {
+	const world = controller.target.getWorldPosition(new Vector3());
+	return controller.effector.worldToLocal(world);
+}
+
+export function getTargetRelativePositions(chains: IKChainMap): Record<string, Vector3> {
+	const positions: Record<string, Vector3> = {};
+	for (const [name, controller] of Object.entries(chains)) {
+		positions[name] = getTargetRelativePosition(controller);
+	}
+	return positions;
+}
+
+export function snapTargetToBone(controller: IKController): void {
+	controller.target.position.copy(controller.effector.getWorldPosition(new Vector3()));
+}
+
+export function exportTargetPositions(chains: IKChainMap): string {
+	const positions = getTargetRelativePositions(chains);
+	const json = Object.fromEntries(Object.entries(positions).map(([name, pos]) => [name, [pos.x, pos.y, pos.z]]));
+	return JSON.stringify(json, null, 2);
 }
