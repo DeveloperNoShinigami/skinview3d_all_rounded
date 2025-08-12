@@ -33,6 +33,19 @@ test("resetJoints restores default pivots for arms and legs", () => {
 	assert.ok(skin.rightLowerLeg.position.equals(new Vector3(0, 0, 0)));
 	assert.ok(skin.leftElbow.position.equals(new Vector3(0, -4, 0)));
 	assert.ok(skin.rightElbow.position.equals(new Vector3(0, -4, 0)));
-	assert.ok(skin.leftKnee.position.equals(new Vector3(0, -4, 0)));
-	assert.ok(skin.rightKnee.position.equals(new Vector3(0, -4, 0)));
+        assert.ok(skin.leftKnee.position.equals(new Vector3(0, -4, 0)));
+        assert.ok(skin.rightKnee.position.equals(new Vector3(0, -4, 0)));
+});
+
+test("resetJoints restores the skin root translation", () => {
+        const player = new PlayerObject();
+        const skin = player.skin;
+
+        skin.position.set(1, 2, 3);
+        skin.rightUpperArm.position.set(1, 1, 1);
+
+        player.resetJoints();
+
+        assert.ok(skin.rightUpperArm.position.equals(new Vector3(-5, -6, 0)));
+        assert.ok(skin.position.equals(new Vector3(0, 8, 0)));
 });
