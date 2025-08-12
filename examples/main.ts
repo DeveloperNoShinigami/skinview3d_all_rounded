@@ -22,7 +22,8 @@ import { JumpAnimation } from "./jump-animation";
 
 const skinParts = [
 	"head",
-	"body",
+	"upperBody",
+	"lowerBody",
 	"rightUpperArm",
 	"leftUpperArm",
 	"rightUpperLeg",
@@ -64,11 +65,12 @@ let previousAutoRotate = false;
 let previousAnimationPaused = false;
 let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
-const ikChains: Record<string, { target: Object3D; effector: Object3D; ik: IK; bones: string[]; root: IKJoint }> = {};
+let ikChains: IKChainMap = {};
 let ikUpdateId: number | null = null;
 let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
 let selectionHelper: BoxHelper | null = null;
+let boneSelectionHelper: BoxHelper | null = null;
 const raycaster = new Raycaster();
 const pointer = new Vector2();
 const extraPlayerControls: HTMLElement[] = [];
@@ -209,6 +211,7 @@ function updateJointHelpers(): void {
 		helper.update();
 	}
 	selectionHelper?.update();
+	boneSelectionHelper?.update();
 	requestAnimationFrame(updateJointHelpers);
 }
 updateJointHelpers();
@@ -221,6 +224,20 @@ function getBone(path: string): Object3D {
 		return ikChains[path]?.target ?? selectedPlayer;
 	}
 	return path.split(".").reduce((obj: any, part) => obj?.[part], selectedPlayer) ?? selectedPlayer;
+}
+
+function updateBoneSelectionHelper(): void {
+	if (boneSelectionHelper) {
+		skinViewer.scene.remove(boneSelectionHelper);
+		boneSelectionHelper = null;
+	}
+	if (!editorEnabled) {
+		return;
+	}
+	const bone = getBone(selectedBone);
+	boneSelectionHelper = new BoxHelper(bone, 0xff00ff);
+	boneSelectionHelper.update();
+	skinViewer.scene.add(boneSelectionHelper);
 }
 
 function updateViewportSize(): void {
@@ -257,6 +274,7 @@ function selectPlayer(player: skinview3d.PlayerObject | null): void {
 	if (editorEnabled) {
 		setupIK();
 	}
+	updateBoneSelectionHelper();
 	for (const part of skinParts) {
 		const skinPart = (selectedPlayer.skin as any)[part];
 		for (const layer of skinLayers) {
@@ -289,6 +307,39 @@ function handlePlayerClick(event: MouseEvent): void {
 	pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
 	pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 	raycaster.setFromCamera(pointer, skinViewer.camera);
+	if (editorEnabled) {
+		const map = new Map<Object3D, string>();
+		for (const part of skinParts) {
+			const bone = (selectedPlayer.skin as any)[part] as Object3D | undefined;
+			if (bone) {
+				map.set(bone, `skin.${part}`);
+			}
+		}
+		for (const key of Object.keys(ikChains)) {
+			map.set(ikChains[key].target, key);
+		}
+		const objects = Array.from(map.keys());
+		const intersections = raycaster.intersectObjects(objects, true);
+		if (intersections.length > 0) {
+			let obj = intersections[0].object as Object3D | null;
+			while (obj && !map.has(obj)) {
+				obj = obj.parent as Object3D | null;
+			}
+			const path = obj ? map.get(obj) : undefined;
+			if (path) {
+				selectedBone = path;
+				if (boneSelector) {
+					boneSelector.value = path;
+					boneSelector.focus();
+				}
+				if (transformControls) {
+					transformControls.attach(getBone(selectedBone));
+				}
+				updateBoneSelectionHelper();
+				return;
+			}
+		}
+	}
 	const players = [skinViewer.playerObject, ...extraPlayers];
 	let hit: skinview3d.PlayerObject | null = null;
 	for (const p of players) {
@@ -614,11 +665,12 @@ function reloadNameTag(): void {
 }
 
 function setupIK(): void {
+	disposeIK();
+	ikChains = buildLimbIKChains(selectedPlayer);
 	for (const chain of Object.values(ikChains)) {
-		chain.root.constraints = [];
-		skinViewer.scene.remove(chain.target);
-		if (chain.effector !== chain.target) {
-			skinViewer.scene.remove(chain.effector);
+		skinViewer.scene.add(chain.target);
+		if (chain.effector && chain.effector !== chain.target) {
+			skinViewer.scene.add(chain.effector);
 		}
 	}
 	for (const key in ikChains) {
@@ -735,6 +787,7 @@ function setupIK(): void {
 	if (ikUpdateId !== null) {
 		cancelAnimationFrame(ikUpdateId);
 	}
+
 	const update = () => {
 		const time =
 			loadedAnimation && keyframes.length > 0 ? keyframes[0].time + loadedAnimation.progress * 1000 : Date.now();
@@ -747,8 +800,7 @@ function setupIK(): void {
 		ikUpdateId = requestAnimationFrame(update);
 	};
 	update();
-
-	initializeBoneSelector();
+	initializeBoneSelector(true);
 }
 
 function disposeIK(): void {
@@ -759,15 +811,12 @@ function disposeIK(): void {
 	for (const chain of Object.values(ikChains)) {
 		chain.root.constraints = [];
 		skinViewer.scene.remove(chain.target);
-		if (chain.effector !== chain.target) {
+		if (chain.effector && chain.effector !== chain.target) {
 			skinViewer.scene.remove(chain.effector);
 		}
 	}
-	for (const key in ikChains) {
-		delete ikChains[key];
-	}
-
-	initializeBoneSelector();
+	ikChains = {};
+	initializeBoneSelector(false);
 }
 
 function initializeControls(): void {
@@ -1311,7 +1360,6 @@ function toggleEditor(): void {
 		updateViewportSize();
 
 		setupIK();
-		initializeBoneSelector(true);
 		selectedBone = boneSelector?.value || "playerObject";
 
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
@@ -1330,6 +1378,7 @@ function toggleEditor(): void {
 		}
 		transformControls.attach(getBone(selectedBone));
 		skinViewer.scene.add(transformControls);
+		updateBoneSelectionHelper();
 	} else {
 		skinViewer.autoRotate = previousAutoRotate;
 		const anim = skinViewer.getAnimation(selectedPlayer);
@@ -1345,8 +1394,8 @@ function toggleEditor(): void {
 			transformControls = null;
 		}
 		disposeIK();
-		initializeBoneSelector(false);
 		selectedBone = boneSelector?.value || "playerObject";
+		updateBoneSelectionHelper();
 	}
 }
 
@@ -1520,6 +1569,7 @@ boneSelector?.addEventListener("change", () => {
 	if (transformControls) {
 		transformControls.attach(getBone(selectedBone));
 	}
+	updateBoneSelectionHelper();
 });
 const toggleEditorBtn = document.getElementById("toggle_editor");
 toggleEditorBtn?.addEventListener("click", toggleEditor);

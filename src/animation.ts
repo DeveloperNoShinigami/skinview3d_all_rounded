@@ -383,10 +383,10 @@ export class CrouchAnimation extends PlayerAnimation {
 		if (!this.showProgress) {
 			pr = Math.floor(pr);
 		}
-		player.skin.body.rotation.x = 0.4537860552 * Math.abs(Math.sin((pr * Math.PI) / 2));
-		player.skin.body.position.z =
+		player.skin.waist.rotation.x = 0.4537860552 * Math.abs(Math.sin((pr * Math.PI) / 2));
+		player.skin.waist.position.z =
 			1.3256181 * Math.abs(Math.sin((pr * Math.PI) / 2)) - 3.4500310377 * Math.abs(Math.sin((pr * Math.PI) / 2));
-		player.skin.body.position.y = -6 - 2.103677462 * Math.abs(Math.sin((pr * Math.PI) / 2));
+		player.skin.waist.position.y = -6 - 2.103677462 * Math.abs(Math.sin((pr * Math.PI) / 2));
 		player.cape.position.y = 8 - 1.851236166577372 * Math.abs(Math.sin((pr * Math.PI) / 2));
 		player.cape.rotation.x = (10.8 * Math.PI) / 180 + 0.294220265771 * Math.abs(Math.sin((pr * Math.PI) / 2));
 		player.cape.position.z =
@@ -434,7 +434,7 @@ export class CrouchAnimation extends PlayerAnimation {
 				-0.4537860552 + 2 * Math.sin(t + Math.PI) * 0.3 - (isCrouching ? 0.4537860552 : 0);
 			const basicArmRotationZ = 0.01 * Math.PI + 0.06;
 			player.skin.rightUpperArm.rotation.z = -Math.cos(t) * 0.403 + basicArmRotationZ;
-			player.skin.body.rotation.y = -Math.cos(t) * 0.06;
+			player.skin.waist.rotation.y = -Math.cos(t) * 0.06;
 			player.skin.leftUpperArm.rotation.x = Math.sin(t + Math.PI) * 0.077 + (isCrouching ? 0.47 : 0);
 			player.skin.leftUpperArm.rotation.z = -Math.cos(t) * 0.015 + 0.13 - (!isCrouching ? 0.05 : 0);
 			if (!isCrouching) {
@@ -450,7 +450,7 @@ export class HitAnimation extends PlayerAnimation {
 		player.skin.rightUpperArm.rotation.x = -0.4537860552 * 2 + 2 * Math.sin(t + Math.PI) * 0.3;
 		const basicArmRotationZ = 0.01 * Math.PI + 0.06;
 		player.skin.rightUpperArm.rotation.z = -Math.cos(t) * 0.403 + basicArmRotationZ;
-		player.skin.body.rotation.y = -Math.cos(t) * 0.06;
+		player.skin.waist.rotation.y = -Math.cos(t) * 0.06;
 		player.skin.leftUpperArm.rotation.x = Math.sin(t + Math.PI) * 0.077;
 		player.skin.leftUpperArm.rotation.z = -Math.cos(t) * 0.015 + 0.13 - 0.05;
 		player.skin.leftUpperArm.position.z = Math.cos(t) * 0.3;
