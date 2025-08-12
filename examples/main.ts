@@ -1093,9 +1093,10 @@ function initializeControls(): void {
 
 function initializeViewer(): void {
 	disposeIK();
-	const skinContainer = document.getElementById("skin_container") as HTMLCanvasElement;
+	const skinContainer = document.getElementById("skin_container") as HTMLCanvasElement | null;
 	if (!skinContainer) {
-		throw new Error("Canvas element not found");
+		console.error("Canvas element not found; viewer not initialized.");
+		return;
 	}
 
 	skinViewer = new skinview3d.SkinViewer({
@@ -1187,15 +1188,23 @@ function initializeViewer(): void {
 	updateViewportSize();
 }
 
-initializeViewer();
-initializeControls();
-setupIK();
-initializeBoneSelector(true);
-document.getElementById("skin_container")?.addEventListener("click", handlePlayerClick);
+window.addEventListener("DOMContentLoaded", () => {
+	initializeViewer();
+	initializeControls();
+	setupIK();
+	initializeBoneSelector(true);
+	const skinContainer = document.getElementById("skin_container");
+	if (skinContainer) {
+		skinContainer.addEventListener("click", handlePlayerClick);
+	} else {
+		console.error("Skin container element not found; click handler not attached.");
+	}
+});
 
 function initializeBoneSelector(useIK = false): void {
-	const selector = document.getElementById("bone_selector") as HTMLSelectElement;
+	const selector = document.getElementById("bone_selector") as HTMLSelectElement | null;
 	if (!selector) {
+		console.error("Bone selector element not found; bone selection disabled.");
 		return;
 	}
 
