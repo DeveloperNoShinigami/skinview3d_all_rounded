@@ -85,7 +85,8 @@ export class BodyPart extends Group {
 export class SkinObject extends Group {
 	// body parts
 	readonly head: BodyPart;
-	readonly body: BodyPart;
+	readonly upperBody: BodyPart;
+	readonly lowerBody: BodyPart;
 	readonly rightUpperArm: BodyPart;
 	readonly leftUpperArm: BodyPart;
 	readonly rightUpperLeg: BodyPart;
@@ -94,6 +95,7 @@ export class SkinObject extends Group {
 	readonly leftLowerArm: BodyPart;
 	readonly rightLowerLeg: BodyPart;
 	readonly leftLowerLeg: BodyPart;
+	readonly waist: Group;
 	readonly rightUpperArmPivot: Group;
 	readonly leftUpperArmPivot: Group;
 	readonly rightLowerArmPivot: Group;
@@ -148,18 +150,40 @@ export class SkinObject extends Group {
 		this.add(this.head);
 
 		// Body
-		const bodyBox = new BoxGeometry(8, 12, 4);
-		setSkinUVs(bodyBox, 16, 16, 8, 12, 4);
-		const bodyMesh = new Mesh(bodyBox, this.layer1Material);
-		const body2Box = new BoxGeometry(8.5, 12.5, 4.5);
-		setSkinUVs(body2Box, 16, 32, 8, 12, 4);
-		const body2Mesh = new Mesh(body2Box, this.layer2Material);
+		const waist = new Group();
+		waist.name = "waist";
+		waist.position.y = -6;
 
-		this.body = new BodyPart(bodyMesh, body2Mesh);
-		this.body.name = "body";
-		this.body.add(bodyMesh, body2Mesh);
-		this.body.position.y = -6;
-		this.add(this.body);
+		const upperBodyBox = new BoxGeometry(8, 6, 4);
+		setSkinUVs(upperBodyBox, 16, 16, 8, 6, 4);
+		const upperBodyMesh = new Mesh(upperBodyBox, this.layer1Material);
+		upperBodyMesh.position.y = 3;
+		const upperBody2Box = new BoxGeometry(8.5, 6.5, 4.5);
+		setSkinUVs(upperBody2Box, 16, 32, 8, 6, 4);
+		const upperBody2Mesh = new Mesh(upperBody2Box, this.layer2Material);
+		upperBody2Mesh.position.y = 3;
+
+		this.upperBody = new BodyPart(upperBodyMesh, upperBody2Mesh);
+		this.upperBody.name = "upperBody";
+		this.upperBody.add(upperBodyMesh, upperBody2Mesh);
+		waist.add(this.upperBody);
+
+		const lowerBodyBox = new BoxGeometry(8, 6, 4);
+		setSkinUVs(lowerBodyBox, 16, 22, 8, 6, 4);
+		const lowerBodyMesh = new Mesh(lowerBodyBox, this.layer1Material);
+		lowerBodyMesh.position.y = -3;
+		const lowerBody2Box = new BoxGeometry(8.5, 6.5, 4.5);
+		setSkinUVs(lowerBody2Box, 16, 38, 8, 6, 4);
+		const lowerBody2Mesh = new Mesh(lowerBody2Box, this.layer2Material);
+		lowerBody2Mesh.position.y = -3;
+
+		this.lowerBody = new BodyPart(lowerBodyMesh, lowerBody2Mesh);
+		this.lowerBody.name = "lowerBody";
+		this.lowerBody.add(lowerBodyMesh, lowerBody2Mesh);
+		waist.add(this.lowerBody);
+
+		this.waist = waist;
+		this.add(waist);
 
 		// ===== Right Arm (upper + elbow + lower) =====
 		const rightUpperArmBox = new BoxGeometry(); // 1x1x1, we scale it
@@ -577,9 +601,13 @@ export class SkinObject extends Group {
 		this.leftLowerLegPivot.position.set(0, -4, 0);
 
 		// BodyPart containers place the pivots in world
-		this.body.rotation.set(0, 0, 0);
+		this.upperBody.rotation.set(0, 0, 0);
+		this.lowerBody.rotation.set(0, 0, 0);
+		this.waist.rotation.set(0, 0, 0);
 		this.head.position.y = 0;
-		this.body.position.set(0, -6, 0);
+		this.waist.position.set(0, -6, 0);
+		this.upperBody.position.set(0, 0, 0);
+		this.lowerBody.position.set(0, 0, 0);
 
 		this.rightLowerArm.position.set(0, 0, 0);
 		this.leftLowerArm.position.set(0, 0, 0);
