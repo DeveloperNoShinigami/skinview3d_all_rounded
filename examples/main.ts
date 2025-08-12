@@ -80,6 +80,7 @@ let canvasHeight: HTMLInputElement | null = null;
 let playerSelector: HTMLSelectElement | null = null;
 const spacingOptions = [20, 40, 60];
 let spacingIndex = 0;
+let defaultPose: Array<{ object: Object3D; position: Vector3; rotation: Euler }> = [];
 
 function initializeAssetMenu(): void {
 	const mainMenu = document.getElementById("main_menu");
@@ -273,6 +274,7 @@ function selectPlayer(player: skinview3d.PlayerObject | null): void {
 	updateJointHighlight(highlight);
 	if (editorEnabled) {
 		setupIK();
+		snapshotDefaultPose();
 	}
 	updateBoneSelectionHelper();
 	for (const part of skinParts) {
@@ -1338,6 +1340,35 @@ function initializeBoneSelector(useIK = false): void {
 	}
 }
 
+function snapshotDefaultPose(): void {
+	defaultPose = [];
+	const paths = ["playerObject", ...skinParts.map(part => `skin.${part}`)];
+	for (const path of paths) {
+		const bone = getBone(path);
+		defaultPose.push({
+			object: bone,
+			position: bone.position.clone(),
+			rotation: bone.rotation.clone(),
+		});
+	}
+	for (const chain of Object.values(ikChains)) {
+		const target = chain.target;
+		defaultPose.push({
+			object: target,
+			position: target.position.clone(),
+			rotation: target.rotation.clone(),
+		});
+	}
+}
+
+function resetPose(): void {
+	for (const item of defaultPose) {
+		item.object.position.copy(item.position);
+		item.object.rotation.copy(item.rotation);
+		item.object.updateMatrixWorld(true);
+	}
+}
+
 function toggleEditor(): void {
 	const editor = document.getElementById("animation_editor");
 	const skinContainer = document.getElementById("skin_container") as HTMLCanvasElement;
@@ -1378,7 +1409,8 @@ function toggleEditor(): void {
 		}
 		transformControls.attach(getBone(selectedBone));
 		skinViewer.scene.add(transformControls);
-		updateBoneSelectionHelper();
+		snapshotDefaultPose();
+
 	} else {
 		skinViewer.autoRotate = previousAutoRotate;
 		const anim = skinViewer.getAnimation(selectedPlayer);
@@ -1588,6 +1620,9 @@ modeSelector?.addEventListener("change", () => {
 		transformControls.setMode(modeSelector.value as any);
 	}
 });
+
+const resetPoseBtn = document.getElementById("reset_pose");
+resetPoseBtn?.addEventListener("click", resetPose);
 
 function buildKeyframeAnimation(): skinview3d.KeyframeAnimation | null {
 	if (keyframes.length === 0) {
