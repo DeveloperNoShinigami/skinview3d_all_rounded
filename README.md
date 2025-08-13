@@ -274,10 +274,17 @@ This font is available at [`assets/minecraft.woff2`](assets/minecraft.woff2).
 To load this font, please add the `@font-face` rule to your CSS:
 ```css
 @font-face {
-	font-family: 'Minecraft';
-	src: url('/path/to/minecraft.woff2') format('woff2');
+        font-family: 'Minecraft';
+        src: url('/path/to/minecraft.woff2') format('woff2');
 }
 ```
+
+## IK Debugging
+
+Enable **Show IK Debug** in the demo to visualize inverse kinematics targets as colored spheres.
+The `ik` module exposes helpers such as `getTargetRelativePositions` and `exportTargetPositions`
+for inspecting or exporting target offsets, and `snapTargetToBone` to reset a target to the end of its bone.
+Exported data is returned as JSON, making it easy to tweak or correct coordinates externally.
 
 # Development Notes
 
