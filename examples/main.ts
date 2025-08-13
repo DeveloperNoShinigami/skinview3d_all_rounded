@@ -71,6 +71,7 @@ let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
 let selectionHelper: BoxHelper | null = null;
 let boneSelectionHelper: BoxHelper | null = null;
+let autoKeyframe = false;
 const raycaster = new Raycaster();
 const pointer = new Vector2();
 const extraPlayerControls: HTMLElement[] = [];
@@ -203,6 +204,14 @@ function updateJointHighlight(enabled: boolean): void {
 			helper.update();
 			jointHelpers.push(helper);
 			skinViewer.scene.add(helper);
+		}
+	}
+}
+
+function updateIKDebug(enabled: boolean): void {
+	for (const chain of Object.values(ikChains)) {
+		for (const child of chain.target.children) {
+			child.visible = enabled;
 		}
 	}
 }
@@ -803,6 +812,8 @@ function setupIK(): void {
 	};
 	update();
 	initializeBoneSelector(true);
+	const showIKDebug = document.getElementById("show_ik_debug") as HTMLInputElement;
+	updateIKDebug(showIKDebug?.checked ?? false);
 }
 
 function disposeIK(): void {
@@ -832,6 +843,7 @@ function initializeControls(): void {
 	const animationPauseResume = document.getElementById("animation_pause_resume");
 	const editorPlayPause = document.getElementById("editor_play_pause");
 	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
+	const showIKDebug = document.getElementById("show_ik_debug") as HTMLInputElement;
 	const autoRotate = document.getElementById("auto_rotate") as HTMLInputElement;
 	const autoRotateSpeed = document.getElementById("auto_rotate_speed") as HTMLInputElement;
 	const controlRotate = document.getElementById("control_rotate") as HTMLInputElement;
@@ -929,6 +941,11 @@ function initializeControls(): void {
 	highlightJoints?.addEventListener("change", e => {
 		const target = e.target as HTMLInputElement;
 		updateJointHighlight(target.checked);
+	});
+
+	showIKDebug?.addEventListener("change", e => {
+		const target = e.target as HTMLInputElement;
+		updateIKDebug(target.checked);
 	});
 
 	autoRotateSpeed?.addEventListener("change", e => {
@@ -1283,6 +1300,8 @@ function initializeViewer(): void {
 	reloadNameTag();
 	const highlightJoints = document.getElementById("highlight_joints") as HTMLInputElement;
 	updateJointHighlight(highlightJoints?.checked ?? false);
+	const showIKDebug = document.getElementById("show_ik_debug") as HTMLInputElement;
+	updateIKDebug(showIKDebug?.checked ?? false);
 	updateViewportSize();
 }
 
@@ -1396,12 +1415,21 @@ function toggleEditor(): void {
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
 		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
 			skinViewer.controls.enabled = !e.value;
-			if (!e.value) {
-				if (selectedBone.startsWith("ik.")) {
-					addIKKeyframe(selectedBone);
-				} else {
-					addKeyframe();
-				}
+		});
+		const addAutoKeyframe = () => {
+			if (!autoKeyframe) {
+				return;
+			}
+			if (selectedBone.startsWith("ik.")) {
+				addIKKeyframe(selectedBone);
+			} else {
+				addKeyframe();
+			}
+		};
+		transformControls.addEventListener("mouseUp", addAutoKeyframe);
+		transformControls.addEventListener("objectChange", () => {
+			if (!transformControls?.dragging) {
+				addAutoKeyframe();
 			}
 		});
 		if (modeSelector) {
@@ -1410,7 +1438,6 @@ function toggleEditor(): void {
 		transformControls.attach(getBone(selectedBone));
 		skinViewer.scene.add(transformControls);
 		snapshotDefaultPose();
-
 	} else {
 		skinViewer.autoRotate = previousAutoRotate;
 		const anim = skinViewer.getAnimation(selectedPlayer);
@@ -1612,6 +1639,11 @@ addKeyframeBtn?.addEventListener("click", () => {
 	} else {
 		addKeyframe();
 	}
+});
+
+const autoKeyframeInput = document.getElementById("auto_keyframe") as HTMLInputElement;
+autoKeyframeInput?.addEventListener("change", () => {
+	autoKeyframe = autoKeyframeInput.checked;
 });
 
 const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
