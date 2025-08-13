@@ -27,7 +27,10 @@ export function buildLimbIKChains(player: PlayerObject): IKChainMap {
 		const target = new Object3D();
 		const mesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color }));
 		target.add(mesh);
-		target.position.copy(lower.getWorldPosition(new Vector3()));
+
+		const basePos = lower.getWorldPosition(new Vector3());
+		const endOffset = lower.localToWorld(new Vector3(0, -4, 0)).sub(basePos.clone());
+		target.position.copy(basePos.add(endOffset));
 
 		const ik = new IK();
 		const chain = new IKChain();

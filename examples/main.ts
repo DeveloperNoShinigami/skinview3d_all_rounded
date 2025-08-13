@@ -1,19 +1,9 @@
 import * as skinview3d from "../src/skinview3d";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
-import { IK, IKChain, IKJoint } from "three-ik";
-import {
-	BoxHelper,
-	Euler,
-	Mesh,
-	MeshBasicMaterial,
-	Object3D,
-	Quaternion,
-	Raycaster,
-	SphereGeometry,
-	Vector2,
-	Vector3,
-} from "three";
+import { buildLimbIKChains } from "../src/ik";
+import type { IKChainMap } from "../src/ik";
+import { BoxHelper, Euler, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import { attachJointControls } from "./joint-controls";
 
 import "./style.css";
@@ -684,117 +674,6 @@ function setupIK(): void {
 			skinViewer.scene.add(chain.effector);
 		}
 	}
-	for (const key in ikChains) {
-		delete ikChains[key];
-	}
-	const skin = selectedPlayer.skin;
-
-	const rightLowerArmTarget = new Object3D();
-	const rightLowerArmMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xff0000 }));
-	rightLowerArmTarget.add(rightLowerArmMesh);
-
-	rightLowerArmTarget.position.copy(skin.rightLowerArm.getWorldPosition(new Vector3()));
-	rightLowerArmTarget.position.add(
-		new Vector3(0, -4, 0)
-			.multiplyScalar(selectedPlayer.scale.y)
-			.applyQuaternion(skin.rightLowerArm.getWorldQuaternion(new Quaternion()))
-	);
-	skinViewer.scene.add(rightLowerArmTarget);
-	const rIK = new IK();
-	const rChain = new IKChain();
-	const rRoot = new IKJoint(skin.rightUpperArm);
-	rChain.add(rRoot); // keep shoulder static
-	rChain.add(new IKJoint(skin.rightElbow));
-	rChain.add(new IKJoint(skin.rightLowerArm), { target: rightLowerArmTarget });
-	rChain.effectorIndex = rChain.joints.length - 1;
-	rIK.add(rChain);
-	ikChains["ik.rightArm"] = {
-		target: rightLowerArmTarget,
-		ik: rIK,
-		bones: ["skin.rightUpperArm", "skin.rightElbow", "skin.rightLowerArm"],
-		root: rRoot,
-	};
-
-	const leftLowerArmTarget = new Object3D();
-	const leftLowerArmMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x00ff00 }));
-	leftLowerArmTarget.add(leftLowerArmMesh);
-
-	leftLowerArmTarget.position.copy(skin.leftLowerArm.getWorldPosition(new Vector3()));
-	leftLowerArmTarget.position.add(
-		new Vector3(0, -4, 0)
-			.multiplyScalar(selectedPlayer.scale.y)
-			.applyQuaternion(skin.leftLowerArm.getWorldQuaternion(new Quaternion()))
-	);
-	skinViewer.scene.add(leftLowerArmTarget);
-	const lIK = new IK();
-	const lChain = new IKChain();
-	const lRoot = new IKJoint(skin.leftUpperArm);
-	lChain.add(lRoot); // keep shoulder static
-	lChain.add(new IKJoint(skin.leftElbow));
-	lChain.add(new IKJoint(skin.leftLowerArm), { target: leftLowerArmTarget });
-	lChain.effectorIndex = lChain.joints.length - 1;
-	lIK.add(lChain);
-	ikChains["ik.leftArm"] = {
-		target: leftLowerArmTarget,
-
-		ik: lIK,
-		bones: ["skin.leftUpperArm", "skin.leftElbow", "skin.leftLowerArm"],
-		root: lRoot,
-	};
-
-	const rightLowerLegTarget = new Object3D();
-	const rightLowerLegMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0x0000ff }));
-	rightLowerLegTarget.add(rightLowerLegMesh);
-
-	rightLowerLegTarget.position.copy(skin.rightLowerLeg.getWorldPosition(new Vector3()));
-	rightLowerLegTarget.position.add(
-		new Vector3(0, -4, 0)
-			.multiplyScalar(selectedPlayer.scale.y)
-			.applyQuaternion(skin.rightLowerLeg.getWorldQuaternion(new Quaternion()))
-	);
-	skinViewer.scene.add(rightLowerLegTarget);
-	const rLegIK = new IK();
-	const rLegChain = new IKChain();
-	const rLegRoot = new IKJoint(skin.rightUpperLeg);
-	rLegChain.add(rLegRoot); // keep hip static
-	rLegChain.add(new IKJoint(skin.rightKnee));
-	rLegChain.add(new IKJoint(skin.rightLowerLeg), { target: rightLowerLegTarget });
-	rLegChain.effectorIndex = rLegChain.joints.length - 1;
-	rLegIK.add(rLegChain);
-	ikChains["ik.rightLeg"] = {
-		target: rightLowerLegTarget,
-
-		ik: rLegIK,
-		bones: ["skin.rightUpperLeg", "skin.rightKnee", "skin.rightLowerLeg"],
-		root: rLegRoot,
-	};
-
-	const leftLowerLegTarget = new Object3D();
-	const leftLowerLegMesh = new Mesh(new SphereGeometry(0.5), new MeshBasicMaterial({ color: 0xffff00 }));
-	leftLowerLegTarget.add(leftLowerLegMesh);
-
-	leftLowerLegTarget.position.copy(skin.leftLowerLeg.getWorldPosition(new Vector3()));
-	leftLowerLegTarget.position.add(
-		new Vector3(0, -4, 0)
-			.multiplyScalar(selectedPlayer.scale.y)
-			.applyQuaternion(skin.leftLowerLeg.getWorldQuaternion(new Quaternion()))
-	);
-	skinViewer.scene.add(leftLowerLegTarget);
-	const lLegIK = new IK();
-	const lLegChain = new IKChain();
-	const lLegRoot = new IKJoint(skin.leftUpperLeg);
-	lLegChain.add(lLegRoot); // keep hip static
-	lLegChain.add(new IKJoint(skin.leftKnee));
-	lLegChain.add(new IKJoint(skin.leftLowerLeg), { target: leftLowerLegTarget });
-	lLegChain.effectorIndex = lLegChain.joints.length - 1;
-	lLegIK.add(lLegChain);
-	ikChains["ik.leftLeg"] = {
-		target: leftLowerLegTarget,
-		ik: lLegIK,
-		bones: ["skin.leftUpperLeg", "skin.leftKnee", "skin.leftLowerLeg"],
-		root: lLegRoot,
-	};
-
 	if (ikUpdateId !== null) {
 		cancelAnimationFrame(ikUpdateId);
 	}
@@ -1333,12 +1212,6 @@ function initializeBoneSelector(useIK = false): void {
 	selector.appendChild(playerOption);
 
 	for (const part of skinParts) {
-		if (
-			useIK &&
-			(part === "rightUpperArm" || part === "leftUpperArm" || part === "rightUpperLeg" || part === "leftUpperLeg")
-		) {
-			continue;
-		}
 		const option = document.createElement("option");
 		option.value = `skin.${part}`;
 		option.textContent = `skin.${part}`;
@@ -1432,9 +1305,11 @@ function toggleEditor(): void {
 				addAutoKeyframe();
 			}
 		});
+		const mode = selectedBone.startsWith("ik.") ? "translate" : "rotate";
 		if (modeSelector) {
-			transformControls.setMode(modeSelector.value as any);
+			modeSelector.value = mode;
 		}
+		transformControls.setMode(mode as any);
 		transformControls.attach(getBone(selectedBone));
 		skinViewer.scene.add(transformControls);
 		snapshotDefaultPose();
@@ -1625,8 +1500,13 @@ function addIKKeyframe(chainName: string): void {
 const boneSelector = document.getElementById("bone_selector") as HTMLSelectElement;
 boneSelector?.addEventListener("change", () => {
 	selectedBone = boneSelector.value || "playerObject";
+	const mode = selectedBone.startsWith("ik.") ? "translate" : "rotate";
 	if (transformControls) {
 		transformControls.attach(getBone(selectedBone));
+		transformControls.setMode(mode as any);
+	}
+	if (modeSelector) {
+		modeSelector.value = mode;
 	}
 	updateBoneSelectionHelper();
 });
