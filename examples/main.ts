@@ -71,6 +71,7 @@ let jointHelpers: BoxHelper[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
 let selectionHelper: BoxHelper | null = null;
 let boneSelectionHelper: BoxHelper | null = null;
+let autoKeyframe = false;
 const raycaster = new Raycaster();
 const pointer = new Vector2();
 const extraPlayerControls: HTMLElement[] = [];
@@ -1414,12 +1415,21 @@ function toggleEditor(): void {
 		transformControls = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
 		transformControls.addEventListener("dragging-changed", (e: { value: boolean }) => {
 			skinViewer.controls.enabled = !e.value;
-			if (!e.value) {
-				if (selectedBone.startsWith("ik.")) {
-					addIKKeyframe(selectedBone);
-				} else {
-					addKeyframe();
-				}
+		});
+		const addAutoKeyframe = () => {
+			if (!autoKeyframe) {
+				return;
+			}
+			if (selectedBone.startsWith("ik.")) {
+				addIKKeyframe(selectedBone);
+			} else {
+				addKeyframe();
+			}
+		};
+		transformControls.addEventListener("mouseUp", addAutoKeyframe);
+		transformControls.addEventListener("objectChange", () => {
+			if (!transformControls?.dragging) {
+				addAutoKeyframe();
 			}
 		});
 		if (modeSelector) {
@@ -1629,6 +1639,11 @@ addKeyframeBtn?.addEventListener("click", () => {
 	} else {
 		addKeyframe();
 	}
+});
+
+const autoKeyframeInput = document.getElementById("auto_keyframe") as HTMLInputElement;
+autoKeyframeInput?.addEventListener("change", () => {
+	autoKeyframe = autoKeyframeInput.checked;
 });
 
 const modeSelector = document.getElementById("transform_mode") as HTMLSelectElement;
