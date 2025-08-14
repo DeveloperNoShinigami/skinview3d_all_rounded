@@ -387,13 +387,17 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 	animLabel.appendChild(select);
 	div.appendChild(animLabel);
 
+	const dropdown = document.createElement("div");
+	dropdown.className = "dropdown";
 	const uploadBtn = document.createElement("button");
 	uploadBtn.className = "control";
 	uploadBtn.textContent = "Load...";
-	div.appendChild(uploadBtn);
+	dropdown.appendChild(uploadBtn);
 
 	const menu = document.createElement("ul");
-	menu.classList.add("hidden");
+	menu.classList.add("dropdown-menu");
+	dropdown.appendChild(menu);
+	div.appendChild(dropdown);
 
 	function createMenuItem(label: string, accept: string, load: (file: File) => void | Promise<void>): void {
 		const input = document.createElement("input");
@@ -406,7 +410,7 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 			if (file) {
 				await load(file);
 			}
-			menu.classList.add("hidden");
+			dropdown.classList.remove("open");
 		});
 
 		const item = document.createElement("li");
@@ -442,9 +446,8 @@ function createPlayerResourceMenu(player: skinview3d.PlayerObject, index: number
 		skinViewer.setAnimation(player, anim);
 	});
 
-	div.appendChild(menu);
 	uploadBtn.addEventListener("click", () => {
-		menu.classList.toggle("hidden");
+		dropdown.classList.toggle("open");
 	});
 
 	return div;
