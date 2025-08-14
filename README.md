@@ -286,6 +286,10 @@ The `ik` module exposes helpers such as `getTargetRelativePositions` and `export
 for inspecting or exporting target offsets, and `snapTargetToBone` to reset a target to the end of its bone.
 Exported data is returned as JSON, making it easy to tweak or correct coordinates externally.
 
+## Joint Controls
+
+The joint controls example allows repositioning limbs and exporting joint transforms. `exportJointCoordinates()` now returns a JSON object containing each joint's world position and rotation.
+
 # Development Notes
 
 See [viewport-player-resource-notes.md](viewport-player-resource-notes.md) for notes on viewport reset, player selection, and the resource menu, including current pitfalls and unresolved issues.

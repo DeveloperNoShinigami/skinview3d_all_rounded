@@ -1056,11 +1056,11 @@ function initializeControls(): void {
 	const exportJointBtn = document.getElementById("export_joint_coordinates");
 	exportJointBtn?.addEventListener("click", () => {
 		const data = skinViewer.exportJointCoordinates();
-		const blob = new Blob([data], { type: "text/plain" });
+		const blob = new Blob([data], { type: "application/json" });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
-		a.download = "joint-coordinates.txt";
+		a.download = "joint-coordinates.json";
 		a.click();
 		URL.revokeObjectURL(url);
 	});
