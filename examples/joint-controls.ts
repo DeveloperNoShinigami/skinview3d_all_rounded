@@ -2,6 +2,9 @@ import type { SkinViewer, PlayerObject } from "../src/skinview3d";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { Object3D, Raycaster, Vector2, Vector3 } from "three";
 
+// Click a joint to attach controls. Newly attached joints start in
+// rotation mode and can be toggled with `R` (rotate) and `T`
+// (translate). Rotations are applied around the joint's local axes.
 // Augment SkinViewer with joint control helpers
 declare module "../src/viewer" {
 	interface SkinViewer {
@@ -43,6 +46,7 @@ export function attachJointControls(viewer: SkinViewer): void {
 
 	viewer.enableJointControls = () => {
 		viewer.renderer.domElement.addEventListener("mousedown", onPointerDown);
+		window.addEventListener("keydown", onKeyDown);
 	};
 
 	function onPointerDown(event: MouseEvent): void {
@@ -65,10 +69,27 @@ export function attachJointControls(viewer: SkinViewer): void {
 						viewer.scene.add(control);
 					}
 					control.attach(obj);
+					control.setMode("rotate");
+					control.setSpace("local");
 					return;
 				}
 				obj = obj.parent;
 			}
+		}
+	}
+
+	function onKeyDown(event: KeyboardEvent): void {
+		if (!control) {
+			return;
+		}
+		// prettier-ignore
+		switch (event.key.toLowerCase()) {
+		case "t":
+			control.setMode("translate");
+			break;
+		case "r":
+			control.setMode("rotate");
+			break;
 		}
 	}
 
