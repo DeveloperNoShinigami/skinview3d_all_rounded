@@ -3,7 +3,7 @@ import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { buildLimbIKChains } from "../src/ik";
 import type { IKChainMap } from "../src/ik";
-import { BoxHelper, Euler, Object3D, Raycaster, Vector2, Vector3 } from "three";
+import { AxesHelper, BoxHelper, Euler, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import { attachJointControls } from "./joint-controls";
 
 import "./style.css";
@@ -57,7 +57,7 @@ let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
 let ikChains: IKChainMap = {};
 let ikUpdateId: number | null = null;
-let jointHelpers: BoxHelper[] = [];
+let jointHelpers: Object3D[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
 let selectionHelper: BoxHelper | null = null;
 let boneSelectionHelper: BoxHelper | null = null;
@@ -175,25 +175,20 @@ function initializeAssetMenu(): void {
 
 function updateJointHighlight(enabled: boolean): void {
 	for (const helper of jointHelpers) {
-		skinViewer.scene.remove(helper);
+		helper.removeFromParent();
 	}
 	jointHelpers = [];
 	if (enabled) {
 		const joints = [
-			selectedPlayer.skin.rightElbow,
-			selectedPlayer.skin.leftElbow,
-			selectedPlayer.skin.rightLowerArm,
-			selectedPlayer.skin.leftLowerArm,
-			selectedPlayer.skin.rightKnee,
-			selectedPlayer.skin.leftKnee,
-			selectedPlayer.skin.rightLowerLeg,
-			selectedPlayer.skin.leftLowerLeg,
+			selectedPlayer.skin.rightLowerArmPivot,
+			selectedPlayer.skin.leftLowerArmPivot,
+			selectedPlayer.skin.rightLowerLegPivot,
+			selectedPlayer.skin.leftLowerLegPivot,
 		];
 		for (const joint of joints) {
-			const helper = new BoxHelper(joint, 0xff0000);
-			helper.update();
+			const helper = new AxesHelper(2);
+			joint.add(helper);
 			jointHelpers.push(helper);
-			skinViewer.scene.add(helper);
 		}
 	}
 }
@@ -207,9 +202,6 @@ function updateIKDebug(enabled: boolean): void {
 }
 
 function updateJointHelpers(): void {
-	for (const helper of jointHelpers) {
-		helper.update();
-	}
 	selectionHelper?.update();
 	boneSelectionHelper?.update();
 	requestAnimationFrame(updateJointHelpers);
