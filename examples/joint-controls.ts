@@ -1,6 +1,6 @@
 import type { SkinViewer, PlayerObject } from "../src/skinview3d";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
-import { Object3D, Raycaster, Vector2, Vector3 } from "three";
+import { Object3D, Quaternion, Raycaster, Vector2, Vector3 } from "three";
 
 // Augment SkinViewer with joint control helpers
 declare module "../src/viewer" {
@@ -89,11 +89,29 @@ export function attachJointControls(viewer: SkinViewer): void {
 			["leftLowerLeg", skin.leftLowerLegPivot],
 		];
 		const pos = new Vector3();
-		return entries
-			.map(([name, obj]) => {
+		const quat = new Quaternion();
+		const data = Object.fromEntries(
+			entries.map(([name, obj]) => {
 				obj.getWorldPosition(pos);
-				return `${name}: ${pos.x.toFixed(3)} ${pos.y.toFixed(3)} ${pos.z.toFixed(3)}`;
+				obj.getWorldQuaternion(quat);
+				return [
+					name,
+					{
+						position: {
+							x: Number(pos.x.toFixed(3)),
+							y: Number(pos.y.toFixed(3)),
+							z: Number(pos.z.toFixed(3)),
+						},
+						rotation: {
+							x: Number(quat.x.toFixed(3)),
+							y: Number(quat.y.toFixed(3)),
+							z: Number(quat.z.toFixed(3)),
+							w: Number(quat.w.toFixed(3)),
+						},
+					},
+				];
 			})
-			.join("\n");
+		);
+		return JSON.stringify(data, null, 2);
 	};
 }
