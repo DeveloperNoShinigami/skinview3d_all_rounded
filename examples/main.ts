@@ -1,8 +1,9 @@
 import * as skinview3d from "../src/skinview3d";
 import type { BackEquipment } from "../src/model";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
-import { buildLimbIKChains } from "../src/ik";
-import type { IKChainMap } from "../src/ik";
+import { buildLimbIKChains, getTargetRelativePositions } from "../src/ik";
+import type { IKController } from "../src/ik";
+import { IKBallConstraint } from "three-ik";
 import { AxesHelper, BoxHelper, Euler, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import { attachJointControls } from "./joint-controls";
 
@@ -55,7 +56,10 @@ let previousAutoRotate = false;
 let previousAnimationPaused = false;
 let loadedAnimation: skinview3d.Animation | null = null;
 let uploadStatusEl: HTMLElement | null = null;
-let ikChains: IKChainMap = {};
+interface IKControllerWithControl extends IKController {
+	control: TransformControls;
+}
+let ikChains: Record<string, IKControllerWithControl> = {};
 let ikUpdateId: number | null = null;
 let jointHelpers: Object3D[] = [];
 const extraPlayers: skinview3d.PlayerObject[] = [];
@@ -662,12 +666,21 @@ function reloadNameTag(): void {
 
 function setupIK(): void {
 	disposeIK();
-	ikChains = buildLimbIKChains(selectedPlayer);
+	ikChains = buildLimbIKChains(selectedPlayer) as Record<string, IKControllerWithControl>;
 	for (const chain of Object.values(ikChains)) {
 		skinViewer.scene.add(chain.target);
 		if (chain.effector && chain.effector !== chain.target) {
 			skinViewer.scene.add(chain.effector);
 		}
+		const control = new TransformControls(skinViewer.camera, skinViewer.renderer.domElement);
+		control.setMode("translate");
+		control.addEventListener("dragging-changed", (e: { value: boolean }) => {
+			skinViewer.controls.enabled = !e.value;
+		});
+		control.attach(chain.target);
+		skinViewer.scene.add(control);
+		chain.control = control;
+		chain.root.constraints.push(new IKBallConstraint(90));
 	}
 	if (ikUpdateId !== null) {
 		cancelAnimationFrame(ikUpdateId);
@@ -700,6 +713,10 @@ function disposeIK(): void {
 		skinViewer.scene.remove(chain.target);
 		if (chain.effector && chain.effector !== chain.target) {
 			skinViewer.scene.remove(chain.effector);
+		}
+		if (chain.control) {
+			skinViewer.scene.remove(chain.control);
+			chain.control.dispose();
 		}
 	}
 	ikChains = {};
@@ -1614,7 +1631,14 @@ downloadJsonBtn?.addEventListener("click", downloadJson);
 const uploadJsonInput = document.getElementById("upload_json");
 uploadJsonInput?.addEventListener("change", uploadJson);
 
+function exportIKTargets(): string {
+	const positions = getTargetRelativePositions(ikChains);
+	const json = Object.fromEntries(Object.entries(positions).map(([name, pos]) => [name, [pos.x, pos.y, pos.z]]));
+	return JSON.stringify(json, null, 2);
+}
+
 Object.assign(window as any, {
 	KeyframeAnimation: skinview3d.KeyframeAnimation,
 	createKeyframeAnimation: skinview3d.createKeyframeAnimation,
+	exportIKTargets,
 });

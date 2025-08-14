@@ -282,6 +282,8 @@ To load this font, please add the `@font-face` rule to your CSS:
 ## IK Debugging
 
 Enable **Show IK Debug** in the demo to visualize inverse kinematics targets as colored spheres.
+Arm and leg chains are built with `buildLimbIKChains`, and each target gets a translate `TransformControls` gizmo so you can drag goals directly.
+Call `exportIKTargets()` in the console to dump relative offsets via `getTargetRelativePositions`.
 The `ik` module exposes helpers such as `getTargetRelativePositions` and `exportTargetPositions`
 for inspecting or exporting target offsets, and `snapTargetToBone` to reset a target to the end of its bone.
 Exported data is returned as JSON, making it easy to tweak or correct coordinates externally.
